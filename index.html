@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <meta name="theme-color" content="#0e0e10"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -24,13 +24,13 @@
 }
 html{-webkit-text-size-adjust:100%;}
 body{background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden;}
-.app{max-width:680px;margin:0 auto;padding:20px 16px 100px;}
+.app{max-width:680px;margin:0 auto;padding:20px 16px 100px;-webkit-overflow-scrolling:touch;}
 .hdr{text-align:center;margin-bottom:24px;}
 .hdr h1{font-size:22px;font-weight:300;letter-spacing:.06em;font-family:'SF Mono','Fira Code','Courier New',monospace;}
 .hdr h1 span{color:var(--ac);}
 .hdr p{font-size:12px;color:var(--t3);margin-top:5px;font-family:'SF Mono','Fira Code','Courier New',monospace;}
 .top-nav{display:flex;gap:4px;margin-bottom:20px;background:var(--bg2);padding:4px;border-radius:var(--rl);border:.5px solid var(--bo);position:sticky;top:8px;z-index:100;}
-.tnav-btn{flex:1;padding:11px 4px;font-size:13px;font-weight:500;border-radius:10px;border:none;background:transparent;color:var(--t2);cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;min-height:44px;}
+.tnav-btn{flex:1;padding:11px 4px;font-size:13px;font-weight:500;border-radius:10px;border:none;background:transparent;color:var(--t2);cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;min-height:44px;touch-action:manipulation;}
 .tnav-btn.on{background:var(--bg3);color:var(--t);}
 .mpane{display:none;} .mpane.on{display:block;}
 label{font-size:13px;color:var(--t2);display:block;margin-bottom:6px;font-family:'SF Mono','Fira Code','Courier New',monospace;}
@@ -45,14 +45,14 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .card{background:var(--bg2);border:.5px solid var(--bo);border-radius:var(--rl);padding:18px 16px;margin-bottom:14px;}
 .ctag{font-size:10px;font-family:'SF Mono','Fira Code','Courier New',monospace;color:var(--ac);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
 .card h2{font-size:16px;font-weight:500;margin-bottom:14px;}
-.btn{width:100%;background:var(--ac);color:#0e0e10;border:none;border-radius:var(--r);padding:13px;font-size:15px;font-weight:500;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;min-height:var(--tap);}
+.btn{width:100%;background:var(--ac);color:#0e0e10;border:none;border-radius:var(--r);padding:13px;font-size:15px;font-weight:500;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;min-height:var(--tap);touch-action:manipulation;}
 .btn:active{background:var(--ac2);}
-.btn2{background:var(--bg3);color:var(--t2);border:.5px solid var(--bo);border-radius:var(--r);padding:10px 14px;font-size:13px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;min-height:40px;}
+.btn2{background:var(--bg3);color:var(--t2);border:.5px solid var(--bo);border-radius:var(--r);padding:10px 14px;font-size:13px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;min-height:40px;touch-action:manipulation;}
 .btn2:active{color:var(--t);border-color:var(--bo2);}
 .btn-sm{padding:8px 12px;font-size:12px;min-height:36px;}
 .mbox{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
 @media(min-width:500px){.mbox{grid-template-columns:repeat(3,1fr);}}
-.mcard{background:var(--bg3);border:.5px solid var(--bo);border-radius:var(--r);padding:12px;text-align:left;cursor:pointer;min-height:70px;}
+.mcard{background:var(--bg3);border:.5px solid var(--bo);border-radius:var(--r);padding:12px;text-align:left;cursor:pointer;min-height:70px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .mcard:active,.mcard.on{border-color:var(--ac);background:rgba(200,169,110,.08);}
 .mcard .mn{font-size:10px;color:var(--ac);font-family:'SF Mono','Fira Code','Courier New',monospace;margin-bottom:3px;letter-spacing:.05em;}
 .mcard .ml{font-size:13px;color:var(--t);font-weight:500;}
@@ -63,16 +63,16 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .vbox textarea:focus{border-color:var(--ac);}
 .vhint{font-size:11px;color:var(--ac);opacity:.6;margin-top:5px;font-family:'SF Mono','Fira Code','Courier New',monospace;line-height:1.5;}
 .chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
-.chip{padding:7px 13px;border-radius:20px;font-size:13px;border:.5px solid var(--bo);background:transparent;color:var(--t2);cursor:pointer;min-height:36px;}
+.chip{padding:7px 13px;border-radius:20px;font-size:13px;border:.5px solid var(--bo);background:transparent;color:var(--t2);cursor:pointer;min-height:36px;touch-action:manipulation;}
 .chip.on{background:var(--bg4);color:var(--t);border-color:var(--bo2);}
 .ltog{display:flex;gap:6px;margin-bottom:14px;}
-.lbtn{flex:1;padding:10px;font-size:13px;border-radius:var(--r);border:.5px solid var(--bo);background:var(--bg3);color:var(--t2);cursor:pointer;text-align:center;min-height:var(--tap);}
+.lbtn{flex:1;padding:10px;font-size:13px;border-radius:var(--r);border:.5px solid var(--bo);background:var(--bg3);color:var(--t2);cursor:pointer;text-align:center;min-height:var(--tap);touch-action:manipulation;}
 .lbtn.on{border-color:var(--ac);color:var(--ac);background:rgba(200,169,110,.08);}
-.dropz{border:1.5px dashed var(--bo2);border-radius:var(--rl);padding:28px 20px;text-align:center;cursor:pointer;background:var(--bg3);}
+.dropz{border:1.5px dashed var(--bo2);border-radius:var(--rl);padding:28px 20px;text-align:center;cursor:pointer;background:var(--bg3);touch-action:manipulation;}
 .dropz .dt{font-size:15px;color:var(--t2);margin-bottom:4px;}
 .dropz .ds{font-size:12px;color:var(--t3);}
-.extbox{background:var(--bg3);border:.5px solid var(--gr);border-radius:var(--r);padding:12px 13px;font-size:13px;color:var(--t);max-height:180px;overflow-y:auto;white-space:pre-wrap;line-height:1.6;margin-top:10px;font-family:'SF Mono','Fira Code','Courier New',monospace;}
-.sitem{background:var(--bg3);border:.5px solid var(--bo);border-radius:var(--r);padding:12px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.extbox{background:var(--bg3);border:.5px solid var(--gr);border-radius:var(--r);padding:12px 13px;font-size:13px;color:var(--t);max-height:180px;overflow-y:auto;-webkit-overflow-scrolling:touch;white-space:pre-wrap;line-height:1.6;margin-top:10px;font-family:'SF Mono','Fira Code','Courier New',monospace;}
+.sitem{background:var(--bg3);border:.5px solid var(--bo);border-radius:var(--r);padding:12px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;touch-action:manipulation;}
 .sitem:active{background:var(--bg4);}
 .sname{font-size:14px;font-weight:500;}
 .ssub{font-size:11px;color:var(--t3);font-family:'SF Mono','Fira Code','Courier New',monospace;margin-top:2px;}
@@ -80,7 +80,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .out-wrap{display:none;background:var(--bg2);border:.5px solid var(--ac);border-radius:var(--rl);padding:18px 16px;margin-top:10px;}
 .out-wrap.on{display:block;}
 .otag{font-size:10px;font-family:'SF Mono','Fira Code','Courier New',monospace;color:var(--ac);letter-spacing:.08em;text-transform:uppercase;}
-.pbox{background:var(--bg3);border-radius:var(--r);padding:14px;font-size:13px;color:var(--t);line-height:1.75;white-space:pre-wrap;max-height:420px;overflow-y:auto;font-family:'SF Mono','Fira Code','Courier New',monospace;border:.5px solid var(--bo);margin:12px 0;cursor:text;-webkit-user-select:text;user-select:text;}
+.pbox{background:var(--bg3);border-radius:var(--r);padding:14px;font-size:13px;color:var(--t);line-height:1.75;white-space:pre-wrap;max-height:420px;overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:'SF Mono','Fira Code','Courier New',monospace;border:.5px solid var(--bo);margin:12px 0;cursor:text;-webkit-user-select:text;user-select:text;}
 .pt-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
 .pt{background:var(--bg3);border:.5px solid var(--bo);border-radius:var(--r);padding:10px 13px;font-size:13px;color:var(--t2);text-decoration:none;display:flex;align-items:center;gap:7px;min-height:var(--tap);flex:1;min-width:110px;justify-content:center;}
 .pdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
@@ -90,7 +90,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .div{height:.5px;background:var(--bo);margin:6px 0 14px;}
 /* REF */
 .rtabs{display:flex;gap:4px;margin-bottom:16px;background:var(--bg2);padding:4px;border-radius:var(--rl);border:.5px solid var(--bo);}
-.rtab{flex:1;padding:10px 4px;font-size:12px;font-weight:500;border-radius:10px;border:none;background:transparent;color:var(--t2);cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;min-height:44px;}
+.rtab{flex:1;padding:10px 4px;font-size:12px;font-weight:500;border-radius:10px;border:none;background:transparent;color:var(--t2);cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;min-height:44px;touch-action:manipulation;}
 .rtab.on{background:var(--bg3);color:var(--t);}
 .rpane{display:none;} .rpane.on{display:block;}
 .rsec{margin-bottom:20px;}
@@ -122,7 +122,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .sid{font-size:11px;color:var(--t2);line-height:1.4;}
 .cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:.5px solid var(--bo);}
 .cl-item:last-child{border-bottom:none;}
-.cbox{width:22px;height:22px;border-radius:6px;border:.5px solid var(--bo2);background:var(--bg3);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--gr);min-width:22px;}
+.cbox{width:22px;height:22px;border-radius:6px;border:.5px solid var(--bo2);background:var(--bg3);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--gr);min-width:22px;touch-action:manipulation;}
 .cbox.on{background:rgba(62,207,142,.1);border-color:var(--gr);}
 .ctext{font-size:13px;color:var(--t2);line-height:1.5;}
 .ctext strong{color:var(--t);font-weight:500;}
@@ -142,7 +142,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 <div class="card">
   <div class="ctag">Quick start</div>
-  <div class="row"><label>Describe what is happening</label><textarea id="qi" placeholder="e.g. She sent me a short reply after 2 days of good chat and I don't know if she's losing interest..." rows="2" oninput="qSuggest(this.value)"></textarea></div>
+  <div class="row"><label>Describe what is happening</label><textarea autocomplete="off" id="qi" placeholder="e.g. She sent me a short reply after 2 days of good chat and I don't know if she's losing interest..." rows="2" oninput="qSuggest(this.value)"></textarea></div>
   <div class="qr-res" id="qr"><span id="qr-text"></span> &nbsp;<button class="btn2 btn-sm" onclick="applyQ()" style="margin-top:8px;width:100%;">Use this mode</button></div>
 </div>
 
@@ -166,7 +166,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="card">
   <div class="ctag">Upload conversation — optional</div>
   <div class="dropz" onclick="document.getElementById('fup').click()"><div class="dt">Tap to upload</div><div class="ds">WhatsApp .txt export or screenshot jpg/png</div></div>
-  <input type="file" id="fup" accept=".txt,image/jpeg,image/png,image/webp" style="display:none;" onchange="handleFile(this)"/>
+  <input type="file" id="fup" accept=".txt,image/jpeg,image/png,image/webp" style="display:none;" onchange="handleFile(this)"/ autocomplete="off">
   <div id="ext-wrap" style="display:none;">
     <div style="font-size:11px;color:var(--gr);font-family:'SF Mono','Fira Code','Courier New',monospace;margin-top:10px;margin-bottom:4px;" id="ext-lbl">Extracted</div>
     <div class="extbox" id="ext-box"></div>
@@ -181,7 +181,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <button class="btn2 btn-sm" onclick="exportSaves()" style="flex:1;">Export setups</button>
     <button class="btn2 btn-sm" onclick="importSaves()" style="flex:1;">Import setups</button>
   </div>
-  <input type="file" id="import-file" accept=".json" style="display:none;" onchange="doImport(this)"/>
+  <input type="file" id="import-file" accept=".json" style="display:none;" onchange="doImport(this)"/ autocomplete="off">
 </div>
 
 <div class="card">
@@ -221,7 +221,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
     <a class="pt" href="https://chat.openai.com" target="_blank"><span class="pdot" style="background:#10a37f;"></span>ChatGPT</a>
   </div>
   <div id="sname-wrap" style="display:none;gap:8px;margin-top:12px;flex-wrap:wrap;">
-    <input type="text" id="sname-in" placeholder="Name this setup..." style="flex:1;"/>
+    <input type="text" id="sname-in" placeholder="Name this setup..." style="flex:1;"/ autocomplete="off">
     <button class="btn2 btn-sm" onclick="doSave()">Save</button>
   </div>
 </div>
@@ -442,19 +442,19 @@ function buildForm(m,pre){
     var pv=pre[fid]||'';
     var cv=(fid==='her_msg'||fid==='conv')&&extConv?extConv:pv;
     var lbl='<label>'+d.l+(d.opt?' <span class="op">(optional)</span>':'')+'</label>';
-    if(d.t==='ta'){w.innerHTML=lbl+'<textarea id="f_'+fid+'" rows="'+(d.rows||3)+'" placeholder="'+(d.p||'')+'">'+eH(cv)+'</textarea>';}
-    else if(d.t==='txt'){w.innerHTML=lbl+'<input type="text" id="f_'+fid+'" placeholder="'+(d.p||'')+'" value="'+eH(pv)+'"/>';}
+    if(d.t==='ta'){w.innerHTML=lbl+'<textarea autocomplete="off" id="f_'+fid+'" rows="'+(d.rows||3)+'" placeholder="'+(d.p||'')+'">'+eH(cv)+'</textarea>';}
+    else if(d.t==='txt'){w.innerHTML=lbl+'<input type="text" id="f_'+fid+'" placeholder="'+(d.p||'')+'" value="'+eH(pv)+'"/ autocomplete="off">';}
     else if(d.t==='sel'){var opts=d.o.map(function(o){return'<option'+(o===pv?' selected':'')+'>'+o+'</option>';}).join('');w.innerHTML=lbl+'<select id="f_'+fid+'">'+opts+'</select>';}
     else if(d.t==='chips'){
       var chips=d.o.map(function(o){return'<button class="chip" data-v="'+o+'" onclick="tgChip(this)">'+o+'</button>';}).join('');
-      var cust=d.custom?'<input type="text" id="f_'+fid+'_c" placeholder="Add your own reason (optional)..." style="margin-top:8px;"/>':'';
+      var cust=d.custom?'<input type="text" id="f_'+fid+'_c" placeholder="Add your own reason (optional)..." style="margin-top:8px;"/ autocomplete="off">':'';
       w.innerHTML=lbl+'<div class="chip-row" id="f_'+fid+'">'+chips+'</div>'+cust;
     }
     f.appendChild(w);
   });
   if(m.v){
     var vw=document.createElement('div');vw.className='vbox row';
-    vw.innerHTML='<label>What I want to say — in my own words <span class="op">(optional)</span></label><textarea id="f_voice" rows="2" placeholder="e.g. I want to say I think she is interesting and ask about her trip but without sounding eager...">'+eH(pre.voice||'')+'</textarea><div class="vhint">Write naturally — it will be Bond-ified in the prompt</div>';
+    vw.innerHTML='<label>What I want to say — in my own words <span class="op">(optional)</span></label><textarea autocomplete="off" id="f_voice" rows="2" placeholder="e.g. I want to say I think she is interesting and ask about her trip but without sounding eager...">'+eH(pre.voice||'')+'</textarea><div class="vhint">Write naturally — it will be Bond-ified in the prompt</div>';
     f.appendChild(vw);
   }
   // Hide custom time input by default
@@ -486,10 +486,7 @@ function setLang(l,el){
   var deOpts=document.getElementById('de-opts');
   if(deOpts)deOpts.style.display=l==='en'?'none':'block';
 }
-document.getElementById('de-style').addEventListener('change',function(){
-  var hint=document.getElementById('de-draft-hint');
-  if(hint)hint.style.display=this.value==='draft'?'block':'none';
-});
+
 
 // Quick suggest
 var QK={
@@ -820,13 +817,29 @@ buildCL();
 
 function showN(msg){var n=document.getElementById('notif');n.textContent=msg;n.style.display='block';setTimeout(function(){n.style.display='none';},3000);}
 
-// Show custom time input when Custom selected
-document.addEventListener('change',function(e){
-  if(e.target&&e.target.id==='f_time_since'){
-    var cw=document.getElementById('fw_time_since_custom');
-    if(cw)cw.style.display=e.target.value==='Custom'?'block':'none';
+// Safe init - runs after DOM is ready
+function initApp(){
+  // de-style listener
+  var ds=document.getElementById('de-style');
+  if(ds){
+    ds.addEventListener('change',function(){
+      var hint=document.getElementById('de-draft-hint');
+      if(hint)hint.style.display=this.value==='draft'?'block':'none';
+    });
   }
-});
+  // time_since custom field toggle
+  document.addEventListener('change',function(e){
+    if(e.target&&e.target.id==='f_time_since'){
+      var cw=document.getElementById('fw_time_since_custom');
+      if(cw)cw.style.display=e.target.value==='Custom'?'block':'none';
+    }
+  });
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',initApp);
+}else{
+  initApp();
+}
 
 // PWA install
 var deferredPrompt=null;
