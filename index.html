@@ -134,8 +134,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="app">
 <div class="hdr"><h1>Bond <span>Suite</span></h1><p>prompts · reference · zero api · paste into any ai</p></div>
 <div class="tnav">
-  <button type="button" class="on" id="tn-prompts" onclick="swMain('prompts',this)">Prompts</button>
-  <button type="button" id="tn-reference" onclick="swMain('reference',this)">Reference</button>
+  <button type="button" class="on" id="tn-prompts" data-action="main-prompts">Prompts</button>
+  <button type="button" id="tn-reference" data-action="main-reference">Reference</button>
 </div>
 
 <!-- PROMPTS -->
@@ -146,15 +146,15 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="ctag">Quick start</div>
   <div class="row"><label>Describe what is happening</label>
   <textarea id="qi" rows="2" placeholder="e.g. She sent a short reply after 2 days of good chat and I don't know if she's losing interest..."></textarea></div>
-  <div class="qres" id="qr"><span id="qrtxt"></span><br><button type="button" class="btn2 bsm" onclick="applyQ()" style="margin-top:8px;width:100%">Use this mode</button></div>
+  <div class="qres" id="qr"><span id="qrtxt"></span><br><button type="button" class="btn2 bsm" data-action="apply-q" style="margin-top:8px;width:100%">Use this mode</button></div>
 </div>
 
 <div class="card">
   <div class="ctag">Language output</div>
   <div class="ltog">
-    <button type="button" class="lbtn on" id="lg-both" onclick="setLang('both',this)">EN + DE</button>
-    <button type="button" class="lbtn" id="lg-en" onclick="setLang('en',this)">English only</button>
-    <button type="button" class="lbtn" id="lg-de" onclick="setLang('de',this)">German only</button>
+    <button type="button" class="lbtn on" id="lg-both" data-action="lang-both">EN + DE</button>
+    <button type="button" class="lbtn" id="lg-en" data-action="lang-en">English only</button>
+    <button type="button" class="lbtn" id="lg-de" data-action="lang-de">German only</button>
   </div>
   <div id="de-opts" style="margin-top:4px">
     <div class="row"><label>German style</label>
@@ -177,7 +177,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div id="ext-wrap" style="display:none">
     <div style="font-size:11px;color:var(--gr);font-family:'DM Mono',monospace;margin-top:10px;margin-bottom:4px" id="ext-lbl">Extracted</div>
     <div class="ebox" id="ext-box"></div>
-    <button type="button" class="btn2 bsm" onclick="clearExt()" style="margin-top:8px;width:100%">Clear</button>
+    <button type="button" class="btn2 bsm" data-action="clear-ext" style="margin-top:8px;width:100%">Clear</button>
   </div>
 </div>
 
@@ -185,8 +185,8 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <div class="ctag">Saved setups</div>
   <div id="saved-list"></div>
   <div id="export-row" style="display:none;flex-wrap:wrap;gap:8px;margin-top:10px">
-    <button type="button" class="btn2 bsm" onclick="exportSaves()" style="flex:1">Export JSON</button>
-    <button type="button" class="btn2 bsm" onclick="document.getElementById('imp-in').click()" style="flex:1">Import JSON</button>
+    <button type="button" class="btn2 bsm" data-action="export" style="flex:1">Export JSON</button>
+    <button type="button" class="btn2 bsm" data-action="import" style="flex:1">Import JSON</button>
     <input type="file" id="imp-in" accept=".json" style="display:none" onchange="importSaves(this)">
   </div>
 </div>
@@ -201,20 +201,20 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   <h2 id="form-title"></h2>
   <div id="dyn-form"></div>
   <div class="div"></div>
-  <button type="button" class="btn" onclick="buildPrompt()">Build my prompt</button>
+  <button type="button" class="btn" data-action="build">Build my prompt</button>
 </div>
 
 <div class="outwrap" id="outwrap">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
     <span class="otag" id="out-tag"></span>
-    <button type="button" class="btn2 bsm" onclick="toggleSaveName()">Save setup</button>
+    <button type="button" class="btn2 bsm" data-action="toggle-save">Save setup</button>
   </div>
   <div class="ptag" id="ptag"></div>
   <div class="pbox" id="pbox" onclick="selectAll(this)"></div>
   <div class="cinfo"><span class="ccount" id="ccount"></span><span class="chint">tap text to select all</span></div>
   <div style="display:flex;gap:8px;margin-bottom:10px">
-    <button type="button" class="btn" onclick="doCopy()" id="copy-btn" style="flex:2">Copy prompt</button>
-    <button type="button" class="btn2" onclick="resetAll()" style="flex:1">Reset</button>
+    <button type="button" class="btn" data-action="copy" id="copy-btn" style="flex:2">Copy prompt</button>
+    <button type="button" class="btn2" data-action="reset" style="flex:1">Reset</button>
   </div>
   <div id="copy-msg" style="font-size:12px;color:var(--gr);font-family:'DM Mono',monospace;text-align:center;min-height:18px;margin-bottom:10px"></div>
   <div style="font-size:11px;color:var(--t3);font-family:'DM Mono',monospace;margin-bottom:6px">PASTE INTO</div>
@@ -226,7 +226,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
   </div>
   <div id="save-row" style="display:none;gap:8px;margin-top:12px;flex-wrap:wrap">
     <input type="text" id="save-name" placeholder="Name this setup..." style="flex:1;min-width:160px">
-    <button type="button" class="btn2 bsm" onclick="confirmSave()">Save</button>
+    <button type="button" class="btn2 bsm" data-action="confirm-save">Save</button>
   </div>
 </div>
 
@@ -236,10 +236,10 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 <div class="mpane" id="mp-reference">
 <div class="rtabs">
-  <button type="button" class="rtab on" id="rt-principles" onclick="swRef('principles',this)">Principles</button>
-  <button type="button" class="rtab" id="rt-mistakes" onclick="swRef('mistakes',this)">Mistakes</button>
-  <button type="button" class="rtab" id="rt-signals" onclick="swRef('signals',this)">Signals</button>
-  <button type="button" class="rtab" id="rt-checklist" onclick="swRef('checklist',this)">Pre-send</button>
+  <button type="button" class="rtab on" id="rt-principles" data-action="ref-principles">Principles</button>
+  <button type="button" class="rtab" id="rt-mistakes" data-action="ref-mistakes">Mistakes</button>
+  <button type="button" class="rtab" id="rt-signals" data-action="ref-signals">Signals</button>
+  <button type="button" class="rtab" id="rt-checklist" data-action="ref-checklist">Pre-send</button>
 </div>
 
 <div class="rpane on" id="rp-principles">
@@ -297,7 +297,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 <div class="rpane" id="rp-checklist">
   <div class="rsec"><div class="rsec-t">Before you hit send</div>
     <div class="rc"><div id="cl-list"></div></div>
-    <button type="button" class="btn2" onclick="resetCL()" style="width:100%;margin-top:8px">Reset checklist</button>
+    <button type="button" class="btn2" data-action="reset-cl" style="width:100%;margin-top:8px">Reset checklist</button>
   </div>
   <div class="rsec"><div class="rsec-t">Red flags in your own message</div>
     <ul class="rl">
@@ -571,7 +571,7 @@ function buildForm(m, pre) {
   var opts = d.o.map(function(o) { return '<option' + (o === pv ? ' selected' : '') + '>' + o + '</option>'; }).join('');
   w.innerHTML = lbl + '<select id="f_' + fid + '">' + opts + '</select>';
 } else if(d.t === 'chips') {
-  var chips = d.o.map(function(o) { return '<button type="button" class="chip" data-v="' + eH(o) + '" onclick="tgChip(this)">' + o + '</button>'; }).join('');
+  var chips = d.o.map(function(o) { return '<button type="button" class="chip" data-v="' + eH(o) + '">' + o + '</button>'; }).join('');
   var cust = d.custom ? '<input type="text" id="f_' + fid + '_c" placeholder="Add your own reason (optional)..." style="margin-top:8px">' : '';
   w.innerHTML = lbl + '<div class="chips" id="f_' + fid + '">' + chips + '</div>' + cust;
 }
@@ -1030,7 +1030,7 @@ var CL = [
 function buildCL() {
 var el = document.getElementById(‘cl-list’); if(!el) return;
 var h = ‘’;
-CL.forEach(function(t, i) { h += ‘<div class="cli"><div class="cbox" id="ck' + i + '" onclick="tgCk(' + i + ')"></div><div class="ctxt">’ + t + ‘</div></div>’; });
+CL.forEach(function(t, i) { h += ‘<div class="cli"><div class="cbox" id="ck' + i + '" data-ck="' + i + '"></div><div class="ctxt">’ + t + ‘</div></div>’; });
 el.innerHTML = h;
 }
 
@@ -1093,13 +1093,103 @@ buildModeGrid();
 renderSaved();
 loadPrefs();
 setupQI();
+wireButtons();
 }
 
-if(document.readyState === ‘loading’) {
-document.addEventListener(‘DOMContentLoaded’, init);
-} else {
-init();
+// Wire all buttons via event delegation - most reliable on iOS Safari
+function wireButtons() {
+document.body.addEventListener(‘click’, function(e) {
+// Walk up to find a button with data-action
+var el = e.target;
+while(el && el !== document.body) {
+var action = el.getAttribute ? el.getAttribute(‘data-action’) : null;
+if(action) {
+e.preventDefault();
+handleAction(action, el);
+return;
 }
+// Handle chip buttons (tgChip)
+if(el.classList && el.classList.contains(‘chip’)) {
+tgChip(el);
+return;
+}
+// Handle mcard buttons
+if(el.classList && el.classList.contains(‘mcard’)) {
+var mid = el.getAttribute(‘data-id’);
+if(mid) { selMode2(mid); return; }
+}
+// Handle checklist boxes
+if(el.classList && el.classList.contains(‘cbox’)) {
+var ckIdx = el.getAttribute(‘data-ck’);
+if(ckIdx !== null) { tgCk(parseInt(ckIdx, 10)); return; }
+var ckId = el.id;
+if(ckId && ckId.indexOf(‘ck’) === 0) { tgCk(parseInt(ckId.replace(‘ck’,’’), 10)); return; }
+}
+// Handle sdel (delete saved)
+if(el.classList && el.classList.contains(‘sdel’)) {
+var idx = el.getAttribute(‘data-idx’);
+if(idx !== null) { delSaveByIdx(parseInt(idx, 10)); return; }
+}
+// Handle sitem (load saved) - but not if sdel was clicked
+if(el.classList && el.classList.contains(‘sitem’)) {
+var idx2 = el.getAttribute(‘data-idx’);
+if(idx2 !== null) { loadSave(parseInt(idx2, 10)); return; }
+}
+el = el.parentElement;
+}
+}, false);
+}
+
+function handleAction(action, el) {
+if(action === ‘main-prompts’) { swMain(‘prompts’, el); return; }
+if(action === ‘main-reference’) { swMain(‘reference’, el); return; }
+if(action === ‘ref-principles’) { swRef(‘principles’, el); return; }
+if(action === ‘ref-mistakes’) { swRef(‘mistakes’, el); return; }
+if(action === ‘ref-signals’) { swRef(‘signals’, el); return; }
+if(action === ‘ref-checklist’) { swRef(‘checklist’, el); return; }
+if(action === ‘lang-both’) { setLang(‘both’, el); return; }
+if(action === ‘lang-en’) { setLang(‘en’, el); return; }
+if(action === ‘lang-de’) { setLang(‘de’, el); return; }
+if(action === ‘build’) { buildPrompt(); return; }
+if(action === ‘copy’) { doCopy(); return; }
+if(action === ‘reset’) { resetAll(); return; }
+if(action === ‘toggle-save’) { toggleSaveName(); return; }
+if(action === ‘confirm-save’) { confirmSave(); return; }
+if(action === ‘export’) { exportSaves(); return; }
+if(action === ‘import’) { var imp = document.getElementById(‘imp-in’); if(imp) imp.click(); return; }
+if(action === ‘clear-ext’) { clearExt(); return; }
+if(action === ‘reset-cl’) { resetCL(); return; }
+if(action === ‘apply-q’) { applyQ(); return; }
+}
+
+// Update renderSaved to use data-idx instead of inline onclick
+var _origRenderSaved = renderSaved;
+renderSaved = function() {
+var el = document.getElementById(‘saved-list’);
+var er = document.getElementById(‘export-row’);
+if(!saves.length) {
+if(el) el.innerHTML = ‘<div style="font-size:13px;color:var(--t3)">No saved setups yet.</div>’;
+if(er) er.style.display = ‘none’;
+return;
+}
+var h = ‘’;
+saves.forEach(function(s, i) {
+h += ‘<div class="sitem" data-idx="' + i + '">’;
+h += ‘<div style="flex:1"><div class="sname">’ + eH(s.nm) + ‘</div>’;
+h += ‘<div class="ssub">’ + eH(s.md) + ’ · ’ + eH(s.lg) + ‘</div></div>’;
+h += ‘<span class="sdel" data-idx="' + i + '">×</span></div>’;
+});
+if(el) el.innerHTML = h;
+if(er) er.style.display = ‘flex’;
+};
+
+function delSaveByIdx(i) {
+saves.splice(i, 1);
+try { localStorage.setItem(‘bs_saves’, JSON.stringify(saves)); } catch(e) {}
+renderSaved();
+}
+
+window.addEventListener(‘load’, init);
 </script>
 
 </body>
