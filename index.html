@@ -404,21 +404,27 @@ var QK = {
   first_date_planner:['plan the date','date idea','what to bring','what to talk about on the date']
 };
 
-document.getElementById('qi').addEventListener('input', function() {
-  var v = this.value;
-  if(!v || v.length < 6) { document.getElementById('qr').className = 'qres'; return; }
-  var low = v.toLowerCase(), best = '', bsc = 0;
-  Object.keys(QK).forEach(function(k) {
-    QK[k].forEach(function(kw) {
-      if(low.indexOf(kw) >= 0 && kw.length > bsc) { bsc = kw.length; best = k; }
+function setupQI() {
+  var qi = document.getElementById('qi');
+  if(!qi) return;
+  qi.addEventListener('input', function() {
+    var v = this.value;
+    if(!v || v.length < 6) { document.getElementById('qr').className = 'qres'; return; }
+    var low = v.toLowerCase(), best = '', bsc = 0;
+    Object.keys(QK).forEach(function(k) {
+      QK[k].forEach(function(kw) {
+        if(low.indexOf(kw) >= 0 && kw.length > bsc) { bsc = kw.length; best = k; }
+      });
     });
+    if(!best) { document.getElementById('qr').className = 'qres'; return; }
+    qMode = best;
+    var m = MODES.find(function(x) { return x.id === best; });
+    var qt = document.getElementById('qrtxt');
+    if(qt) qt.innerHTML = 'Looks like: <strong>' + m.n + '</strong> — ' + m.s;
+    var qr = document.getElementById('qr');
+    if(qr) qr.className = 'qres on';
   });
-  if(!best) { document.getElementById('qr').className = 'qres'; return; }
-  qMode = best;
-  var m = MODES.find(function(x) { return x.id === best; });
-  document.getElementById('qrtxt').innerHTML = 'Looks like: <strong>' + m.n + '</strong> — ' + m.s;
-  document.getElementById('qr').className = 'qres on';
-});
+}
 
 function applyQ() { if(qMode) selMode2(qMode); }
 
@@ -457,17 +463,21 @@ var MODES = [
   {id:'date_ideas', n:'Date Ideas', s:'What to suggest', i:'31', v:false, f:['her_int','city','budget']}
 ];
 
-// Build mode grid
-var mg = document.getElementById('mode-grid');
-MODES.forEach(function(m) {
-  var b = document.createElement('button');
-  b.type = 'button';
-  b.className = 'mcard';
-  b.setAttribute('data-id', m.id);
-  b.innerHTML = '<div class="mi">' + m.i + '</div><div class="ml">' + m.n + '</div><div class="ms">' + m.s + '</div>';
-  b.onclick = (function(id){ return function(){ selMode2(id); }; })(m.id);
-  mg.appendChild(b);
-});
+// Build mode grid — wrapped in init, runs after DOM ready
+function buildModeGrid() {
+  var mg = document.getElementById('mode-grid');
+  if(!mg) { setTimeout(buildModeGrid, 50); return; }
+  mg.innerHTML = '';
+  MODES.forEach(function(m) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'mcard';
+    b.setAttribute('data-id', m.id);
+    b.innerHTML = '<div class="mi">' + m.i + '</div><div class="ml">' + m.n + '</div><div class="ms">' + m.s + '</div>';
+    b.onclick = (function(id){ return function(){ selMode2(id); }; })(m.id);
+    mg.appendChild(b);
+  });
+}
 
 // ── FIELD DEFINITIONS ──
 var FLD = {
@@ -1034,8 +1044,62 @@ function resetCL() {
 CL.forEach(function(t, i) { var el = document.getElementById(‘ck’ + i); if(el){ el.className = ‘cbox’; el.textContent = ‘’; } });
 }
 
+// ── PREFERENCES MEMORY ──
+var PREFS_KEY = ‘bs_prefs’;
+function savePrefs() {
+var dsEl = document.getElementById(‘de-style’);
+var prefs = {
+lang: selLang,
+deStyle: dsEl ? dsEl.value : ‘b1’
+};
+try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch(e) {}
+}
+
+function loadPrefs() {
+try {
+var raw = localStorage.getItem(PREFS_KEY);
+if(!raw) return;
+var prefs = JSON.parse(raw);
+if(prefs.lang) {
+selLang = prefs.lang;
+[‘both’,‘en’,‘de’].forEach(function(x) {
+var b = document.getElementById(‘lg-’ + x);
+if(b) b.className = ‘lbtn’ + (x === prefs.lang ? ’ on’ : ‘’);
+});
+var de = document.getElementById(‘de-opts’);
+if(de) de.style.display = prefs.lang === ‘en’ ? ‘none’ : ‘block’;
+}
+if(prefs.deStyle) {
+var dsEl = document.getElementById(‘de-style’);
+if(dsEl) {
+dsEl.value = prefs.deStyle;
+var hint = document.getElementById(‘de-draft-hint’);
+if(hint) hint.style.display = prefs.deStyle === ‘draft’ ? ‘block’ : ‘none’;
+}
+}
+} catch(e) {}
+}
+
+// Save prefs when lang or de-style changes
+var origSetLang = setLang;
+setLang = function(l, el) { origSetLang(l, el); savePrefs(); };
+
+var origOnDeStyle = onDeStyle;
+onDeStyle = function() { origOnDeStyle(); savePrefs(); };
+
 // ── INIT ──
+function init() {
+buildModeGrid();
 renderSaved();
+loadPrefs();
+setupQI();
+}
+
+if(document.readyState === ‘loading’) {
+document.addEventListener(‘DOMContentLoaded’, init);
+} else {
+init();
+}
 </script>
 
 </body>
