@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+<meta name="theme-color" content="#0e0e10"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Bond Suite"/>
+<link rel="manifest" href="data:application/json,%7B%0A%20%20%22name%22%3A%20%22Bond%20Suite%22%2C%0A%20%20%22short_name%22%3A%20%22Bond%22%2C%0A%20%20%22description%22%3A%20%22Dating%20prompt%20generator%20and%20reference%20%E2%80%94%20zero%20API%22%2C%0A%20%20%22start_url%22%3A%20%22.%22%2C%0A%20%20%22display%22%3A%20%22standalone%22%2C%0A%20%20%22background_color%22%3A%20%22%230e0e10%22%2C%0A%20%20%22theme_color%22%3A%20%22%230e0e10%22%2C%0A%20%20%22orientation%22%3A%20%22portrait-primary%22%2C%0A%20%20%22icons%22%3A%20%5B%7B%22src%22%3A%20%22data%3Aimage/svg%2Bxml%2C%253Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20192%20192%27%253E%253Crect%20width%3D%27192%27%20height%3D%27192%27%20fill%3D%27%25230e0e10%27/%253E%253Ctext%20x%3D%2796%27%20y%3D%27130%27%20font-family%3D%27serif%27%20font-size%3D%27100%27%20text-anchor%3D%27middle%27%20fill%3D%27%2523c8a96e%27%253EB%253C/text%253E%253C/svg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image/svg%2Bxml%22%7D%2C%7B%22src%22%3A%22data%3Aimage/svg%2Bxml%2C%253Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20512%20512%27%253E%253Crect%20width%3D%27512%27%20height%3D%27512%27%20fill%3D%27%25230e0e10%27/%253E%253Ctext%20x%3D%27256%27%20y%3D%27360%27%20font-family%3D%27serif%27%20font-size%3D%27280%27%20text-anchor%3D%27middle%27%20fill%3D%27%2523c8a96e%27%253EB%253C/text%253E%253C/svg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image/svg%2Bxml%22%7D%5D%0A%7D"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230e0e10'/%3E%3Ctext x='90' y='130' font-family='serif' font-size='100' text-anchor='middle' fill='%23c8a96e'%3EB%3C/text%3E%3C/svg%3E"/>
+<title>Bond Suite</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0e0e10;--bg2:#17171a;--bg3:#1f1f23;--bg4:#2a2a30;
+  --bo:#2a2a32;--bo2:#3d3d48;
+  --t:#e8e8ec;--t2:#9898a8;--t3:#4a4a58;
+  --ac:#c8a96e;--ac2:#a88848;
+  --gr:#3ecf8e;--rd:#e05c5c;--yl:#e0a84a;--bl:#5c9de0;
+  --r:12px;--rl:16px;--tap:48px;
+}
+html{-webkit-text-size-adjust:100%;}
+body{background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden;}
+.app{max-width:680px;margin:0 auto;padding:20px 16px 100px;}
+.hdr{text-align:center;margin-bottom:24px;}
+.hdr h1{font-size:22px;font-weight:300;letter-spacing:.06em;font-family:'SF Mono','Fira Code','Courier New',monospace;}
+.hdr h1 span{color:var(--ac);}
+.hdr p{font-size:12px;color:var(--t3);margin-top:5px;font-family:'SF Mono','Fira Code','Courier New',monospace;}
+.top-nav{display:flex;gap:4px;margin-bottom:20px;background:var(--bg2);padding:4px;border-radius:var(--rl);border:.5px solid var(--bo);position:sticky;top:8px;z-index:100;}
+.tnav-btn{flex:1;padding:11px 4px;font-size:13px;font-weight:500;border-radius:10px;border:none;background:transparent;color:var(--t2);cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;min-height:44px;}
+.tnav-btn.on{background:var(--bg3);color:var(--t);}
+.mpane{display:none;} .mpane.on{display:block;}
+label{font-size:13px;color:var(--t2);display:block;margin-bottom:6px;font-family:'SF Mono','Fira Code','Courier New',monospace;}
+label .op{color:var(--t3);font-weight:300;}
+input,textarea,select{width:100%;background:var(--bg3);border:.5px solid var(--bo2);border-radius:var(--r);padding:11px 13px;font-size:15px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:var(--t);outline:none;transition:border .15s;appearance:none;-webkit-appearance:none;min-height:var(--tap);}
+input:focus,textarea:focus,select:focus{border-color:var(--ac);}
+textarea{resize:vertical;line-height:1.6;min-height:80px;}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239898a8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;}
+.row{margin-bottom:14px;}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+@media(max-width:380px){.r2{grid-template-columns:1fr;}}
+.card{background:var(--bg2);border:.5px solid var(--bo);border-radius:var(--rl);padding:18px 16px;margin-bottom:14px;}
+.ctag{font-size:10px;font-family:'SF Mono','Fira Code','Courier New',monospace;color:var(--ac);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+.card h2{font-size:16px;font-weight:500;margin-bottom:14px;}
+.btn{width:100%;background:var(--ac);color:#0e0e10;border:none;border-radius:var(--r);padding:13px;font-size:15px;font-weight:500;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;min-height:var(--tap);}
+.btn:active{background:var(--ac2);}
+.btn2{background:var(--bg3);color:var(--t2);border:.5px solid var(--bo);border-radius:var(--r);padding:10px 14px;font-size:13px;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;min-height:40px;}
+.btn2:active{color:var(--t);border-color:var(--bo2);}
+.btn-sm{padding:8px 12px;font-size:12px;min-height:36px;}
+.mbox{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+@media(min-width:500px){.mbox{grid-template-columns:repeat(3,1fr);}}
+.mcard{background:var(--bg3);border:.5px solid var(--bo);border-radius:var(--r);padding:12px;text-align:left;cursor:pointer;min-height:70px;}
+.mcard:active,.mcard.on{border-color:var(--ac);background:rgba(200,169,110,.08);}
+.mcard .mn{font-size:10px;color:var(--ac);font-family:'SF Mono','Fira Code','Courier New',monospace;margin-bottom:3px;letter-spacing:.05em;}
+.mcard .ml{font-size:13px;color:var(--t);font-weight:500;}
+.mcard .ms{font-size:11px;color:var(--t3);margin-top:2px;}
+.vbox{background:rgba(200,169,110,.05);border:.5px solid rgba(200,169,110,.25);border-radius:var(--r);padding:12px 13px;margin-bottom:14px;}
+.vbox label{color:var(--ac);}
+.vbox textarea{background:rgba(200,169,110,.06);border-color:rgba(200,169,110,.2);}
+.vbox textarea:focus{border-color:var(--ac);}
+.vhint{font-size:11px;color:var(--ac);opacity:.6;margin-top:5px;font-family:'SF Mono','Fira Code','Courier New',monospace;line-height:1.5;}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.chip{padding:7px 13px;border-radius:20px;font-size:13px;border:.5px solid var(--bo);background:transparent;color:var(--t2);cursor:pointer;min-height:36px;}
+.chip.on{background:var(--bg4);color:var(--t);border-color:var(--bo2);}
+.ltog{display:flex;gap:6px;margin-bottom:14px;}
+.lbtn{flex:1;padding:10px;font-size:13px;border-radius:var(--r);border:.5px solid var(--bo);background:var(--bg3);color:var(--t2);cursor:pointer;text-align:center;min-height:var(--tap);}
+.lbtn.on{border-color:var(--ac);color:var(--ac);background:rgba(200,169,110,.08);}
+.dropz{border:1.5px dashed var(--bo2);border-radius:var(--rl);padding:28px 20px;text-align:center;cursor:pointer;background:var(--bg3);}
+.dropz .dt{font-size:15px;color:var(--t2);margin-bottom:4px;}
+.dropz .ds{font-size:12px;color:var(--t3);}
+.extbox{background:var(--bg3);border:.5px solid var(--gr);border-radius:var(--r);padding:12px 13px;font-size:13px;color:var(--t);max-height:180px;overflow-y:auto;white-space:pre-wrap;line-height:1.6;margin-top:10px;font-family:'SF Mono','Fira Code','Courier New',monospace;}
+.sitem{background:var(--bg3);border:.5px solid var(--bo);border-radius:var(--r);padding:12px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.sitem:active{background:var(--bg4);}
+.sname{font-size:14px;font-weight:500;}
+.ssub{font-size:11px;color:var(--t3);font-family:'SF Mono','Fira Code','Courier New',monospace;margin-top:2px;}
+.sdel{color:var(--t3);font-size:20px;padding:4px 8px;min-width:36px;text-align:center;}
+.out-wrap{display:none;background:var(--bg2);border:.5px solid var(--ac);border-radius:var(--rl);padding:18px 16px;margin-top:10px;}
+.out-wrap.on{display:block;}
+.otag{font-size:10px;font-family:'SF Mono','Fira Code','Courier New',monospace;color:var(--ac);letter-spacing:.08em;text-transform:uppercase;}
+.pbox{background:var(--bg3);border-radius:var(--r);padding:14px;font-size:13px;color:var(--t);line-height:1.75;white-space:pre-wrap;max-height:420px;overflow-y:auto;font-family:'SF Mono','Fira Code','Courier New',monospace;border:.5px solid var(--bo);margin:12px 0;cursor:text;-webkit-user-select:text;user-select:text;}
+.pt-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+.pt{background:var(--bg3);border:.5px solid var(--bo);border-radius:var(--r);padding:10px 13px;font-size:13px;color:var(--t2);text-decoration:none;display:flex;align-items:center;gap:7px;min-height:var(--tap);flex:1;min-width:110px;justify-content:center;}
+.pdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.qr-res{background:var(--bg3);border:.5px solid var(--bo2);border-radius:var(--r);padding:12px 13px;margin-top:10px;display:none;}
+.qr-res.on{display:block;}
+.notif{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg4);border:.5px solid var(--ac);border-radius:20px;padding:11px 20px;font-size:13px;color:var(--ac);font-family:'SF Mono','Fira Code','Courier New',monospace;display:none;z-index:999;white-space:nowrap;max-width:90vw;}
+.div{height:.5px;background:var(--bo);margin:6px 0 14px;}
+/* REF */
+.rtabs{display:flex;gap:4px;margin-bottom:16px;background:var(--bg2);padding:4px;border-radius:var(--rl);border:.5px solid var(--bo);}
+.rtab{flex:1;padding:10px 4px;font-size:12px;font-weight:500;border-radius:10px;border:none;background:transparent;color:var(--t2);cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;min-height:44px;}
+.rtab.on{background:var(--bg3);color:var(--t);}
+.rpane{display:none;} .rpane.on{display:block;}
+.rsec{margin-bottom:20px;}
+.rsec-t{font-size:10px;font-family:'SF Mono','Fira Code','Courier New',monospace;color:var(--ac);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;padding-bottom:8px;border-bottom:.5px solid var(--bo);}
+.rc{background:var(--bg2);border:.5px solid var(--bo);border-radius:var(--rl);padding:16px;margin-bottom:10px;}
+.rch{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px;}
+.rci{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.rcl{font-size:13px;font-weight:500;color:var(--t);margin-bottom:2px;}
+.rcs{font-size:12px;color:var(--t2);line-height:1.5;}
+.rcb{font-size:13px;color:var(--t2);line-height:1.65;}
+.rcb strong{color:var(--t);font-weight:500;}
+.mqc{background:linear-gradient(135deg,rgba(200,169,110,.07) 0%,rgba(200,169,110,.02) 100%);border:.5px solid rgba(200,169,110,.25);border-radius:var(--rl);padding:18px 16px;margin-bottom:12px;}
+.mq{font-size:16px;font-weight:300;line-height:1.65;font-style:italic;margin-bottom:8px;}
+.mn2{font-size:12px;color:var(--t3);font-family:'SF Mono','Fira Code','Courier New',monospace;}
+.vsr{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.vsbad{background:rgba(224,92,92,.06);border:.5px solid rgba(224,92,92,.2);border-radius:var(--r);padding:10px 12px;}
+.vsgood{background:rgba(62,207,142,.06);border:.5px solid rgba(62,207,142,.2);border-radius:var(--r);padding:10px 12px;}
+.vsl{font-size:10px;font-family:'SF Mono','Fira Code','Courier New',monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;}
+.vsbad .vsl{color:var(--rd);} .vsgood .vsl{color:var(--gr);}
+.vst{font-size:13px;line-height:1.5;font-style:italic;}
+.vsbad .vst{color:rgba(224,92,92,.8);} .vsgood .vst{color:rgba(62,207,142,.8);}
+.rl{list-style:none;margin-top:8px;}
+.rl li{font-size:13px;color:var(--t2);padding:5px 0;border-bottom:.5px solid var(--bo);display:flex;gap:8px;line-height:1.6;}
+.rl li:last-child{border-bottom:none;}
+.rl li .d{color:var(--ac);flex-shrink:0;font-family:'SF Mono','Fira Code','Courier New',monospace;}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;}
+.si{background:var(--bg3);border-radius:var(--r);padding:10px 12px;border:.5px solid var(--bo);}
+.sin{font-size:12px;font-weight:500;margin-bottom:3px;}
+.sid{font-size:11px;color:var(--t2);line-height:1.4;}
+.cl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:.5px solid var(--bo);}
+.cl-item:last-child{border-bottom:none;}
+.cbox{width:22px;height:22px;border-radius:6px;border:.5px solid var(--bo2);background:var(--bg3);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--gr);min-width:22px;}
+.cbox.on{background:rgba(62,207,142,.1);border-color:var(--gr);}
+.ctext{font-size:13px;color:var(--t2);line-height:1.5;}
+.ctext strong{color:var(--t);font-weight:500;}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hdr"><h1>Bond <span>Suite</span></h1><p>prompts · reference · zero api · paste into any ai</p></div>
+
+<div class="top-nav">
+  <button class="tnav-btn on" onclick="swMain('prompts',this)">Prompts</button>
+  <button class="tnav-btn" onclick="swMain('reference',this)">Reference</button>
+</div>
+
+<!-- ===== PROMPTS ===== -->
+<div class="mpane on" id="mp-prompts">
+
+<div class="card">
+  <div class="ctag">Quick start</div>
+  <div class="row"><label>Describe what is happening</label><textarea id="qi" placeholder="e.g. She sent me a short reply after 2 days of good chat and I don't know if she's losing interest..." rows="2" oninput="qSuggest(this.value)"></textarea></div>
+  <div class="qr-res" id="qr"><span id="qr-text"></span> &nbsp;<button class="btn2 btn-sm" onclick="applyQ()" style="margin-top:8px;width:100%;">Use this mode</button></div>
+</div>
+
+<div class="card">
+  <div class="ctag">Language output</div>
+  <div class="ltog">
+    <button class="lbtn on" id="lg-both" onclick="setLang('both',this)">EN + DE</button>
+    <button class="lbtn" id="lg-en" onclick="setLang('en',this)">English only</button>
+    <button class="lbtn" id="lg-de" onclick="setLang('de',this)">German only</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ctag">Upload conversation — optional</div>
+  <div class="dropz" onclick="document.getElementById('fup').click()"><div class="dt">Tap to upload</div><div class="ds">WhatsApp .txt export or screenshot jpg/png</div></div>
+  <input type="file" id="fup" accept=".txt,image/jpeg,image/png,image/webp" style="display:none;" onchange="handleFile(this)"/>
+  <div id="ext-wrap" style="display:none;">
+    <div style="font-size:11px;color:var(--gr);font-family:'SF Mono','Fira Code','Courier New',monospace;margin-top:10px;margin-bottom:4px;" id="ext-lbl">Extracted</div>
+    <div class="extbox" id="ext-box"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;"><button class="btn2 btn-sm" onclick="clearExt()" style="flex:1;">Clear</button></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="ctag">Saved setups</div>
+  <div id="saved-list"><div style="font-size:13px;color:var(--t3);">No saved setups yet.</div></div>
+  <div id="export-row" style="display:none;margin-top:10px;gap:8px;">
+    <button class="btn2 btn-sm" onclick="exportSaves()" style="flex:1;">Export setups</button>
+    <button class="btn2 btn-sm" onclick="importSaves()" style="flex:1;">Import setups</button>
+  </div>
+  <input type="file" id="import-file" accept=".json" style="display:none;" onchange="doImport(this)"/>
+</div>
+
+<div class="card">
+  <div class="ctag">Pick your situation</div>
+  <div class="mbox" id="mode-grid"></div>
+</div>
+
+<div class="card" id="form-card" style="display:none;">
+  <div class="ctag" id="form-tag"></div>
+  <h2 id="form-title"></h2>
+  <div id="dyn-form"></div>
+  <div class="div"></div>
+  <button class="btn" onclick="buildPrompt()">Build my prompt</button>
+</div>
+
+<div class="out-wrap" id="out-wrap">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+    <span class="otag" id="out-tag"></span>
+    <button class="btn2 btn-sm" onclick="showSaveName()">Save setup</button>
+  </div>
+  <div id="principle-tag" style="display:none;background:rgba(200,169,110,.07);border:.5px solid rgba(200,169,110,.2);border-radius:var(--r);padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--ac);font-family:'SF Mono','Fira Code','Courier New',monospace;line-height:1.5;"></div>
+  <div class="pbox" id="pbox" onclick="selectPrompt(this)"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;margin-top:10px;">
+    <span style="font-size:11px;color:var(--t3);font-family:'SF Mono','Fira Code','Courier New',monospace;" id="char-count"></span>
+    <span style="font-size:11px;color:var(--t3);font-family:'SF Mono','Fira Code','Courier New',monospace;">tap prompt to select all</span>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn" onclick="doCopy()" id="copy-btn" style="flex:2;">Copy prompt</button>
+    <button class="btn2" onclick="resetAll()" style="flex:1;">Reset</button>
+  </div>
+  <div style="font-size:12px;color:var(--gr);font-family:'SF Mono','Fira Code','Courier New',monospace;text-align:center;margin-top:6px;min-height:18px;" id="copy-msg"></div>
+  <div class="ptag" style="font-size:11px;color:var(--t3);font-family:'SF Mono','Fira Code','Courier New',monospace;margin:12px 0 6px;">PASTE INTO</div>
+  <div class="pt-row">
+    <a class="pt" href="https://gemini.google.com" target="_blank"><span class="pdot" style="background:#4285f4;"></span>Gemini</a>
+    <a class="pt" href="https://chat.groq.com" target="_blank"><span class="pdot" style="background:#f55036;"></span>Groq</a>
+    <a class="pt" href="https://claude.ai" target="_blank"><span class="pdot" style="background:#c8a96e;"></span>Claude</a>
+    <a class="pt" href="https://chat.openai.com" target="_blank"><span class="pdot" style="background:#10a37f;"></span>ChatGPT</a>
+  </div>
+  <div id="sname-wrap" style="display:none;gap:8px;margin-top:12px;flex-wrap:wrap;">
+    <input type="text" id="sname-in" placeholder="Name this setup..." style="flex:1;"/>
+    <button class="btn2 btn-sm" onclick="doSave()">Save</button>
+  </div>
+</div>
+
+</div>
+
+<!-- ===== REFERENCE ===== -->
+<div class="mpane" id="mp-reference">
+
+<div class="rtabs">
+  <button class="rtab on" onclick="swRef('principles',this)">Principles</button>
+  <button class="rtab" onclick="swRef('mistakes',this)">Mistakes</button>
+  <button class="rtab" onclick="swRef('signals',this)">Signals</button>
+  <button class="rtab" onclick="swRef('checklist',this)">Pre-send</button>
+</div>
+
+<div class="rpane on" id="rp-principles">
+  <div class="mqc"><div class="mq">"Bond does not try to impress. He simply is. The absence of effort is the effort."</div><div class="mn2">Daniel Craig era — Casino Royale to No Time To Die</div></div>
+  <div class="rsec"><div class="rsec-t">Core principles</div>
+    <div class="rc"><div class="rch"><div class="rci" style="background:rgba(200,169,110,.1);">🎯</div><div><div class="rcl">Non-neediness</div><div class="rcs">The foundation of everything</div></div></div><div class="rcb">Attraction drops the moment approval-seeking becomes visible. Every message you send should imply you have a life and options. This does not mean being cold — it means being <strong>selective with your attention</strong>. When you give it, it lands heavier.</div></div>
+    <div class="rc"><div class="rch"><div class="rci" style="background:rgba(62,207,142,.1);">⚖️</div><div><div class="rcl">Mirror her energy</div><div class="rcs">Never exceed her investment level</div></div></div><div class="rcb">If she sends 3 words, do not send 3 paragraphs. If she is warm, be warm. If she is brief, match it. <strong>Jumping ahead emotionally creates pressure</strong> — it signals you are more invested than she is, which shifts the dynamic against you.</div><div class="vsr"><div class="vsbad"><div class="vsl">Too much</div><div class="vst">"Hey! How was your day? Did you end up going to that thing? I've been thinking about you"</div></div><div class="vsgood"><div class="vsl">Mirrored</div><div class="vst">"How did it go?"</div></div></div></div>
+    <div class="rc"><div class="rch"><div class="rci" style="background:rgba(92,157,224,.1);">👁️</div><div><div class="rcl">Specificity</div><div class="rcs">The single biggest trust builder</div></div></div><div class="rcb">Referencing something she actually said proves you were listening. <strong>Generic replies feel like copy-paste</strong> — they signal you could send this to anyone. Specific replies that call back real details signal genuine interest in her specifically.</div><div class="vsr"><div class="vsbad"><div class="vsl">Generic</div><div class="vst">"That sounds fun! What else do you like to do?"</div></div><div class="vsgood"><div class="vsl">Specific</div><div class="vst">"Hiking the Dolomites and then finance by day. That's a contradiction worth exploring."</div></div></div></div>
+    <div class="rc"><div class="rch"><div class="rci" style="background:rgba(224,168,74,.1);">✂️</div><div><div class="rcl">Brevity signals confidence</div><div class="rcs">Short is stronger</div></div></div><div class="rcb">Long messages signal insecurity — you are filling silence because it makes you anxious. <strong>Short, well-chosen words signal you are comfortable with space.</strong> Bond leaves room for her to wonder.</div></div>
+    <div class="rc"><div class="rch"><div class="rci" style="background:rgba(200,169,110,.1);">💬</div><div><div class="rcl">Question logic</div><div class="rcs">Not every message needs a question</div></div></div><div class="rcb">Add a question only when the thread needs reviving or you genuinely need information. <strong>Statements often land stronger</strong> — they invite her to respond without demanding it. And never ask about something she already told you.</div></div>
+    <div class="rc"><div class="rch"><div class="rci" style="background:rgba(62,207,142,.1);">🧠</div><div><div class="rcl">Emotional regulation</div><div class="rcs">Never reply from anxiety</div></div></div><div class="rcb">The worst messages are sent in the first 30 seconds of reading something that triggers you. <strong>Pause. The calm reply is always better than the reactive one.</strong> Bond is never rattled — not because he does not feel things, but because he does not let it show.</div></div>
+  </div>
+  <div class="rsec"><div class="rsec-t">Language rules</div>
+    <ul class="rl">
+      <li><span class="d">—</span>No em dashes, no ellipses, no exclamation overuse</li>
+      <li><span class="d">—</span>No AI phrases: "that sounds amazing", "I'd love to", "absolutely", "of course"</li>
+      <li><span class="d">—</span>No movie quotes, no pickup lines, nothing rehearsed</li>
+      <li><span class="d">—</span>2-3 sentences maximum per message</li>
+      <li><span class="d">—</span>Original lines — write for her specifically, not a template</li>
+    </ul>
+  </div>
+</div>
+
+<div class="rpane" id="rp-mistakes">
+  <div class="rsec"><div class="rsec-t">Most common mistakes</div>
+    <div class="rc"><div class="rcl" style="margin-bottom:6px;">Double texting from anxiety</div><div class="rcb">Sending a follow-up because she has not replied signals you are monitoring her. <strong>One message. Wait.</strong> A second message before she replies lowers your value and her urgency to reply.</div><div class="vsr" style="margin-top:10px;"><div class="vsbad"><div class="vsl">Wrong</div><div class="vst">"Hey just checking you got this" / "haha ignore me if you're busy"</div></div><div class="vsgood"><div class="vsl">Right</div><div class="vst">Nothing. Let it breathe.</div></div></div></div>
+    <div class="rc"><div class="rcl" style="margin-bottom:6px;">Over-explaining when she goes cold</div><div class="rcb">When the energy drops, the instinct is to explain or apologise. <strong>This signals guilt and neediness.</strong> A brief natural re-engage — as if nothing happened — is almost always stronger.</div></div>
+    <div class="rc"><div class="rcl" style="margin-bottom:6px;">Asking about things she already told you</div><div class="rcb">Asking "what do you do?" when she mentioned her job two messages ago signals you were not listening. <strong>Bond listens. Build on what she said.</strong></div></div>
+    <div class="rc"><div class="rcl" style="margin-bottom:6px;">Failing a test by engaging with it</div><div class="rcb">When she says something provocative, most men get defensive or try to prove themselves. <strong>Both are fails.</strong> Bond acknowledges it with calm amusement and does not take the bait.</div><div class="vsr" style="margin-top:10px;"><div class="vsbad"><div class="vsl">Fails</div><div class="vst">"I'm actually a really good guy if you got to know me"</div></div><div class="vsgood"><div class="vsl">Passes</div><div class="vst">"Fair enough." [moves on]</div></div></div></div>
+    <div class="rc"><div class="rcl" style="margin-bottom:6px;">Moving too fast emotionally</div><div class="rcb">Saying too much too soon about feelings or the future creates pressure. <strong>Attraction needs space and a little uncertainty to grow.</strong></div></div>
+    <div class="rc"><div class="rcl" style="margin-bottom:6px;">Complimenting her looks too early</div><div class="rcb">She has heard it from every man who swiped. <strong>Reference something specific about who she is instead.</strong> That is rare and noticed.</div></div>
+    <div class="rc"><div class="rcl" style="margin-bottom:6px;">Getting jealous when she mentions her ex</div><div class="rcb">Asking about him or going quiet signals insecurity. <strong>Bond is unbothered.</strong> He does not ask follow-up questions. He acknowledges and moves. His security is the signal.</div></div>
+  </div>
+</div>
+
+<div class="rpane" id="rp-signals">
+  <div class="rsec"><div class="rsec-t">Reading her messages</div>
+    <div class="sgrid">
+      <div class="si" style="border-color:rgba(62,207,142,.3);"><div class="sin" style="color:var(--gr);">Very interested</div><div class="sid">Long replies, asks questions, references past things you said, initiates, sends voice notes</div></div>
+      <div class="si" style="border-color:rgba(62,207,142,.2);"><div class="sin" style="color:var(--gr);">Interested</div><div class="sid">Consistent replies, some questions, warm tone, replies without long delays, shares personal things</div></div>
+      <div class="si"><div class="sin" style="color:var(--t2);">Neutral</div><div class="sid">Short replies but not cold, answers questions without asking her own, polite but not pulling you in</div></div>
+      <div class="si" style="border-color:rgba(224,168,74,.3);"><div class="sin" style="color:var(--yl);">Testing you</div><div class="sid">Provocative comment, goes cold after warm, says something challenging — watching how you react</div></div>
+      <div class="si" style="border-color:rgba(224,92,92,.2);"><div class="sin" style="color:var(--rd);">Going cold</div><div class="sid">Noticeably shorter replies, slower, less personal, one word answers, stops asking anything</div></div>
+      <div class="si"><div class="sin" style="color:var(--t2);">Hard to read</div><div class="sid">Inconsistent — warm then cold, long then short. Give it time before concluding anything.</div></div>
+    </div>
+  </div>
+  <div class="rsec"><div class="rsec-t">When she goes vague about plans</div>
+    <div class="rc"><div class="rcb"><strong>Genuine busy:</strong> apologises, suggests another time, stays warm in between.<br/><br/><strong>Soft no:</strong> vague without offering alternatives, replies slow down, excuses feel generic.<br/><br/><strong>Testing:</strong> warm in chat but non-committal — watching if you will lead harder or crumble.<br/><br/><strong>Bond move:</strong> propose once, specifically. "Saturday at 7 works for me — let me know." If she does not commit, let her come to you. Do not keep asking.</div></div>
+  </div>
+  <div class="rsec"><div class="rsec-t">When she cancels</div>
+    <div class="rc"><div class="rcb"><strong>Warm cancellation</strong> (apologetic, offers alternative): she is interested. Reschedule confidently once.<br/><br/><strong>Vague cancellation</strong> (something came up, no alternative): stay light and unbothered. Let her come back to it.<br/><br/><strong>Cold cancellation</strong> (minimal, no apology): one brief reply, then silence. Do not chase.<br/><br/><strong>Rule:</strong> never reschedule more than once. After that the ball is in her court.</div></div>
+  </div>
+</div>
+
+<div class="rpane" id="rp-checklist">
+  <div class="rsec"><div class="rsec-t">Before you hit send</div>
+    <div class="rc"><div id="cl-list"></div></div>
+    <button class="btn2" onclick="resetCL()" style="width:100%;margin-top:8px;">Reset checklist</button>
+  </div>
+  <div class="rsec"><div class="rsec-t">Red flags in your own message</div>
+    <ul class="rl">
+      <li><span class="d">x</span>Starts with "Hey" and nothing else</li>
+      <li><span class="d">x</span>Uses "just" — "just checking", "just wanted to say"</li>
+      <li><span class="d">x</span>Ends with "haha" when nothing is funny</li>
+      <li><span class="d">x</span>More than 3 sentences</li>
+      <li><span class="d">x</span>Two questions in one message</li>
+      <li><span class="d">x</span>Asks about something she already told you</li>
+      <li><span class="d">x</span>Contains "I was thinking maybe" or "if you want" or "no worries if not"</li>
+      <li><span class="d">x</span>Sent less than 2 minutes after she replied</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- end reference -->
+
+</div><!-- end app -->
+<div class="notif" id="notif"></div>
+
+<script>
+var selMode='',selLang='both',extConv='',qMode='',saves=[];
+try{saves=JSON.parse(localStorage.getItem('bsaves')||'[]');}catch(e){}
+
+var MODES=[
+  {id:'bond_reply',n:'Bond Reply',s:'She sent a message',i:'01',v:true,f:['her_msg','platform','stage','context']},
+  {id:'bondify',n:'Bond-ify',s:'Rewrite my draft',i:'02',v:false,f:['my_draft','platform','stage']},
+  {id:'presend',n:'Pre-send',s:'Check before sending',i:'03',v:false,f:['my_draft','platform','stage']},
+  {id:'opener',n:'Opener',s:'First message',i:'04',v:true,f:['her_bio','platform','opener_style']},
+  {id:'tone_reader',n:'Tone Reader',s:'What does she mean?',i:'05',v:false,f:['her_msg','context']},
+  {id:'red_flags',n:'Red Flags',s:'Scan conversation',i:'06',v:false,f:['conv','days_talking']},
+  {id:'escalation',n:'Escalation',s:'Right pace?',i:'07',v:false,f:['conv','days_talking']},
+  {id:'followup',n:'Follow-up',s:"She hasn't replied",i:'08',v:true,f:['my_last','days_since','vibe']},
+  {id:'reengage',n:'Re-engage',s:'I went quiet',i:'09',v:true,f:['last_inter','quiet_why','quiet_dur','vibe_bef']},
+  {id:'unmatch',n:'Unmatch',s:'What went wrong',i:'10',v:false,f:['conv','what_hap']},
+  {id:'first_date',n:'First Date',s:'Around a date',i:'11',v:true,f:['fd_sit','fd_ctx','platform']},
+  {id:'cancelled',n:'She Cancelled',s:'She bailed',i:'12',v:true,f:['can_msg','can_tim','vibe']},
+  {id:'number',n:'Number',s:'Moving to WhatsApp',i:'13',v:true,f:['num_sit','context','platform']},
+  {id:'first_move',n:'First Move',s:'She made a move',i:'14',v:true,f:['her_msg','fm_type','platform']},
+  {id:'ex_mention',n:'Ex Mention',s:'She brought up her ex',i:'15',v:true,f:['her_msg','ex_how','stage']},
+  {id:'compliment',n:'Compliment',s:'She complimented me',i:'16',v:true,f:['her_msg','cp_type','stage']},
+  {id:'morning',n:'Morning/Night',s:'Good morning/night',i:'17',v:true,f:['mn_type','mn_stage','context']},
+  {id:'starters',n:'Starters',s:'Conversation angles',i:'18',v:false,f:['her_bio','stage']},
+  {id:'photo',n:'Photo Analyser',s:'Read her photos',i:'19',v:false,f:['photo_desc','platform']},
+  {id:'eval',n:'Evaluate Reply',s:'Rate what AI gave me',i:'20',v:false,f:['ai_resp','orig_ctx']},
+  {id:'thread',n:'Thread Builder',s:'Plan 3-4 messages',i:'21',v:false,f:['her_msg','th_goal','platform','stage']},
+  {id:'summariser',n:'Summariser',s:'Where do things stand?',i:'22',v:false,f:['conv']},
+  {id:'shit_test',n:"She's Testing Me",s:'Challenge or test',i:'23',v:true,f:['her_msg','st_type','stage','context']},
+  {id:'went_cold',n:'She Went Cold',s:'Energy dropped suddenly',i:'24',v:true,f:['conv','wc_when','days_talking']},
+  {id:'slow_down',n:'Slow Down',s:'Pull back without losing her',i:'25',v:true,f:['conv','stage']},
+  {id:'after_date',n:'After Great Date',s:'Day-after window',i:'26',v:true,f:['date_ctx','platform','ad_time']},
+  {id:'vague_plans',n:'Vague About Plans',s:"Won't commit to time",i:'27',v:true,f:['conv','vp_dur','stage']},
+  {id:'bio',n:'Bio Writer',s:'Write my profile',i:'28',v:false,f:['my_facts','platform','bio_len']},
+  {id:'date_ideas',n:'Date Ideas',s:'What to suggest',i:'29',v:false,f:['her_int','city','budget']},
+];
+
+var FLD={
+  her_msg:{l:'Her message',t:'ta',p:'Paste what she sent...'},
+  my_draft:{l:'Your draft',t:'ta',p:'Paste what you were going to send...'},
+  her_bio:{l:'Her bio / profile',t:'ta',p:'e.g. Loves hiking, works in architecture, dog called Miso, went to Barcelona last summer...'},
+  conv:{l:'Conversation',t:'ta',p:'Paste the full conversation...',rows:7},
+  my_last:{l:'Your last message',t:'ta',p:'What did you last send?'},
+  last_inter:{l:'Where you left off',t:'ta',p:'Describe or paste the last messages...'},
+  my_facts:{l:'About you',t:'ta',p:'e.g. Software engineer in Vienna, into hiking, recently started climbing...'},
+  her_int:{l:'Her interests',t:'ta',p:'e.g. Likes art, good food, mentioned she never been to a rooftop bar, works in marketing...'},
+  fd_ctx:{l:'Context',t:'ta',p:'e.g. Meeting for coffee Saturday at 3pm',rows:2},
+  can_msg:{l:'What she said',t:'ta',p:'e.g. Hey sorry something came up, can we do another time?'},
+  context:{l:'Context',t:'ta',p:'Optional — last few messages for better context...',opt:true,rows:2},
+  ai_resp:{l:'The AI reply you got',t:'ta',p:'Paste the message the AI generated for you...',rows:4},
+  orig_ctx:{l:'Original context',t:'ta',p:'What was the conversation about, what did she say...'},
+  photo_desc:{l:'Describe her photos',t:'ta',p:'e.g. First photo hiking in mountains. Second at dinner with friends laughing. Third in art gallery. Bio says probably planning my next trip...'},
+  th_goal:{l:'Where you want this to go',t:'ta',p:'e.g. Move from chatting to suggesting a date by message 3-4',rows:2},
+  date_ctx:{l:'How the date went',t:'ta',p:'e.g. Had coffee for 2 hours, she seemed engaged, we talked about travelling...'},
+  platform:{l:'Platform',t:'sel',o:['Tinder','Bumble','WhatsApp','Hinge']},
+  stage:{l:'Stage',t:'sel',o:['Opening / first messages','Getting to know each other','Suggesting a date','Deeper conversation']},
+  opener_style:{l:'Style',t:'sel',o:['Witty and specific','Calm and curious','Lightly flirtatious','Short and confident']},
+  days_talking:{l:'Days talking',t:'sel',o:['1-2 days','3-5 days','About a week','2+ weeks','A month+']},
+  days_since:{l:'Days since',t:'sel',o:['1 day','2 days','3 days','5 days','A week+']},
+  vibe:{l:'How was it going?',t:'sel',o:['Really well','Decent','A bit flat','Had agreed on a date']},
+  vibe_bef:{l:'Vibe before',t:'sel',o:['Really well','Decent','A bit slow']},
+  quiet_dur:{l:'How long quiet',t:'sel',o:['2-3 days','About a week','2 weeks','A month+']},
+  what_hap:{l:'What happened',t:'sel',o:['She unmatched','She ghosted','Stopped after a date']},
+  fd_sit:{l:'Situation',t:'sel',o:['Suggesting the first date','Confirming plans (day before)','Day of the date','Morning after it went well','She went quiet after the date']},
+  can_tim:{l:'How far out',t:'sel',o:['Same day','Day before','A few days before']},
+  num_sit:{l:'Situation',t:'sel',o:['I want to ask for her number','She just gave me her number','She asked for mine']},
+  fm_type:{l:'What she did',t:'sel',o:['Suggested a date','Was very forward / flirty','Asked me out directly','Said she likes me']},
+  ex_how:{l:'How it came up',t:'sel',o:['Casually in passing','Still seems to think about him','Comparing me to him','Venting about him']},
+  cp_type:{l:'Type',t:'sel',o:['Appearance','Personality / vibe','Something I said or did','Called me different / rare']},
+  mn_type:{l:'Type',t:'sel',o:['Good morning','Good night','Checking in during the day']},
+  mn_stage:{l:'Stage',t:'sel',o:['Just matched','Talking a few days','About to go on a first date','Been on 1-2 dates']},
+  bio_len:{l:'Length',t:'sel',o:['Short (2-3 lines)','Medium (4-5 lines)']},
+  budget:{l:'Budget',t:'sel',o:['Casual (coffee, walk)','Mid-range (drinks, dinner)','Higher end']},
+  ad_time:{l:'When are you sending?',t:'sel',o:['Morning after the date','Afternoon after the date','Day after']},
+  vp_dur:{l:'How long this has been happening',t:'sel',o:['Just started','A few days','Over a week','From the start']},
+  wc_when:{l:'When it changed',t:'sel',o:['After I said something specific','Out of nowhere','After we agreed to meet','After a really good chat']},
+  st_type:{l:'What kind of test',t:'sel',o:['Challenging something I said','Ignoring me after being warm','Saying something provocative','Testing if I will chase','Comparing me to other guys']},
+  city:{l:'City',t:'txt',p:'e.g. Vienna'},
+  quiet_why:{l:'Why you went quiet',t:'chips',o:['Work got busy','Was travelling','Personal stuff','Just lost track','Seeing someone else','Not sure about her','Felt the vibe drop'],custom:true},
+};
+
+// Build mode grid
+(function(){
+  var g=document.getElementById('mode-grid');
+  MODES.forEach(function(m){
+    var b=document.createElement('button');
+    b.className='mcard';b.setAttribute('data-id',m.id);
+    b.innerHTML='<div class="mn">'+m.i+'</div><div class="ml">'+m.n+'</div><div class="ms">'+m.s+'</div>';
+    b.onclick=function(){selMode2(m.id);};
+    g.appendChild(b);
+  });
+})();
+
+function selMode2(id,pre){
+  selMode=id;
+  document.querySelectorAll('.mcard').forEach(function(b){b.className='mcard'+(b.getAttribute('data-id')===id?' on':'');});
+  var m=MODES.find(function(x){return x.id===id;});
+  document.getElementById('form-card').style.display='block';
+  document.getElementById('form-tag').textContent=m.i+' — '+m.n;
+  document.getElementById('form-title').textContent=m.s;
+  buildForm(m,pre||{});
+  document.getElementById('out-wrap').className='out-wrap';
+  setTimeout(function(){document.getElementById('form-card').scrollIntoView({behavior:'smooth',block:'start'});},80);
+}
+
+function buildForm(m,pre){
+  var f=document.getElementById('dyn-form');f.innerHTML='';
+  m.f.forEach(function(fid){
+    var d=FLD[fid];if(!d)return;
+    var w=document.createElement('div');w.className='row';
+    var pv=pre[fid]||'';
+    var cv=(fid==='her_msg'||fid==='conv')&&extConv?extConv:pv;
+    var lbl='<label>'+d.l+(d.opt?' <span class="op">(optional)</span>':'')+'</label>';
+    if(d.t==='ta'){w.innerHTML=lbl+'<textarea id="f_'+fid+'" rows="'+(d.rows||3)+'" placeholder="'+(d.p||'')+'">'+eH(cv)+'</textarea>';}
+    else if(d.t==='txt'){w.innerHTML=lbl+'<input type="text" id="f_'+fid+'" placeholder="'+(d.p||'')+'" value="'+eH(pv)+'"/>';}
+    else if(d.t==='sel'){var opts=d.o.map(function(o){return'<option'+(o===pv?' selected':'')+'>'+o+'</option>';}).join('');w.innerHTML=lbl+'<select id="f_'+fid+'">'+opts+'</select>';}
+    else if(d.t==='chips'){
+      var chips=d.o.map(function(o){return'<button class="chip" data-v="'+o+'" onclick="tgChip(this)">'+o+'</button>';}).join('');
+      var cust=d.custom?'<input type="text" id="f_'+fid+'_c" placeholder="Add your own reason (optional)..." style="margin-top:8px;"/>':'';
+      w.innerHTML=lbl+'<div class="chip-row" id="f_'+fid+'">'+chips+'</div>'+cust;
+    }
+    f.appendChild(w);
+  });
+  if(m.v){
+    var vw=document.createElement('div');vw.className='vbox row';
+    vw.innerHTML='<label>What I want to say — in my own words <span class="op">(optional)</span></label><textarea id="f_voice" rows="2" placeholder="e.g. I want to say I think she is interesting and ask about her trip but without sounding eager...">'+eH(pre.voice||'')+'</textarea><div class="vhint">Write naturally — it will be Bond-ified in the prompt</div>';
+    f.appendChild(vw);
+  }
+}
+
+function eH(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function tgChip(el){el.className=el.className.indexOf(' on')>=0?'chip':'chip on';}
+function gv(fid){
+  var d=FLD[fid];if(!d)return'';
+  if(d.t==='chips'){
+    var vals=[];
+    var wrap=document.getElementById('f_'+fid);
+    if(wrap)wrap.querySelectorAll('.chip.on').forEach(function(c){vals.push(c.getAttribute('data-v'));});
+    var cu=document.getElementById('f_'+fid+'_c');
+    if(cu&&cu.value.trim())vals.push(cu.value.trim());
+    return vals.join(', ')||'not specified';
+  }
+  var el=document.getElementById('f_'+fid);return el?el.value.trim():'';
+}
+function gVoice(){var el=document.getElementById('f_voice');return el?el.value.trim():'';}
+
+// Lang toggle
+function setLang(l,el){
+  selLang=l;
+  document.querySelectorAll('.lbtn').forEach(function(b){b.className='lbtn';});
+  el.className='lbtn on';
+}
+
+// Quick suggest
+var QK={
+  bond_reply:['she sent','she said','she wrote','her message','she replied','she texted'],
+  tone_reader:['what does she mean','is she interested','going cold','hard to read','testing me','confused by'],
+  followup:["hasn't replied",'no reply',"she's not replying",'ghosting','left on read','not responding'],
+  reengage:['went quiet','i disappeared','been a while','reaching back','i stopped'],
+  bondify:['i wrote','my message','i want to say','i was going to','my draft','rewrite this'],
+  presend:['about to send','should i send','is this ok','does this sound'],
+  red_flags:['something feels off','getting weird','mixed signals','not sure about her'],
+  escalation:['too slow','moving too fast','should i suggest a date','when to ask','how long'],
+  first_date:['first date','before the date','morning after','confirm the date'],
+  cancelled:['she cancelled','she bailed','she said she cant','she postponed'],
+  ex_mention:['mentioned her ex','brought up her ex','talking about her ex'],
+  compliment:['she complimented','she said im','she called me'],
+  opener:['first message','how to open','opening line','what to send first'],
+  morning:['good morning','good night','morning text','night text'],
+  photo:['her photos','her pictures','profile photos','what do her photos'],
+  eval:['ai gave me','it generated','does this sound ok','sounds robotic','too ai'],
+  thread:['plan the conversation','sequence of messages','next few messages'],
+  shit_test:['testing me','is she testing','she said something weird','she challenged','she ignored me'],
+  went_cold:['went cold','she went cold','suddenly cold','energy dropped'],
+  summariser:['where do things stand','summarise','what is the situation'],
+  number:['ask for her number','she gave me her number','she asked for mine','move to whatsapp','get her number'],
+  first_move:['she asked me out','she made a move','she was forward','she suggested','she likes me'],
+  slow_down:['moving too fast','too intense','too much','dial it back','pull back','slow things down'],
+  after_date:['after the date','morning after','day after','date went well','how do i follow up'],
+  vague_plans:['she keeps cancelling','wont commit','always busy','vague about when','never confirms'],
+};
+function qSuggest(v){
+  if(!v||v.length<6){document.getElementById('qr').className='qr-res';return;}
+  var low=v.toLowerCase(),best='',bsc=0;
+  Object.keys(QK).forEach(function(k){QK[k].forEach(function(kw){if(low.indexOf(kw)>=0&&kw.length>bsc){bsc=kw.length;best=k;}});});
+  if(!best){document.getElementById('qr').className='qr-res';return;}
+  qMode=best;
+  var m=MODES.find(function(x){return x.id===best;});
+  document.getElementById('qr-text').innerHTML='Looks like: <strong>'+m.n+'</strong> — '+m.s;
+  document.getElementById('qr').className='qr-res on';
+}
+function applyQ(){if(qMode)selMode2(qMode);}
+
+// File upload
+function handleFile(inp){
+  var file=inp.files[0];if(!file)return;
+  if(file.type.startsWith('image/')){
+    document.getElementById('ext-wrap').style.display='block';
+    document.getElementById('ext-lbl').textContent='Screenshot loaded';
+    document.getElementById('ext-box').textContent='Screenshot: '+file.name+'\n\nWhen you paste this prompt into an AI, also attach the screenshot and add:\n"First extract all visible chat messages from the screenshot, then follow the instructions below."';
+    showN('Screenshot ready — attach it alongside the prompt');
+  } else {
+    var r=new FileReader();
+    r.onload=function(e){
+      var lines=e.target.result.split('\n'),res=[],skip=['end-to-end','image omitted','audio omitted','video omitted','sticker omitted','GIF omitted','was deleted'];
+      lines.forEach(function(l){var m=l.match(/^[\[?]?[\d\/\-\.]+[,\s]+[\d:]+\s*(?:AM|PM)?[\]\s]*[-\u2013\s]+([^:]+):\s*(.+)/);if(m){var sn=m[1].trim(),ms=m[2].trim();if(!skip.some(function(x){return ms.indexOf(x)>=0;})&&sn.length<40)res.push(sn+': '+ms);}});
+      var conv=res.slice(-80).join('\n');
+      if(!conv){showN('Could not parse — needs WhatsApp export .txt');return;}
+      extConv=conv;
+      document.getElementById('ext-wrap').style.display='block';
+      document.getElementById('ext-lbl').textContent='Extracted — '+res.length+' messages';
+      document.getElementById('ext-box').textContent=conv;
+      if(selMode){var m=MODES.find(function(x){return x.id===selMode;});if(m)buildForm(m,{});}
+      showN('Conversation extracted and pre-filled');
+    };
+    r.readAsText(file);
+  }
+}
+function clearExt(){extConv='';document.getElementById('ext-wrap').style.display='none';document.getElementById('fup').value='';}
+
+// Saved
+function renderSaved(){
+  var el=document.getElementById('saved-list');
+  var er=document.getElementById('export-row');
+  if(er)er.style.display=saves.length?'flex':'none';
+  if(!saves.length){el.innerHTML='<div style="font-size:13px;color:var(--t3);">No saved setups yet.</div>';return;}
+  var h='';
+  saves.forEach(function(s,i){
+    h+='<div class="sitem" onclick="loadSave('+i+')"><div style="flex:1;"><div class="sname">'+s.nm+'</div><div class="ssub">'+s.md+' · '+s.lg+'</div></div><span class="sdel" onclick="delSave(event,'+i+')">x</span></div>';
+  });
+  el.innerHTML=h;
+}
+renderSaved();
+function loadSave(i){var s=saves[i];if(!s)return;selLang=s.lg;document.querySelectorAll('.lbtn').forEach(function(b){b.className='lbtn';});document.getElementById('lg-'+s.lg).className='lbtn on';selMode2(s.md,s.fv);showN('Loaded: '+s.nm);}
+function delSave(e,i){e.stopPropagation();saves.splice(i,1);localStorage.setItem('bsaves',JSON.stringify(saves));renderSaved();}
+function showSaveName(){var w=document.getElementById('sname-wrap');if(w.style.display==='none'||w.style.display===''){w.style.display='flex';}else{w.style.display='none';}}
+function doSave(){
+  var nm=document.getElementById('sname-in').value.trim();if(!nm){showN('Add a name first');return;}
+  var m=MODES.find(function(x){return x.id===selMode;});if(!m)return;
+  var fv={};m.f.forEach(function(fid){fv[fid]=gv(fid);});fv.voice=gVoice();
+  saves.unshift({nm:nm,md:selMode,lg:selLang,fv:fv});
+  if(saves.length>10)saves.pop();
+  localStorage.setItem('bsaves',JSON.stringify(saves));
+  renderSaved();document.getElementById('sname-in').value='';
+  document.getElementById('sname-wrap').style.display='none';
+  showN('Saved: '+nm);
+}
+
+// System prompt
+function getSys(){
+  var lr=selLang==='en'?'Provide all message responses in English only — no German needed.':selLang==='de'?'Provide all message responses in German (B2 level) only — no English needed.':'Always provide both English AND German (B2 level) versions of every generated message.';
+  return 'You are Bond Suite — a dating communication coach inspired by Daniel Craig-era James Bond. Your job is to help craft messages that are confident, specific, and natural. Never robotic, never generic, never AI-sounding.\n\nCORE PRINCIPLES — back every suggestion with one of these:\n- Non-neediness: attraction drops when approval-seeking is visible. Messages should imply you have a life and options.\n- Mirror her energy: match her investment level exactly — never exceed it. If she sends 3 words send 3 words. If she sends short, be short. Jumping ahead emotionally creates pressure and signals over-investment.\n- Emotional regulation: calm grounded replies are more attractive than reactive ones.\n- Specificity: referencing what she actually said is the single biggest trust and connection builder. Generic replies feel like copy-paste.\n- Brevity signals confidence: short well-chosen words signal comfort with silence. Long messages signal insecurity.\n- Wit signals intelligence: light teasing done right is one of the strongest attraction signals.\n- Acknowledgement: feeling genuinely heard is a deep human need. Show you read what she wrote before you reply.\n\nLANGUAGE: '+lr+'\n\nTONE RULES:\n- Daniel Craig Bond era: emotionally contained, dry, confident, never theatrical\n- No em dashes, no ellipses, no AI phrases, no movie quotes, original lines only\n- 2-3 sentences maximum per message\n- Sound like a real person, not a writing assistant\n\nACKNOWLEDGE BEFORE GENERATING:\nAlways read what she wrote first. Note her tone, specific words she used, anything worth calling back, anything most men would skim but Bond would notice. State this before generating.\n\nQUESTION LOGIC — apply to every message:\nDecide: should this end with a question or not?\nAdd a question ONLY if: reply rate needs boosting / thread has gone flat / you need info to move forward.\nDo NOT add a question if: her engagement is already high / a statement lands stronger / you would look try-hard asking.\nState your reasoning briefly after each message.\n\nNO REPEAT RULE:\nNever suggest a question covering ground already in the conversation. If she already mentioned her job, do not ask what she does. Scan the context provided and confirm the topic has not come up. If it has, find a different angle or skip the question. Repeating questions signals you were not listening.\n\nMIRROR CHECK:\nBefore suggesting any message check: is this matching her energy or exceeding it? If exceeding — pull back.\n\nMY VOICE:\nIf I provide what I want to say in my own words, use it as a starting point. Keep my intention and meaning but remove anything needy, over-eager, or low value. Bond-ify the delivery.\n\nPROTECT THE CONNECTION:\nPrimary goal is never to sound clever — it is to deepen connection with this specific person. Flag any medium or high risk to the connection.\n\nBACK EVERYTHING:\nEvery message suggestion must include a 1-sentence psychological note on why it works.\n\n---\n\n';
+}
+
+function vBlock(v){return v?'\n\nMY VOICE — what I want to say in my own words:\n"'+v+'"\n\nKeep my intent. Bond-ify the delivery — remove anything needy or low value.':'';}
+
+// Mode prompts
+function getModeP(id,v){
+  var S=getSys();
+  if(id==='bond_reply')return S+'MODE: BOND REPLY\n\nPlatform: '+gv('platform')+'\nStage: '+gv('stage')+'\n\nHer message:\n"'+gv('her_msg')+'"'+(gv('context')?'\n\nContext:\n'+gv('context'):'')+vBlock(v)+'\n\nInstructions:\n1. Read her message carefully. Acknowledge her tone and note any specific detail worth calling back. Assess her energy level.\n2. MIRROR CHECK: what is her investment level in this message? Make sure all replies match it.\n3. Generate 4 reply styles: Calm and charming / Short and confident / Warm and genuine / Lightly flirtatious.\n4. For each: message, 1-sentence psychological note, Question Logic decision with reasoning.\n5. Flag any connection risk if present.';
+  if(id==='bondify')return S+'MODE: BOND-IFY\n\nPlatform: '+gv('platform')+'\nStage: '+gv('stage')+'\n\nMy draft:\n"'+gv('my_draft')+'"\n\nInstructions:\n1. Diagnose in 1 honest sentence — what is the core problem?\n2. Rewrite as Bond. Show original phrase, Bond version, and psychological reason. Tag: needy removed / confidence added / shorter / word choice / structure / framing.\n3. List 2-4 specific changes.\n4. Question Logic: does the Bond version end with a question? Why or why not?\n5. Connection risk: original vs Bond version.';
+  if(id==='presend')return S+'MODE: PRE-SEND CHECK\n\nPlatform: '+gv('platform')+'\nStage: '+gv('stage')+'\n\nMessage about to send:\n"'+gv('my_draft')+'"\n\nInstructions:\n1. Scores: Confidence 0-10 / Neediness 0-10 / Length: too long, good, or too short.\n2. Mirror check: does this match her energy level or exceed it?\n3. Issues (0-3 max): what is wrong, psychological reason, specific fix.\n4. Improved version if needed.\n5. Question Logic decision.\n6. Connection risk of original vs improved.';
+  if(id==='opener')return S+'MODE: OPENER\n\nPlatform: '+gv('platform')+'\nStyle: '+gv('opener_style')+'\n\nHer profile:\n'+gv('her_bio')+vBlock(v)+'\n\nInstructions:\n1. Note 3 specific details from her profile most men would ignore.\n2. Generate 3 openers — each referencing something specific from her profile. No generic lines.\n3. For each: the message, which detail you used, why specificity beats generic openers.\n4. Question Logic for each opener.';
+  if(id==='tone_reader')return S+'MODE: TONE READER\n\nHer message:\n"'+gv('her_msg')+'"'+(gv('context')?'\n\nContext:\n'+gv('context'):'')+'\n\nInstructions:\n1. Signal: very interested / interested / neutral / testing you / going cold / hard to read. Confidence: high/medium/low.\n2. Psychological reasoning.\n3. Specific word or phrase she used that reveals something.\n4. Her energy level — is she investing equally, more, or less?\n5. What deserves acknowledgement in the reply.\n6. What to avoid and why.\n7. Suggested approach for the reply.';
+  if(id==='red_flags')return S+'MODE: RED FLAGS\n\nDays talking: '+gv('days_talking')+'\n\nConversation:\n'+gv('conv')+'\n\nInstructions:\n1. Note any shifts in energy, tone changes, response length patterns.\n2. Overall rating: green / yellow / red with reasoning.\n3. 0-4 flags. For each: pattern name, specific observation, psychological meaning, whether to address or ignore it and why.\n4. Main takeaway.';
+  if(id==='escalation')return S+'MODE: ESCALATION CHECK\n\nDays talking: '+gv('days_talking')+'\n\nConversation:\n'+gv('conv')+'\n\nInstructions:\n1. Pace: too slow / on track / moving fast / moving too fast.\n2. Mirror assessment: where is she emotionally vs where are you? Is the investment balanced?\n3. Specific next move with psychological justification.\n4. One thing to avoid and what it would signal.';
+  if(id==='followup')return S+'MODE: FOLLOW-UP\n\nDays since sent: '+gv('days_since')+'\nHow it was going: '+gv('vibe')+'\n\nMy last message:\n"'+gv('my_last')+'"'+vBlock(v)+'\n\nInstructions:\n1. Verdict: send / do not send / wait longer.\n2. Psychological reasoning — what does sending vs not sending signal?\n3. Message if sending. Why this approach protects the connection.\n4. One thing to avoid.\n5. Question Logic.';
+  if(id==='reengage')return S+'MODE: RE-ENGAGE\n\nQuiet for: '+gv('quiet_dur')+'\nReasons: '+gv('quiet_why')+'\nVibe before: '+gv('vibe_bef')+'\n\nLast interaction:\n'+gv('last_inter')+vBlock(v)+'\n\nInstructions:\n1. Verdict: reach out / leave it.\n2. What does reaching out signal vs silence here?\n3. If reaching out: message that acknowledges the gap without over-explaining (over-explanation signals guilt and neediness).\n4. The one thing that would ruin this re-engage.\n5. Question Logic.';
+  if(id==='unmatch')return S+'MODE: UNMATCH ANALYSIS\n\nWhat happened: '+gv('what_hap')+'\n\nLast messages:\n'+gv('conv')+'\n\nInstructions:\n1. Note any specific moment where things shifted.\n2. What likely happened — 1 honest sentence.\n3. 2-3 patterns: name / specific observation / psychological mechanism / concrete lesson.\n4. The one shift that would have changed the outcome.';
+  if(id==='first_date')return S+'MODE: FIRST DATE TEXT\n\nSituation: '+gv('fd_sit')+'\nPlatform: '+gv('platform')+'\nContext: '+gv('fd_ctx')+vBlock(v)+'\n\nInstructions:\n1. Psychology of this specific moment — what is she feeling, what does she need to see.\n2. Generate 2 message options.\n3. For each: why it fits the moment, what it signals, connection risk.\n4. Question Logic for each.';
+  if(id==='cancelled')return S+'MODE: SHE CANCELLED\n\nHow far out: '+gv('can_tim')+'\nVibe: '+gv('vibe')+'\n\nWhat she said:\n"'+gv('can_msg')+'"'+vBlock(v)+'\n\nInstructions:\n1. Read her cancellation — warm / cold / guilty / vague? This signals a lot.\n2. Three strategies: Confident reschedule / Play it cool / Light and unbothered.\n3. For each: message, what it signals about your investment level, risk/reward, when to use it.\n4. Which strategy fits this specific situation and why.';
+  if(id==='number')return S+'MODE: NUMBER EXCHANGE\n\nSituation: '+gv('num_sit')+'\nPlatform: '+gv('platform')+(gv('context')?'\nContext: '+gv('context'):'')+vBlock(v)+'\n\nInstructions:\n1. Why this transition moment is psychologically significant and what can go wrong.\n2. Two message options.\n3. For each: what it signals and why the framing matters.\n4. Question Logic.';
+  if(id==='first_move')return S+'MODE: FIRST MOVE\n\nWhat she did: '+gv('fm_type')+'\nPlatform: '+gv('platform')+'\n\nWhat she said:\n"'+gv('her_msg')+'"'+vBlock(v)+'\n\nInstructions:\n1. Is this genuine interest, testing, boredom, or something else?\n2. Why this is a frame test and what losing the frame looks like.\n3. Two responses that keep you in the driver seat.\n4. For each: how it maintains frame without being cold.\n5. Question Logic.';
+  if(id==='ex_mention')return S+'MODE: EX MENTION\n\nHow it came up: '+gv('ex_how')+'\nStage: '+gv('stage')+'\n\nWhat she said:\n"'+gv('her_msg')+'"'+vBlock(v)+'\n\nInstructions:\n1. Is this a test, habit, unresolved feelings, or just conversation?\n2. The specific trap most men fall into here and the psychological reason it fails.\n3. Two responses.\n4. For each: why it sidesteps the trap and what it signals about your security.';
+  if(id==='compliment')return S+'MODE: COMPLIMENT\n\nType: '+gv('cp_type')+'\nStage: '+gv('stage')+'\n\nWhat she said:\n"'+gv('her_msg')+'"'+vBlock(v)+'\n\nInstructions:\n1. Why deflecting fails, why over-thanking fails, why accepting confidently works.\n2. Three response options from subtle to warmer.\n3. For each: what it signals.\n4. Question Logic.';
+  if(id==='morning')return S+'MODE: MORNING/NIGHT TEXT\n\nType: '+gv('mn_type')+'\nStage: '+gv('mn_stage')+(gv('context')?'\nContext: '+gv('context'):'')+vBlock(v)+'\n\nInstructions:\n1. Warning: the specific psychological risk of this text type at this stage.\n2. Three options from minimal to warmer.\n3. For each: what it signals, when appropriate vs too much.\n4. Question Logic for each.';
+  if(id==='starters')return S+'MODE: STARTERS\n\nStage: '+gv('stage')+'\n\nAbout her:\n'+gv('her_bio')+'\n\nInstructions:\n1. Note specific details that create angles.\n2. Generate 5 conversation starters, each labelled by what it achieves.\n3. For each: why it works better than a direct question, what response it invites.\n4. Question Logic — some should end with a question, some as statements. Explain each.';
+  if(id==='photo')return S+'MODE: PHOTO ANALYSER\n\nPlatform: '+gv('platform')+'\n\nHer photos:\n'+gv('photo_desc')+'\n\nInstructions:\n1. Read each photo as a signal — what does it reveal about her personality, values, social life?\n2. Note 3-4 specific details most men would not pick up on.\n3. Generate 3 conversation angles based on what the photos reveal — not generic comments on how she looks.\n4. For each: the opener or question, which photo detail inspired it, why referencing it creates connection.\n5. Flag any green flags or things to be aware of.';
+  if(id==='eval')return S+'MODE: RESPONSE EVALUATOR\n\nOriginal context:\n'+gv('orig_ctx')+'\n\nAI-generated message to evaluate:\n"'+gv('ai_resp')+'"\n\nInstructions:\n1. Rate: Confidence 0-10 / Naturalness 0-10 (does it sound like a real human?) / Connection risk: low/medium/high.\n2. Mirror check: does this match her energy or exceed it?\n3. List any AI tells — phrases or patterns that sound generated.\n4. List any specificity failures — generic where it could reference something real.\n5. Improved version if needed.\n6. Final verdict: safe to send / needs minor edit / needs full rewrite.';
+  if(id==='thread')return S+'MODE: THREAD BUILDER\n\nPlatform: '+gv('platform')+'\nCurrent stage: '+gv('stage')+'\nGoal: '+gv('th_goal')+'\n\nHer last message:\n"'+gv('her_msg')+'"\n\nInstructions:\n1. Read her message and assess where the conversation is emotionally. Note her energy level.\n2. Map out a sequence of 3-4 messages from now to the goal.\n3. For each message: what you send, what you are trying to achieve, why this is the right move, what response you are trying to invite.\n4. Mirror check for each: is this matching or exceeding her energy?\n5. Question Logic for each.\n6. Flag the most dangerous moment in the sequence and how to handle it.';
+  if(id==='summariser')return S+'MODE: CONVERSATION SUMMARISER\n\nConversation:\n'+gv('conv')+'\n\nInstructions:\n1. Where do things stand right now — 2-3 sentences on the state of the dynamic.\n2. Her personality read: based on how she writes, what she reveals, what she does not say.\n3. Energy read: is she investing equally, more, or less? Has it shifted?\n4. Topics already covered — list them so the next message does not repeat ground.\n5. The one thing most worth building on next and why.\n6. Recommended next mode to use from Bond Suite based on the current situation.';
+  if(id==='shit_test')return S+"MODE: SHE IS TESTING ME\n\nType of test: "+gv('st_type')+'\nStage: '+gv('stage')+'\n\nWhat she said or did:\n"'+gv('her_msg')+'"'+(gv('context')?'\n\nContext:\n'+gv('context'):'')+vBlock(v)+"\n\nInstructions:\n1. Identify the test: what is she actually testing for? (confidence / frame / neediness / reaction to provocation / whether you will chase)\n2. What most men do wrong here and the psychological reason it fails.\n3. What passing looks like vs what failing looks like.\n4. Generate 3 responses that pass the test: Option A — calm and unbothered / Option B — light humour that deflects without engaging the frame / Option C — confident reframe that takes the lead.\n5. For each: message, why it passes the test, what it signals.\n6. Question Logic and No Repeat Rule.";
+  if(id==='went_cold')return S+'MODE: SHE WENT COLD\n\nWhen it changed: '+gv('wc_when')+'\nDays talking: '+gv('days_talking')+vBlock(v)+'\n\nConversation:\n'+gv('conv')+'\n\nInstructions:\n1. Identify the exact moment the energy shifted if visible.\n2. Diagnosis: what likely caused it?\n3. What most men do wrong here (double texting, over-explaining, going cold back) and why each fails.\n4. Verdict: worth addressing or not? If yes how. If no — why silence is the stronger move.\n5. If addressing: 2 messages — one that acknowledges the shift lightly, one that re-engages naturally as if nothing happened. Explain the risk/reward of each.\n6. Question Logic. No Repeat Rule.';
+  if(id==='slow_down')return S+'MODE: SLOW DOWN\n\nStage: '+gv('stage')+vBlock(v)+'\n\nConversation:\n'+gv('conv')+'\n\nInstructions:\n1. Assess: in what way is this moving too fast?\n2. Why slowing down intentionally is the right move — the psychological effect of slight scarcity on attraction.\n3. How to pull back without creating confusion or anxiety on her side.\n4. Generate 2-3 messages or a tactical approach for the next 2-3 days that naturally reduces pace without disappearing.\n5. What to avoid — things that would read as rejection rather than confidence.\n6. Question Logic. No Repeat Rule.';
+  if(id==='after_date')return S+'MODE: AFTER GREAT DATE\n\nTiming: '+gv('ad_time')+'\nPlatform: '+gv('platform')+vBlock(v)+'\n\nHow the date went:\n'+gv('date_ctx')+'\n\nInstructions:\n1. Psychology of the post-date window — what she is feeling, what she needs to see from you, why this moment is delicate.\n2. The two failure modes: too much too soon (clingy) vs too little too late (she thinks you are not interested).\n3. Generate 3 message options at different energy levels: minimal / warm / warmer.\n4. For each: message, what it signals, connection risk, whether it opens the door to a second date naturally.\n5. How to move toward a second date without making it feel like a formal ask.\n6. Question Logic. No Repeat Rule.';
+  if(id==='vague_plans')return S+'MODE: VAGUE ABOUT PLANS\n\nHow long this has been going on: '+gv('vp_dur')+'\nStage: '+gv('stage')+vBlock(v)+'\n\nConversation:\n'+gv('conv')+'\n\nInstructions:\n1. Diagnose: why is she being vague? (genuinely busy / losing interest / wants you to lead harder / testing)\n2. The difference between genuine busy and soft-no — how to read which this is from the conversation.\n3. What most men do wrong here and why each approach fails.\n4. Verdict: push for a specific time now, or back off and let her come to you?\n5. If pushing: a message that proposes a specific time confidently without sounding desperate.\n6. If backing off: a message that creates light scarcity without going cold.\n7. Question Logic. No Repeat Rule.';
+  if(id==='bio')return S+'MODE: BIO WRITER\n\nPlatform: '+gv('platform')+'\nLength: '+gv('bio_len')+'\n\nAbout me:\n'+gv('my_facts')+'\n\nInstructions:\n1. Write the bio — confident not bragging, specific not generic, slightly mysterious, no cliches like love to laugh or work hard play hard.\n2. After writing: explain the approach — what psychological impression it creates, why specificity beats generic claims, why leaving something out creates intrigue.';
+  if(id==='date_ideas')return S+'MODE: DATE IDEAS\n\nCity: '+gv('city')+'\nBudget: '+gv('budget')+'\n\nHer interests:\n'+gv('her_int')+'\n\nInstructions:\n1. Generate 3 specific date ideas for this city and budget.\n2. For each: name, why it works for attraction dynamics, Bond-style suggestion line.\n3. Flag which has the best risk/reward for a first date and why.';
+  return S+'[Mode prompt not found]';
+}
+
+function buildPrompt(){
+  var m=MODES.find(function(x){return x.id===selMode;});if(!m)return;
+  var missing=[];
+  m.f.forEach(function(fid){var d=FLD[fid];if(d&&!d.opt&&d.t!=='chips'){if(!gv(fid))missing.push(d.l);}});
+  if(missing.length){showN('Fill in: '+missing.join(', '));return;}
+  var v=gVoice();
+  var p=getModeP(selMode,v);
+  document.getElementById('pbox').textContent=p;
+  document.getElementById('out-tag').textContent=m.n.toUpperCase();
+  document.getElementById('out-wrap').className='out-wrap on';
+  document.getElementById('copy-msg').textContent='';
+  // Character count
+  var cc=p.length;
+  var ccEl=document.getElementById('char-count');
+  var limit=cc>8000?'may exceed some free AI limits':cc>4000?'fits most free AIs':'well within all free AI limits';
+  ccEl.textContent=cc.toLocaleString()+' chars — '+limit;
+  ccEl.style.color=cc>8000?'var(--rd)':cc>4000?'var(--yl)':'var(--gr)';
+  // Principle tag
+  var principles={
+    bond_reply:'Core principle: Specificity + Mirror her energy — reference what she said, match her investment level',
+    bondify:'Core principle: Confidence through brevity — remove needy language, keep the intent, shorten',
+    presend:'Core principle: Non-neediness check — scan for approval-seeking signals before sending',
+    opener:'Core principle: Specificity beats generic — referencing her profile creates connection that copy-paste never can',
+    tone_reader:'Core principle: Emotional regulation — read before reacting, understand her signal first',
+    red_flags:'Core principle: Pattern recognition — consistent signals across a thread reveal more than any single message',
+    escalation:'Core principle: Mirroring — match her emotional pace, never lead too far ahead',
+    followup:'Core principle: Non-neediness — what you do not send is often more powerful than what you do',
+    reengage:'Core principle: Brevity signals confidence — re-engage without over-explaining the gap',
+    unmatch:'Core principle: Learning over ego — honest diagnosis of what went wrong is the only way to improve',
+    first_date:'Core principle: Emotional regulation — the right message at the right moment, not the cleverest one',
+    cancelled:'Core principle: Scarcity — your response to her cancellation signals your investment level',
+    number:'Core principle: Natural transition — the move from app to WhatsApp should feel inevitable not transactional',
+    first_move:'Core principle: Frame — accept without losing the driver seat, stay grounded not reactive',
+    ex_mention:'Core principle: Security — your non-reaction to the ex signals confidence more than any words',
+    compliment:'Core principle: Self-worth — accepting a compliment without deflecting or over-thanking signals genuine confidence',
+    morning:'Core principle: Pacing — morning/night texts signal intimacy level, match where you actually are',
+    starters:'Core principle: Open loops — questions that create curiosity get better replies than direct questions',
+    photo:'Core principle: Specificity — what her photos reveal about her values is more useful than commenting on looks',
+    eval:'Core principle: Human pattern detection — catch AI tells before she does',
+    thread:'Core principle: Intentionality — plan the arc, not just the next message',
+    summariser:'Core principle: Situational awareness — know where things stand before deciding what to do next',
+    shit_test:'Core principle: Frame stability — passing a test means not taking the bait, not winning the argument',
+    went_cold:'Core principle: Emotional regulation — do not make the silence bigger than it is',
+    slow_down:'Core principle: Scarcity — controlled withdrawal raises perceived value when done calmly',
+    after_date:'Core principle: Pacing — too much too soon is as damaging as too little too late',
+    vague_plans:'Core principle: Leadership — propose once confidently, then let her come to you',
+    bio:'Core principle: Specificity over claims — concrete details create intrigue that adjectives never can',
+    date_ideas:'Core principle: Novelty and shared experience — the best first dates create stories, not performances',
+  };
+  var ptEl=document.getElementById('principle-tag');
+  if(principles[selMode]){ptEl.textContent=principles[selMode];ptEl.style.display='block';}
+  else{ptEl.style.display='none';}
+  setTimeout(function(){document.getElementById('out-wrap').scrollIntoView({behavior:'smooth',block:'start'});},80);
+}
+
+function selectPrompt(el){
+  var sel=window.getSelection(),r=document.createRange();
+  r.selectNodeContents(el);sel.removeAllRanges();sel.addRange(r);
+  document.getElementById('copy-msg').textContent='Selected — now tap Copy or Cmd+C';
+}
+function doCopy(){
+  var t=document.getElementById('pbox').textContent;
+  var btn=document.getElementById('copy-btn');
+  var msg=document.getElementById('copy-msg');
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){
+      btn.textContent='Copied';
+      msg.textContent='Ready to paste into any AI';
+      setTimeout(function(){btn.textContent='Copy prompt';},3000);
+    }).catch(function(){iOSCopy(t);});
+  } else {
+    iOSCopy(t);
+  }
+}
+function iOSCopy(t){
+  // iOS Safari fallback — select the text in the box
+  var el=document.getElementById('pbox');
+  var btn=document.getElementById('copy-btn');
+  var msg=document.getElementById('copy-msg');
+  var sel=window.getSelection(),r=document.createRange();
+  r.selectNodeContents(el);sel.removeAllRanges();sel.addRange(r);
+  var ok=false;
+  try{ok=document.execCommand('copy');}catch(e){}
+  if(ok){
+    btn.textContent='Copied';
+    msg.textContent='Ready to paste into any AI';
+    setTimeout(function(){btn.textContent='Copy prompt';},3000);
+  } else {
+    btn.textContent='Tap here again';
+    msg.textContent='Text selected — now long-press and tap Copy';
+  }
+}
+
+function resetAll(){
+  selMode='';
+  document.querySelectorAll('.mcard').forEach(function(b){b.className='mcard';});
+  document.getElementById('form-card').style.display='none';
+  document.getElementById('out-wrap').className='out-wrap';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// Main tab switch
+function swMain(id,el){
+  document.querySelectorAll('.mpane').forEach(function(p){p.className='mpane';});
+  document.querySelectorAll('.tnav-btn').forEach(function(b){b.className='tnav-btn';});
+  document.getElementById('mp-'+id).className='mpane on';
+  el.className='tnav-btn on';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// Ref tab switch
+function swRef(id,el){
+  document.querySelectorAll('.rpane').forEach(function(p){p.className='rpane';});
+  document.querySelectorAll('.rtab').forEach(function(b){b.className='rtab';});
+  document.getElementById('rp-'+id).className='rpane on';
+  el.className='rtab on';
+  if(id==='checklist')buildCL();
+}
+
+// Checklist
+var CL=[
+  'Is this shorter than 3 sentences?',
+  'Does it reference something she actually said?',
+  'Is my energy matching hers — not exceeding it?',
+  'Am I not asking about something she already told me?',
+  'Does the question (if any) serve a purpose — or am I just filling space?',
+  'Have I removed "just", "haha", "no worries if not" and similar fillers?',
+  'Would I be comfortable sending this if she never replied?',
+  'Does this put pressure on her to reply?',
+  'Am I sending this from a calm place — not from anxiety?',
+  'Could I send this to anyone, or is it specific to her?',
+];
+function buildCL(){
+  var el=document.getElementById('cl-list');if(!el)return;
+  var h='';
+  CL.forEach(function(t,i){
+    h+='<div class="cl-item"><div class="cbox" id="ck'+i+'" onclick="tgCk('+i+')"></div><div class="ctext">'+t+'</div></div>';
+  });
+  el.innerHTML=h;
+}
+function tgCk(i){var el=document.getElementById('ck'+i);if(el.className.indexOf(' on')>=0){el.className='cbox';el.textContent='';}else{el.className='cbox on';el.textContent='v';}}
+function resetCL(){CL.forEach(function(t,i){var el=document.getElementById('ck'+i);if(el){el.className='cbox';el.textContent='';}});}
+buildCL();
+
+function showN(msg){var n=document.getElementById('notif');n.textContent=msg;n.style.display='block';setTimeout(function(){n.style.display='none';},3000);}
+
+// PWA install
+var deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();deferredPrompt=e;
+  var btn=document.getElementById('install-btn');
+  if(btn)btn.style.display='block';
+});
+
+// Export/import saves
+function exportSaves(){
+  if(!saves.length){showN('No setups to export');return;}
+  var json=JSON.stringify({v:1,saves:saves},null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='bond-setups.json';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  showN('Exported '+saves.length+' setup'+(saves.length>1?'s':''));
+}
+
+function importSaves(){document.getElementById('import-file').click();}
+
+function doImport(inp){
+  var file=inp.files[0];if(!file)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      var imported=data.saves||data;
+      if(!Array.isArray(imported))throw new Error('Invalid format');
+      var added=0;
+      imported.forEach(function(s){
+        if(s.nm&&s.md){
+          if(!saves.find(function(x){return x.nm===s.nm;})){saves.push(s);added++;}
+        }
+      });
+      localStorage.setItem('bsaves',JSON.stringify(saves));
+      renderSaved();
+      showN('Imported '+added+' setup'+(added!==1?'s':''));
+    }catch(ex){showN('Invalid file — needs Bond Suite export JSON');}
+  };
+  r.readAsText(file);
+  inp.value='';
+}
+</script>
+
+<script>
+if('serviceWorker' in navigator){
+  var SW_VERSION='v1';
+  var CACHE='bondsuite-'+SW_VERSION;
+  var sw_code=[
+    'var CACHE="bondsuite-'+SW_VERSION+'";',
+    'var URLS=["./"];',
+    'self.addEventListener("install",function(e){',
+    '  e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(URLS);}));',
+    '  self.skipWaiting();',
+    '});',
+    'self.addEventListener("activate",function(e){',
+    '  e.waitUntil(caches.keys().then(function(keys){',
+    '    return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));',
+    '  }));',
+    '  self.clients.claim();',
+    '});',
+    'self.addEventListener("fetch",function(e){',
+    '  e.respondWith(caches.match(e.request).then(function(r){',
+    '    return r||fetch(e.request).then(function(res){',
+    '      if(res.status===200){',
+    '        var rc=res.clone();',
+    '        caches.open(CACHE).then(function(c){c.put(e.request,rc);});',
+    '      }',
+    '      return res;',
+    '    }).catch(function(){return caches.match("./");});',
+    '  }));',
+    '});'
+  ].join('\n');
+  var blob=new Blob([sw_code],{type:'application/javascript'});
+  var swUrl=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).then(function(reg){
+    console.log('SW registered');
+    reg.addEventListener('updatefound',function(){
+      var nw=reg.installing;
+      nw.addEventListener('statechange',function(){
+        if(nw.state==='installed'&&navigator.serviceWorker.controller){
+          showN('Update available — reload to get latest version');
+        }
+      });
+    });
+  }).catch(function(e){console.log('SW registration failed:',e);});
+}
+</script>
+</body>
+</html>
