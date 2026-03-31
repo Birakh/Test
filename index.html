@@ -160,6 +160,7 @@
         .mob-full-link { text-align: center; padding: 10px; color: #7f8c8d; font-size: 12px; margin-top: 8px; }
         .mob-full-link a { color: #0969da; text-decoration: none; }
         </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 <script id="__demo_seed__">
 (function(){
     try {
@@ -169,7 +170,6 @@
         if (!parsed['2026-05'] || !parsed['2026-05'].workers || parsed['2026-05'].workers.length === 0) {
             parsed['2026-05'] = {"2026-05": {"workers": [{"name": "AAA", "system": "New", "contract": "40", "pref": "Any", "immo": "Fixed", "immoShiftPref": "Mixed", "immoEarlyPct": 60, "fixedOff": [1, 3], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAB", "system": "New", "contract": "40", "pref": "Any", "immo": "Fixed", "immoShiftPref": "Mixed", "immoEarlyPct": 60, "fixedOff": [1, 3], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAC", "system": "New", "contract": "40", "pref": "Any", "immo": "Fixed", "immoShiftPref": "Mixed", "immoEarlyPct": 60, "fixedOff": [4, 5], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAD", "system": "New", "contract": "40", "pref": "Any", "immo": "Fixed", "immoShiftPref": "Mixed", "immoEarlyPct": 60, "fixedOff": [4, 5], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAE", "system": "Old", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAF", "system": "Old", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 1, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAG", "system": "Old", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 2, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAH", "system": "New", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "none", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAI", "system": "New", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "none", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAJ", "system": "New", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "none", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAK", "system": "New", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "none", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAL", "system": "New", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "none", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAM", "system": "New", "contract": "40", "pref": "Late", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "nurSpat", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAN", "system": "Old", "contract": "32", "pref": "Any", "immo": "Jump", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [1], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAO", "system": "Old", "contract": "40", "pref": "Any", "immo": "Jump", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAP", "system": "Old", "contract": "32", "pref": "Late", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [1], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAQ", "system": "Old", "contract": "32", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [5], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAR", "system": "Old", "contract": "32", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [4], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAS", "system": "New", "contract": "32", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [3], "fixed6HDay": null, "summerMode": "var2", "summerWeekOffset": 1, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAT", "system": "Old", "contract": "24", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [2, 5], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAU", "system": "New", "contract": "24", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [1, 4], "fixed6HDay": null, "summerMode": "var2", "summerWeekOffset": 2, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAV", "system": "Old", "contract": "24", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [2, 5], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAW", "system": "Old", "contract": "22", "pref": "Early", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [2, 3], "fixed6HDay": 1, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAX", "system": "New", "contract": "24", "pref": "Early", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [3, 5], "fixed6HDay": null, "summerMode": "nurFruh", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}], "holidays": [], "lssDays": [], "masterTargets": {"wd8E": 4, "wd8M": 2, "wd8L": 4, "wd13": 2, "wd6": 1, "we8E": 2, "we8M": 1, "we8L": 2, "we13": 1, "we6": 0, "wdImE": 1, "wdImL": 1}, "dailyTargets": [], "use13H": false, "use6H": false, "dailyComments": ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]}}['2026-05'];
             localStorage.setItem(key, JSON.stringify(parsed));
-            // Auto-run fill after page loads (bypass confirm for demo)
             window.__demoAutoFill = true;
         }
     } catch(e) {}
@@ -794,6 +794,21 @@
             ⚠️ Last push wins — coordinate with your team or use auto-sync (which pulls before pushing).
         </div>
 
+        <!-- Data Encryption section -->
+        <div style="margin-top:12px; background:#fff8e1; border:1px solid #ffe082; border-radius:6px; padding:12px; font-size:12px;">
+            <strong style="font-size:13px; color:#856404;">🔐 Data Encryption Password</strong>
+            <p style="font-size:11px; color:#555; margin:6px 0 8px 0;">
+                All JSON files are AES-encrypted with this shared team password. Every team member must enter the same password to read the schedule. Leave blank to disable encryption.
+            </p>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <input id="spDataPwd" type="password" placeholder="Enter team data password"
+                    style="flex:1; padding:7px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                <button onclick="setDataPassword()" style="background:#856404; color:white; border:none; padding:7px 14px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; white-space:nowrap;">💾 Save</button>
+            </div>
+            <div id="spDataPwdStatus" style="display:none; margin-top:6px; font-size:11px; color:#1a7f37;"></div>
+            <small style="color:#888; display:block; margin-top:5px;">Saved in this browser only. Share the password verbally with your team — never via chat or email.</small>
+        </div>
+
         <!-- Comment Sync section -->
         <div style="margin-top:14px; background:#f0fff4; border:1px solid #a9dfbf; border-radius:6px; padding:12px; font-size:12px;">
             <strong style="font-size:13px;">💬 Comments Sync</strong>
@@ -986,6 +1001,49 @@ let currentLang = 'en'; // 'en' or 'de'
 // owner = GitHub username/org, repo = repository name, token = PAT (personal per user)
 let spConfig = { siteUrl:'', folderPath:'', fileName:'', autoSync:false };
 
+// ── Data Encryption ──
+// All JSON files stored on GitHub are AES-encrypted with this shared password.
+// Everyone who can access the app needs to know it. Completely separate from
+// the admin/editor login passwords.
+let dataPassword = ''; // set via setup popup or settings; stored in localStorage
+
+function encryptData(plainText) {
+    if (!dataPassword) return plainText; // no password = no encryption (fallback)
+    try {
+        return JSON.stringify({ encrypted: CryptoJS.AES.encrypt(plainText, dataPassword).toString() });
+    } catch(e) { console.warn('Encrypt failed:', e); return plainText; }
+}
+
+function decryptData(text) {
+    if (!text) return text;
+    try {
+        const obj = JSON.parse(text);
+        if (obj && obj.encrypted) {
+            if (!dataPassword) throw new Error('Data is encrypted — enter the data password first.');
+            const bytes = CryptoJS.AES.decrypt(obj.encrypted, dataPassword);
+            const dec = bytes.toString(CryptoJS.enc.Utf8);
+            if (!dec) throw new Error('Wrong data password — decryption produced empty result.');
+            return dec;
+        }
+    } catch(e) {
+        if (e.message.includes('encrypted') || e.message.includes('password')) throw e;
+        // Not JSON or not encrypted object — return as-is (plain text fallback)
+    }
+    return text; // unencrypted data (legacy / first run)
+}
+
+function loadDataPassword() {
+    try {
+        const saved = localStorage.getItem('shiftPlannerDataPwd');
+        if (saved) dataPassword = saved;
+    } catch(e) {}
+}
+
+function saveDataPassword(pwd) {
+    dataPassword = pwd;
+    try { localStorage.setItem('shiftPlannerDataPwd', pwd); } catch(e) {}
+}
+
 // ── Shared comment token — admin embeds this once so all viewers can push comments ──
 // Set this via 🐙 GitHub Sync → 💬 Set Comment Token, then re-download and commit HTML.
 // SHARED_COMMENT_TOKEN is intentionally in the HTML so all users inherit it automatically.
@@ -1013,6 +1071,9 @@ let loginTab    = 'editor'; // which tab is active in login modal
 // Select-mode state
 let selectMode    = false;
 let selectedCells = new Set();   // "wIndex_dIndex"
+
+// lateShiftTypes is global so placeShiftsGreedyFair can access it
+let lateShiftTypes = ['8L','8M','ImL'];
 
 // ── Undo / Redo ──
 const UNDO_LIMIT = 20;
@@ -1201,6 +1262,9 @@ window.onload = () => { try {
         const savedCmt = localStorage.getItem('shiftPlannerCmtToken');
         if (savedCmt) { SHARED_COMMENT_TOKEN = savedCmt; COMMENTS_SHARED_TOKEN = savedCmt; }
     } catch(e) {}
+    // Load data encryption password
+    loadDataPassword();
+
     // Apply initial lock state (always start locked)
     applyLockState();
 
@@ -1266,16 +1330,14 @@ window.onload = () => { try {
     updateFieldGuide();
 
     // Restore SP status bar if configured
-    // Demo mode: auto-run fill if flagged by seed script (bypasses confirm)
     if (window.__demoAutoFill) {
         window.__demoAutoFill = false;
         setTimeout(function() {
             try {
-                pushUndo();
-                var _origConfirm = window.confirm;
+                var _orig = window.confirm;
                 window.confirm = function() { return true; };
                 autoGenerate();
-                window.confirm = _origConfirm;
+                window.confirm = _orig;
             } catch(e) { console.warn('Demo auto-fill:', e); }
         }, 600);
     }
@@ -2421,7 +2483,7 @@ function autoGenerate() {
         pushUndo();
 
     const overwriteList  = ['-','OFF'];
-    const lateShiftTypes = use13H ? ['8L','8M','13H','ImL'] : ['8L','8M','ImL'];
+    lateShiftTypes = use13H ? ['8L','8M','13H','ImL'] : ['8L','8M','ImL'];
 
     // Step 1: Reset all workers
     workers.forEach(worker => {
@@ -3822,8 +3884,14 @@ async function ghReadFile(file) {
         try {
             const rawUrl = 'https://raw.githubusercontent.com/' + owner + '/' + repo + '/main/' + file + '?t=' + Date.now();
             const rr = await fetch(rawUrl);
-            if (rr.ok) return await rr.text();
-        } catch(e) { /* fall through to API */ }
+            if (rr.ok) {
+                const text = await rr.text();
+                return decryptData(text); // decrypt if encrypted
+            }
+        } catch(e) {
+            if (e.message && (e.message.includes('encrypted') || e.message.includes('password'))) throw e;
+            /* fall through to API */
+        }
     }
     // Fall back to authenticated API (private repos or when raw fails)
     if (!spConfig.fileName) return null;
@@ -3831,11 +3899,15 @@ async function ghReadFile(file) {
     if (r.status === 404) return null;
     if (!r.ok) throw new Error('GitHub API ' + r.status + ': ' + await r.text());
     const data = await r.json();
-    return decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
+    const text = decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
+    return decryptData(text); // decrypt if encrypted
 }
 
 // Write a file to GitHub (create or update)
 async function ghWriteFile(file, content, commitMsg) {
+    // Encrypt before pushing if data password is set
+    const payload = encryptData(content);
+
     // First get the current SHA (needed for updates)
     let sha = undefined;
     try {
@@ -3845,7 +3917,7 @@ async function ghWriteFile(file, content, commitMsg) {
 
     const body = {
         message: commitMsg || `Shift Planner update · ${new Date().toISOString()}`,
-        content: btoa(unescape(encodeURIComponent(content)))
+        content: btoa(unescape(encodeURIComponent(payload)))
     };
     if (sha) body.sha = sha;
 
@@ -3868,6 +3940,11 @@ function openSPModal() {
     if (cmtField) cmtField.value = COMMENTS_SHARED_TOKEN || '';
     const cmtEl = document.getElementById('cmtStatus');
     if (cmtEl) cmtEl.style.display = 'none';
+    // Pre-fill data password field
+    const dpEl = document.getElementById('spDataPwd');
+    if (dpEl) dpEl.value = dataPassword || '';
+    const dpStatus = document.getElementById('spDataPwdStatus');
+    if (dpStatus) dpStatus.style.display = 'none';
     spHideStatus();
     document.getElementById('spModal').style.display = 'block';
 }
@@ -4167,6 +4244,21 @@ function clearAppCache() {
     location.reload();
 }
 
+// Set / update the data encryption password from the sync modal
+function setDataPassword() {
+    const el  = document.getElementById('spDataPwd');
+    const pwd = el ? el.value.trim() : '';
+    const statusEl = document.getElementById('spDataPwdStatus');
+    saveDataPassword(pwd);
+    if (statusEl) {
+        statusEl.textContent = pwd
+            ? '✅ Data password saved — all future pushes will be encrypted with this password.'
+            : '⚠️ Data password cleared — files will be written unencrypted.';
+        statusEl.style.color  = pwd ? '#1a7f37' : '#856404';
+        statusEl.style.display = 'block';
+    }
+}
+
 // Smart GitHub sync button — opens setup if not configured, sync modal if already connected
 function openGHSyncOrSetup() {
     const hasConfig = spConfig && spConfig.siteUrl && spConfig.folderPath;
@@ -4366,6 +4458,15 @@ function renderMobileView() {
                     <strong>Editors/Admins:</strong> enter your own PAT (Contents: Read &amp; Write).
                 </div>
             </div>
+            <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:6px; padding:10px;">
+                <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:3px; color:#856404;">🔐 Data Password <span style="font-weight:normal; color:#888;">— shared with all staff</span></label>
+                <input id="su_datapwd" type="password" placeholder="Team data password (ask your admin)"
+                    style="width:100%; box-sizing:border-box; padding:9px; font-size:14px; border:2px solid #ddd; border-radius:6px;"
+                    onkeydown="if(event.key==='Enter') suConnect()">
+                <div style="font-size:11px; color:#666; margin-top:5px; line-height:1.5;">
+                    All shift data is AES-encrypted. Every team member uses the same password. Leave blank only if encryption isn't set up yet.
+                </div>
+            </div>
         </div>
         <div id="su_error"  style="display:none; background:#fff0f0; border:1px solid #f5c6cb; border-radius:4px; padding:7px 10px; font-size:12px; color:#c0392b; margin-top:10px;"></div>
         <div id="su_status" style="display:none; background:#eaffea; border:1px solid #a9dfbf; border-radius:4px; padding:7px 10px; font-size:12px; color:#1a7f37; margin-top:10px;"></div>
@@ -4392,6 +4493,9 @@ function renderMobileView() {
                 var r = document.getElementById('su_repo');
                 if (o && c.siteUrl)    o.value = c.siteUrl;
                 if (r && c.folderPath) r.value = c.folderPath;
+                var dp = document.getElementById('su_datapwd');
+                var savedPwd = localStorage.getItem('shiftPlannerDataPwd');
+                if (dp && savedPwd) dp.value = savedPwd;
             } catch(e) {}
         }
         el.style.display = 'flex';
@@ -4454,9 +4558,12 @@ function renderMobileView() {
         btn.textContent = 'Connecting...'; btn.disabled = true;
         try {
             var data = await suCheckRepo(owner, repo, token);
-            // Save using the same keys the main app uses
+            // Save GitHub config
             var cfg = { siteUrl: owner, folderPath: repo, fileName: token, autoSync: false };
             localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(cfg));
+            // Save data password
+            var dpwd = (document.getElementById('su_datapwd') || {value:''}).value.trim();
+            if (dpwd) localStorage.setItem('shiftPlannerDataPwd', dpwd);
             stat.textContent = 'Connected to ' + data.full_name + '! Loading config...';
             stat.style.display = 'block';
             btn.textContent = 'Connected!';
@@ -4466,6 +4573,9 @@ function renderMobileView() {
                 spConfig.folderPath = repo;
                 spConfig.fileName   = token;
             }
+            // Apply data password to main app immediately
+            var dpwd2 = (document.getElementById('su_datapwd') || {value:''}).value.trim();
+            if (typeof saveDataPassword === 'function' && dpwd2) saveDataPassword(dpwd2);
             if (typeof spLoadConfig === 'function') spLoadConfig();
             if (typeof spSetStatus  === 'function') spSetStatus('🐙 ' + owner + '/' + repo + ' · Connected', '#f6f8fa', '#24292f');
             setTimeout(function() {
