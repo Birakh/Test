@@ -62,6 +62,8 @@
         /* Viewer (default locked) — nothing editable */
         .app-locked .edit-only    { opacity:0.38; pointer-events:none; filter:grayscale(60%); }
         .app-locked .shift-select { pointer-events:none; background:#f0f0f0 !important; color:#888 !important; }
+        .app-locked .shift-select.viewer-vac-select { pointer-events:auto; background:inherit !important; color:inherit !important; }
+        .app-locked #maxVacation { pointer-events:none; background:#f0f0f0 !important; color:#888 !important; }
         .app-locked .tgt-input    { pointer-events:none; background:#f0f0f0 !important; }
         .app-locked .comment-input { } /* comments always free for all roles */
         .app-locked input[type="checkbox"].edit-chk { pointer-events:none; opacity:0.35; }
@@ -161,22 +163,6 @@
         .mob-full-link a { color: #0969da; text-decoration: none; }
         </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
-<script id="__demo_seed__">
-(function(){
-    try {
-        var key = 'shiftPlannerAllMonthsV23';
-        var existing = localStorage.getItem(key);
-        var parsed = existing ? JSON.parse(existing) : {};
-        if (!parsed['2026-05'] || !parsed['2026-05'].workers || parsed['2026-05'].workers.length === 0) {
-            parsed['2026-05'] = {"2026-05": {"workers": [{"name": "AAA", "system": "New", "contract": "40", "pref": "Any", "immo": "Fixed", "immoShiftPref": "Mixed", "immoEarlyPct": 60, "fixedOff": [1, 3], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAB", "system": "New", "contract": "40", "pref": "Any", "immo": "Fixed", "immoShiftPref": "Mixed", "immoEarlyPct": 60, "fixedOff": [1, 3], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAC", "system": "New", "contract": "40", "pref": "Any", "immo": "Fixed", "immoShiftPref": "Mixed", "immoEarlyPct": 60, "fixedOff": [4, 5], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAD", "system": "New", "contract": "40", "pref": "Any", "immo": "Fixed", "immoShiftPref": "Mixed", "immoEarlyPct": 60, "fixedOff": [4, 5], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAE", "system": "Old", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAF", "system": "Old", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 1, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAG", "system": "Old", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 2, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAH", "system": "New", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "none", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAI", "system": "New", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "none", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAJ", "system": "New", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "none", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAK", "system": "New", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "none", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAL", "system": "New", "contract": "40", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "none", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAM", "system": "New", "contract": "40", "pref": "Late", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "nurSpat", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAN", "system": "Old", "contract": "32", "pref": "Any", "immo": "Jump", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [1], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAO", "system": "Old", "contract": "40", "pref": "Any", "immo": "Jump", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAP", "system": "Old", "contract": "32", "pref": "Late", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [1], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAQ", "system": "Old", "contract": "32", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [5], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAR", "system": "Old", "contract": "32", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [4], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAS", "system": "New", "contract": "32", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [3], "fixed6HDay": null, "summerMode": "var2", "summerWeekOffset": 1, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAT", "system": "Old", "contract": "24", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [2, 5], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAU", "system": "New", "contract": "24", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [1, 4], "fixed6HDay": null, "summerMode": "var2", "summerWeekOffset": 2, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAV", "system": "Old", "contract": "24", "pref": "Any", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [2, 5], "fixed6HDay": null, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAW", "system": "Old", "contract": "22", "pref": "Early", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [2, 3], "fixed6HDay": 1, "summerMode": "var1", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}, {"name": "AAX", "system": "New", "contract": "24", "pref": "Early", "immo": "None", "immoShiftPref": null, "immoEarlyPct": null, "fixedOff": [3, 5], "fixed6HDay": null, "summerMode": "nurFruh", "summerWeekOffset": 0, "summerMonths": [5, 6, 7, 8], "shifts": ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"], "requests": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]}], "holidays": [], "lssDays": [], "masterTargets": {"wd8E": 4, "wd8M": 2, "wd8L": 4, "wd13": 2, "wd6": 1, "we8E": 2, "we8M": 1, "we8L": 2, "we13": 1, "we6": 0, "wdImE": 1, "wdImL": 1}, "dailyTargets": [], "use13H": false, "use6H": false, "dailyComments": ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]}}['2026-05'];
-            localStorage.setItem(key, JSON.stringify(parsed));
-            window.__demoAutoFill = true;
-        }
-    } catch(e) {}
-    var s = document.getElementById('__demo_seed__');
-    if (s) s.parentNode.removeChild(s);
-})();
-</script>
 </head>
 <body>
 
@@ -548,7 +534,7 @@
         </optgroup>
         <optgroup label="Special">
             <option value="OFF">OFF</option><option value="VAC">VAC</option><option value="SICK">SICK</option>
-            <option value="FB">FB</option><option value="LSS">LSS</option><option value="Offc">Offc</option>
+            <option value="FB">FB</option><option value="PF">PF</option><option value="LSS">LSS</option><option value="Offc">Offc</option>
             <option value="RB1">RB1</option><option value="RB2">RB2</option><option value="DF">DF</option>
             <option value="Urlaub IR">Urlaub IR</option><option value="Urlaub-ZA">Urlaub-ZA</option><option value="U-Immo">U-Immo</option>
         </optgroup>
@@ -957,30 +943,21 @@
 
 <!-- Custom Hours Modal -->
 <div id="customHoursModal" class="modal">
-    <div class="modal-content" style="max-width:380px;">
+    <div class="modal-content" style="max-width:430px;">
         <span class="close-btn" onclick="closeCustomHoursModal()">&times;</span>
         <h2 style="color:#6c3483;">⏰ Custom Shift Hours</h2>
         <input type="hidden" id="cusWorkerIdx">
         <input type="hidden" id="cusDayIdx">
         <div style="display:flex; gap:16px; align-items:center; margin:14px 0 10px 0;">
-            <div>
-                <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:4px;">Start Time</label>
-                <input type="time" id="cusStartTime" value="07:00" oninput="updateCusOverlapInfo()" style="font-size:15px; padding:6px; width:120px; border:1px solid #ccc; border-radius:4px;">
-            </div>
+            <div><label style="font-size:12px; font-weight:bold; display:block; margin-bottom:4px;">Start Time</label><input type="time" id="cusStartTime" value="07:00" oninput="updateCusOverlapInfo()" style="font-size:15px; padding:6px; width:120px; border:1px solid #ccc; border-radius:4px;"></div>
             <div style="font-size:22px; color:#aaa; padding-top:18px;">→</div>
-            <div>
-                <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:4px;">End Time</label>
-                <input type="time" id="cusEndTime" value="15:30" oninput="updateCusOverlapInfo()" style="font-size:15px; padding:6px; width:120px; border:1px solid #ccc; border-radius:4px;">
-            </div>
+            <div><label style="font-size:12px; font-weight:bold; display:block; margin-bottom:4px;">End Time</label><input type="time" id="cusEndTime" value="15:30" oninput="updateCusOverlapInfo()" style="font-size:15px; padding:6px; width:120px; border:1px solid #ccc; border-radius:4px;"></div>
         </div>
+        <div style="margin:0 0 10px 0;"><label style="font-size:12px; font-weight:bold; display:block; margin-bottom:4px;">IR / Room</label><select id="cusRoom" onchange="updateCusOverlapInfo()" style="font-size:14px; padding:6px; width:100%; border:1px solid #ccc; border-radius:4px;"><option value="">No room</option><option value="IR2">IR2</option><option value="IR3">IR3</option><option value="IR4">IR4</option></select></div>
         <div id="cusOverlapInfo" style="font-size:12px; background:#f8f9fa; border-radius:4px; padding:8px; margin-bottom:12px; color:#555; min-height:44px;"></div>
-        <div style="display:flex; gap:8px;">
-            <button onclick="applyCustomHours()" style="flex:1; background:#6c3483; color:white; padding:9px; font-size:13px; font-weight:bold; border:none; border-radius:4px; cursor:pointer;">✔ Set Custom Shift</button>
-            <button onclick="closeCustomHoursModal()" style="background:#6c757d; color:white; padding:9px; font-size:13px; border:none; border-radius:4px; cursor:pointer;">Cancel</button>
-        </div>
+        <div style="display:flex; gap:8px;"><button onclick="applyCustomHours()" style="flex:1; background:#6c3483; color:white; padding:9px; font-size:13px; font-weight:bold; border:none; border-radius:4px; cursor:pointer;">✔ Set Custom Shift</button><button onclick="closeCustomHoursModal()" style="background:#6c757d; color:white; padding:9px; font-size:13px; border:none; border-radius:4px; cursor:pointer;">Cancel</button></div>
     </div>
 </div>
-
 <script>
 'use strict';
 
@@ -1072,6 +1049,19 @@ let loginTab    = 'editor'; // which tab is active in login modal
 let selectMode    = false;
 let selectedCells = new Set();   // "wIndex_dIndex"
 
+const vacationTypes = ['VAC','Urlaub IR','Urlaub-ZA','U-Immo'];
+const roomColorMap = { IR2:'#fff2a8', IR3:'#cfe2ff', IR4:'#f3d1ff' };
+const vacationApprovedColor = '#b6d7a8';
+const pendingVacationSuffix = '-PENDING';
+function isVacationBase(shift) { return vacationTypes.includes(shift); }
+function isPendingVacationShift(shift) { return typeof shift === 'string' && shift.endsWith(pendingVacationSuffix) && isVacationBase(shift.slice(0, -pendingVacationSuffix.length)); }
+function toPendingVacation(shift) { return isVacationBase(shift) ? (shift + pendingVacationSuffix) : shift; }
+function stripPendingVacation(shift) { return isPendingVacationShift(shift) ? shift.slice(0, -pendingVacationSuffix.length) : shift; }
+function getRoomAssignment(shift) { const m = String(shift||'').match(/-(IR2|IR3|IR4)(?:$|[^A-Z0-9])/); return m ? m[1] : ''; }
+function viewerCanEditCell(currentShift) { return currentShift === '-' || isVacationBase(stripPendingVacation(currentShift)) || isPendingVacationShift(currentShift); }
+function canViewerEditChange(oldValue, newValue) { if (newValue === '-') return oldValue === '-' || isVacationBase(stripPendingVacation(oldValue)) || isPendingVacationShift(oldValue); return isVacationBase(stripPendingVacation(newValue)); }
+function viewerShiftValueForSave(value) { if (value === '-') return '-'; const clean = stripPendingVacation(value); return isVacationBase(clean) ? toPendingVacation(clean) : value; }
+
 // lateShiftTypes is global so placeShiftsGreedyFair can access it
 let lateShiftTypes = ['8L','8M','ImL'];
 
@@ -1126,7 +1116,7 @@ function redo() {
 }
 
 const shiftHours = {
-    "-":0,"13H":13,"8E":8,"8L":8,"8M":8,"6H":6,"OFF":0,"VAC":8,"SICK":8,"FB":8,
+    "-":0,"13H":13,"8E":8,"8L":8,"8M":8,"6H":6,"OFF":0,"VAC":8,"SICK":8,"FB":8,"PF":8,
     "DF":0,"Urlaub IR":8,"Urlaub-ZA":8,"U-Immo":8,"LSS":8,"Offc":8,
     "RB1":0,"RB2":0,"ImE":8,"ImL":8.5,"8H-ANY":8,"8L-ANY":8
 };
@@ -1139,55 +1129,31 @@ const dayNames      = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 // ─────────────────────────────────────────────────────────
 function getBaseShift(shift) {
     if (!shift || shift === '-') return '-';
+    shift = stripPendingVacation(shift);
     if (shift === 'U-Immo') return 'U-Immo';
     if (shift.startsWith('CUS')) return 'CUS';
     if (shift.includes('-IR') || shift.includes('-Immo')) return shift.split('-')[0];
     return shift;
 }
 
-// Returns hours for any shift including custom CUS-HH:MM-HH:MM
 function getShiftHours(shift) {
     const base = getBaseShift(shift);
-    if (base === 'CUS') {
-        const m = shift.match(/CUS-(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
-        if (m) return Math.max(0, ((parseInt(m[3])*60+parseInt(m[4])) - (parseInt(m[1])*60+parseInt(m[2]))) / 60);
-        return 8;
-    }
+    if (base === 'CUS') { const m = String(shift||'').match(/CUS-(\d{2}):(\d{2})-(\d{2}):(\d{2})(?:-(IR2|IR3|IR4))?$/); if (m) return Math.max(0, ((parseInt(m[3])*60+parseInt(m[4])) - (parseInt(m[1])*60+parseInt(m[2]))) / 60); return 8; }
     return shiftHours[base] || 0;
 }
 
-// For a CUS shift returns { early, late, star }
-// early = starts ≤ noon, late = ends ≥ 14:00 — if both, show ★ and count in both buckets
 function cusOverlap(shift) {
-    const m = shift.match(/CUS-(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
-    if (!m) return { early:true, late:false, star:false, label:'CUS' };
-    const sh = parseInt(m[1]), sm = parseInt(m[2]);
-    const eh = parseInt(m[3]), em = parseInt(m[4]);
-    const early = sh < 12 || (sh===12 && sm===0);
-    const late  = eh > 14 || (eh===14 && em===0);
-    const star  = early && late;
-    const hrs   = Math.max(0, (eh*60+em - sh*60-sm)/60).toFixed(1);
-    return { early, late, star, label:`${m[1]}:${m[2]}–${m[3]}:${m[4]} (${hrs}h)` };
+    const m = String(shift||'').match(/CUS-(\d{2}):(\d{2})-(\d{2}):(\d{2})(?:-(IR2|IR3|IR4))?$/);
+    if (!m) return { early:true, late:false, star:false, label:'CUS', room:'' };
+    const sh = parseInt(m[1]), sm = parseInt(m[2]); const eh = parseInt(m[3]), em = parseInt(m[4]);
+    const early = sh < 12 || (sh===12 && sm===0); const late  = eh > 14 || (eh===14 && em===0); const star  = early && late; const hrs = Math.max(0, (eh*60+em - sh*60-sm)/60).toFixed(1); const room = m[5] || '';
+    return { early, late, star, room, label:`${m[1]}:${m[2]}–${m[3]}:${m[4]} (${hrs}h)${room ? ' · ' + room : ''}` };
 }
 
 function getColor(shift) {
+    const room = getRoomAssignment(shift); if (room && roomColorMap[room]) return roomColorMap[room]; if (isPendingVacationShift(shift)) return '#ffffff';
     const b = getBaseShift(shift);
-    if (b==='13H')   return '#ffe599';
-    if (b==='8E')    return '#cfe2f3';
-    if (b==='8L')    return '#f4cccc';
-    if (b==='8M')    return '#f9cb9c';
-    if (b==='6H')    return '#d9ead3';
-    if (b==='ImE')   return '#a2c4c9';
-    if (b==='ImL')   return '#76a5af';
-    if (b==='OFF'||b==='DF') return '#e0e0e0';
-    if (b==='VAC'||b==='Urlaub IR'||b==='Urlaub-ZA'||b==='U-Immo') return '#d0a9f5';
-    if (b==='SICK')  return '#f5b7b1';
-    if (b==='FB')    return '#9fc5e8';
-    if (b==='LSS')   return '#d9d9d9';
-    if (b==='Offc')  return '#b6d7a8';
-    if (b==='CUS')   return '#e8d5f5';
-    if (b==='RB1'||b==='RB2') return '#fce5cd';
-    return '#ffffff';
+    if (b==='13H') return '#ffe599'; if (b==='8E') return '#cfe2f3'; if (b==='8L') return '#f4cccc'; if (b==='8M') return '#f9cb9c'; if (b==='6H') return '#d9ead3'; if (b==='ImE') return '#a2c4c9'; if (b==='ImL') return '#76a5af'; if (b==='OFF'||b==='DF') return '#e0e0e0'; if (b==='VAC'||b==='Urlaub IR'||b==='Urlaub-ZA'||b==='U-Immo') return vacationApprovedColor; if (b==='SICK') return '#f5b7b1'; if (b==='FB') return '#9fc5e8'; if (b==='PF') return '#ead1dc'; if (b==='LSS') return '#d9d9d9'; if (b==='Offc') return '#b6d7a8'; if (b==='CUS') return '#e8d5f5'; if (b==='RB1'||b==='RB2') return '#fce5cd'; return '#ffffff';
 }
 
 function getContinuousWeek(year, month, dayIndex) {
@@ -1330,18 +1296,6 @@ window.onload = () => { try {
     updateFieldGuide();
 
     // Restore SP status bar if configured
-    if (window.__demoAutoFill) {
-        window.__demoAutoFill = false;
-        setTimeout(function() {
-            try {
-                var _orig = window.confirm;
-                window.confirm = function() { return true; };
-                autoGenerate();
-                window.confirm = _orig;
-            } catch(e) { console.warn('Demo auto-fill:', e); }
-        }, 600);
-    }
-
     if (spConfig.siteUrl) {
         const lastSync = localStorage.getItem('shiftPlannerSPLastSync');
         spSetStatus(`🐙 GitHub configured${lastSync ? ' · Last sync: ' + lastSync : ' · Not yet synced'}`, '#f6f8fa', '#24292f');
@@ -1822,15 +1776,17 @@ function saveEditWorker() {
 // ─────────────────────────────────────────────────────────
 
 function updateShift(wIndex, dIndex, value) {
+    const oldValue = workers[wIndex].shifts[dIndex]; let finalValue = value;
     if (!isEditMode) {
-        // Revert the dropdown to the actual current value
-        const sel = document.querySelector(`.shift-select[data-w="${wIndex}"][data-d="${dIndex}"]`);
-        if (sel) sel.value = workers[wIndex].shifts[dIndex];
-        requireEdit('Edit Shift');
-        return;
-    }
-    pushUndo(); workers[wIndex].shifts[dIndex]=value; saveData(); renderTable();
+        if (currentRole !== 'viewer' || !canViewerEditChange(oldValue, value)) { const sel = document.querySelector(`.shift-select[data-w="${wIndex}"][data-d="${dIndex}"]`); if (sel) sel.value = oldValue; if (currentRole === 'viewer') alert('🔒 Viewers can only request Urlaub / vacation (or clear a vacation request).'); else requireEdit('Edit Shift'); return; }
+        finalValue = viewerShiftValueForSave(value);
+    } else if (isPendingVacationShift(oldValue) && isVacationBase(stripPendingVacation(value))) { finalValue = stripPendingVacation(value); }
+    pushUndo(); workers[wIndex].shifts[dIndex] = finalValue; saveData();
+    const sel = document.querySelector(`.shift-select[data-w="${wIndex}"][data-d="${dIndex}"]`);
+    if (sel) { const bgColor = getColor(finalValue); sel.style.backgroundColor = bgColor; sel.style.color = ''; const td = sel.closest('td'); if (td) td.style.backgroundColor = bgColor; sel.innerHTML = getDropdownOptions(finalValue); sel.value = finalValue; }
+    renderTableFoot(); if (document.getElementById('statsToggle') && document.getElementById('statsToggle').checked) renderStats();
 }
+
 function updateRequest(wIndex, dIndex, isChecked) { workers[wIndex].requests[dIndex]=isChecked; saveData(); renderTable(); }
 function updateComment(dIndex, text) { dailyComments[dIndex]=text; saveData(); scheduleCommentSync(); }
 
@@ -1920,53 +1876,21 @@ function closeLSSModal() {
 // ─────────────────────────────────────────────────────────
 function openCustomHoursModal(wIndex, dIndex) {
     if (!requireEdit("Custom Hours")) return;
-    document.getElementById('cusWorkerIdx').value = wIndex;
-    document.getElementById('cusDayIdx').value    = dIndex;
-
-    // Pre-populate with current CUS values or shift defaults
-    const cur = workers[wIndex].shifts[dIndex];
-    // Regex: CUS-HH:MM-HH:MM (stored as CUS-07:00-15:30)
-    const m   = cur ? cur.match(/CUS-(\d{2}:\d{2})-(\d{2}:\d{2})/) : null;
-    document.getElementById('cusStartTime').value = m ? m[1] : '07:00';
-    document.getElementById('cusEndTime').value   = m ? m[2] : '15:30';
-
-    updateCusOverlapInfo();
-    document.getElementById('customHoursModal').style.display = 'block';
+    document.getElementById('cusWorkerIdx').value = wIndex; document.getElementById('cusDayIdx').value = dIndex;
+    const cur = workers[wIndex].shifts[dIndex]; const m = String(cur || '').match(/CUS-(\d{2}:\d{2})-(\d{2}:\d{2})(?:-(IR2|IR3|IR4))?$/);
+    document.getElementById('cusStartTime').value = m ? m[1] : '07:00'; document.getElementById('cusEndTime').value = m ? m[2] : '15:30'; const roomSel = document.getElementById('cusRoom'); if (roomSel) roomSel.value = m && m[3] ? m[3] : ''; updateCusOverlapInfo(); document.getElementById('customHoursModal').style.display = 'block';
 }
 
 function updateCusOverlapInfo() {
-    const s  = document.getElementById('cusStartTime').value;
-    const e  = document.getElementById('cusEndTime').value;
-    if (!s || !e) return;
-    const fakeShift = `CUS-${s}-${e}`;
-    const ov = cusOverlap(fakeShift);
-    const shM = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]);
-    const ehM = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]);
-    const hrs = ((ehM - shM) / 60).toFixed(1);
-    let info = `⏱ Duration: <strong>${hrs}h</strong> &nbsp;|&nbsp; `;
-    if (ov.star) {
-        info += `⭐ <strong>Spans both Early & Late</strong> — counted in <em>both</em> shift buckets`;
-    } else if (ov.early) {
-        info += `🌅 Counts as <strong>Early shift</strong>`;
-    } else {
-        info += `🌆 Counts as <strong>Late shift</strong>`;
-    }
-    if (hrs <= 0) info = `<span style="color:red;">⚠ End time must be after start time</span>`;
-    document.getElementById('cusOverlapInfo').innerHTML = info;
+    const s = document.getElementById('cusStartTime').value; const e = document.getElementById('cusEndTime').value; const room = (document.getElementById('cusRoom') || { value:'' }).value; if (!s || !e) return;
+    const fakeShift = `CUS-${s}-${e}${room ? '-' + room : ''}`; const ov = cusOverlap(fakeShift); const shM = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]); const ehM = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]); const hrs = ((ehM - shM) / 60).toFixed(1);
+    let info = `⏱ Duration: <strong>${hrs}h</strong>${room ? ` · <strong>${room}</strong>` : ''} · `; if (ov.star) info += `⭐ <strong>Spans both Early & Late</strong> — counted in <em>both</em> shift buckets`; else if (ov.early) info += `🌅 Counts as <strong>Early shift</strong>`; else info += `🌆 Counts as <strong>Late shift</strong>`; if (parseFloat(hrs) <= 0) info = `<span style="color:red;">⚠ End time must be after start time</span>`; document.getElementById('cusOverlapInfo').innerHTML = info;
 }
 
 function applyCustomHours() {
-    const wIndex = parseInt(document.getElementById('cusWorkerIdx').value);
-    const dIndex = parseInt(document.getElementById('cusDayIdx').value);
-    const s = document.getElementById('cusStartTime').value;
-    const e = document.getElementById('cusEndTime').value;
-    const shM = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]);
-    const ehM = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]);
-    if (ehM <= shM) { alert('End time must be after start time!'); return; }
-    pushUndo();
-    workers[wIndex].shifts[dIndex] = `CUS-${s}-${e}`;
-    closeCustomHoursModal();
-    saveData(); renderTable();
+    const wIndex = parseInt(document.getElementById('cusWorkerIdx').value); const dIndex = parseInt(document.getElementById('cusDayIdx').value); const s = document.getElementById('cusStartTime').value; const e = document.getElementById('cusEndTime').value; const room = (document.getElementById('cusRoom') || { value:'' }).value;
+    const shM = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]); const ehM = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]); if (ehM <= shM) { alert('End time must be after start time!'); return; }
+    pushUndo(); workers[wIndex].shifts[dIndex] = `CUS-${s}-${e}${room ? '-' + room : ''}`; closeCustomHoursModal(); saveData(); renderTable();
 }
 
 function closeCustomHoursModal() {
@@ -2147,35 +2071,48 @@ function restoreData(input) {
 //  Dropdown HTML helper
 // ─────────────────────────────────────────────────────────
 function getDropdownOptions(currentShift) {
-    const base   = ["-","13H","8E","8L","8M","6H","OFF","VAC","SICK","FB","DF","Urlaub IR","Urlaub-ZA","U-Immo","LSS","Offc","RB1","RB2"];
-    const immo   = ["ImE","ImL"];
-    const rooms  = ["IR2","IR3","IR4","Immo"];
-    const rShifts = ["13H","8E","8L","8M","6H"];
-    let html = `<option value="-" ${currentShift==='-'?'selected':''}>-</option>`;
-    // CUS entry (shown in dropdown if currently set)
-    if (getBaseShift(currentShift)==='CUS') {
-        const ov = cusOverlap(currentShift);
-        html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`;
-    }
-    html += `<optgroup label="Immo Shifts">`;
-    immo.forEach(s => html += `<option value="${s}" ${currentShift===s?'selected':''}>${s}</option>`);
-    html += `</optgroup><optgroup label="Base Shifts & Special">`;
-    base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${currentShift===s?'selected':''}>${s}</option>`; });
-    html += `</optgroup>`;
-    rooms.forEach(room => {
-        html += `<optgroup label="${room} Assigned">`;
-        rShifts.forEach(s => {
-            const v = `${s}-${room}`;
-            html += `<option value="${v}" ${currentShift===v?'selected':''}>${v}</option>`;
-        });
-        html += `</optgroup>`;
-    });
-    return html;
+    const base=["-","13H","8E","8L","8M","6H","OFF","VAC","SICK","FB","PF","DF","Urlaub IR","Urlaub-ZA","U-Immo","LSS","Offc","RB1","RB2"]; const immo=["ImE","ImL"]; const rooms=["IR2","IR3","IR4","Immo"]; const rShifts=["13H","8E","8L","8M","6H"]; const currentBase=getBaseShift(currentShift); let html=`<option value="-" ${currentShift==='-'?'selected':''}>-</option>`;
+    if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${currentShift || '-'}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; } if (isPendingVacationShift(currentShift)) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ request</option>`; vacationTypes.forEach(s => { const selected = stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${selected?'selected':''}>${s}</option>`; }); return html; }
+    if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; } if (isPendingVacationShift(currentShift)) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ pending approval</option>`;
+    html += `<optgroup label="Immo Shifts">`; immo.forEach(s => html += `<option value="${s}" ${currentShift===s?'selected':''}>${s}</option>`); html += `</optgroup><optgroup label="Base Shifts & Special">`; base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${(currentShift===s || stripPendingVacation(currentShift)===s)?'selected':''}>${s}</option>`; }); html += `</optgroup>`; rooms.forEach(room => { html += `<optgroup label="${room} Assigned">`; rShifts.forEach(s => { const v=`${s}-${room}`; html += `<option value="${v}" ${currentShift===v?'selected':''}>${v}</option>`; }); html += `</optgroup>`; }); return html;
 }
 
 // ─────────────────────────────────────────────────────────
 //  Render Table
 // ─────────────────────────────────────────────────────────
+function renderTableFoot() {
+    const ftLabel = currentLang==='de' ? 'Ca. Wochenstunden:' : 'Approx. Weekly Hours:';
+    const wkLabel = currentLang==='de' ? '(Wo1|Wo2|Wo3|Wo4|Wo5)' : '(Wk1|Wk2|Wk3|Wk4|Wk5)';
+    let footHTML = `<tr><th class="sticky-col" colspan="3" style="text-align:right; font-size:11px;">
+        ${ftLabel}<br><small>${wkLabel}</small></th>`;
+    workers.forEach(w => {
+        const wkHrs = [0,0,0,0,0];
+        w.shifts.forEach((s,i) => { wkHrs[Math.min(Math.floor(i/7),4)] += getShiftHours(s); });
+        footHTML += `<td style="font-size:10px; line-height:1.4;">
+            1:${wkHrs[0]}h<br>2:${wkHrs[1]}h<br>3:${wkHrs[2]}h<br>4:${wkHrs[3]}h<br>5:${wkHrs[4]}h</td>`;
+    });
+    footHTML += `<td colspan="16"></td></tr>`;
+
+    // ── Footer: Total Late Shifts ──
+    const lateLabel = use13H ? '(8L, 8M, 13H)' : '(8L ≤22:30 | 8M ≤20:00)';
+    let latesHTML = `<tr><th class="sticky-col" colspan="3" style="text-align:right; font-size:12px; color:#c0392b;">
+        Total Late Shifts:<br><small>${lateLabel}</small></th>`;
+    workers.forEach(w => {
+        const lateTypes = use13H ? ['8L','8M','13H','ImL'] : ['8L','8M','ImL'];
+        const nL  = w.shifts.filter(s => getBaseShift(s)==='8L').length;
+        const nM  = w.shifts.filter(s => getBaseShift(s)==='8M').length;
+        const n13 = use13H ? w.shifts.filter(s => getBaseShift(s)==='13H').length : 0;
+        const nIL = w.shifts.filter(s => getBaseShift(s)==='ImL').length;
+        const total = nL + nM + n13 + nIL;
+        const detail = `<span title="8L(22:30): ${nL} | 8M(20:00): ${nM}${use13H?' | 13H: '+n13:''}${nIL?' | ImL: '+nIL:''}" style="cursor:help;">
+            ${total}<br><small style="font-size:9px; color:#e67e22;">${nL}L / ${nM}M${use13H&&n13?' / '+n13+'×13':''}`;
+        latesHTML += `<td style="font-size:13px; font-weight:bold; color:#c0392b; line-height:1.3;">${detail}</small></span></td>`;
+    });
+    latesHTML += `<td colspan="16"></td></tr>`;
+
+    document.getElementById('tableFoot').innerHTML = footHTML + latesHTML;
+}
+
 function renderTable() {
     if (!currentYear) return;
     const maxVac    = parseInt(document.getElementById('maxVacation').value)    || 0;
@@ -2226,6 +2163,10 @@ function renderTable() {
         <th style="min-width:150px;">Room Warnings</th>
         <th style="min-width:90px; color:#c0392b;">🤒 Sick</th>
         <th style="min-width:90px; color:#8e44ad;">🏖 Vacation</th>
+        <th style="min-width:60px;">FB</th>
+        <th style="min-width:60px;">PF</th>
+        <th style="min-width:60px;">DF</th>
+        <th style="min-width:70px; color:#c0392b;">Krank</th>
         <th>💬 Daily Comments${cmtReady() ? ' <span title=\'Comment sync ON\' style=\'color:#27ae60; font-size:10px;\'>●</span>' : ' <span title=\'Comment sync not configured — see 🐙 GitHub Sync\' style=\'color:#aaa; font-size:10px;\'>○</span>'}</th></tr>`;
     document.getElementById('tableHead').innerHTML = headHTML;
 
@@ -2243,8 +2184,8 @@ function renderTable() {
 
         bodyHTML += `<tr class="${rowClass}">__DATECELL_${d}__`;
 
-        let c8E=0,c8M=0,c8L=0,c13H=0,c6H=0,cImE=0,cImL=0,vCount=0,sickCount=0,workingCount=0;
-        const sickNames=[], vacNames=[];
+        let c8E=0,c8M=0,c8L=0,c13H=0,c6H=0,cImE=0,cImL=0,vCount=0,sickCount=0,workingCount=0,cFB=0,cPF=0,cDF=0,cKrank=0;
+        const sickNames=[], vacNames=[], fbNames=[], pfNames=[], dfNames=[], krankNames=[];
         const rooms = {
             IR2:{e:[],m:[],l:[]}, IR3:{e:[],m:[],l:[]},
             IR4:{e:[],m:[],l:[]}, Immo:{e:[],l:[],u:[],vac:[],sick:[]}
@@ -2275,7 +2216,10 @@ function renderTable() {
 
             // Counters
             if (['VAC','Urlaub IR','Urlaub-ZA','U-Immo'].includes(baseShift)) { vCount++; vacNames.push(worker.name); }
-            if (baseShift==='SICK') { sickCount++; sickNames.push(worker.name); }
+            if (baseShift==='SICK') { sickCount++; cKrank++; sickNames.push(worker.name); krankNames.push(worker.name); }
+            if (baseShift==='FB') { cFB++; fbNames.push(worker.name); }
+            if (baseShift==='PF') { cPF++; pfNames.push(worker.name); }
+            if (baseShift==='DF') { cDF++; dfNames.push(worker.name); }
             if (baseShift==='8E')  c8E++;
             if (baseShift==='8M')  c8M++;
             if (baseShift==='8L')  c8L++;
@@ -2296,17 +2240,17 @@ function renderTable() {
             const cusStar  = cusInfo && cusInfo.star ? ' <span title="Spans Early & Late — counted in both" style="color:#6c3483; font-weight:bold;">★</span>' : '';
             const cusLabel = cusInfo ? `<div style="font-size:9px; color:#6c3483; font-weight:bold; margin-top:1px;">${cusInfo.label}${cusInfo.star?' ★':''}</div>` : '';
             const nameChip = `<span class="name-chip" style="background-color:${bgColor};">${worker.name}${reqStar}</span>`;
-            if (shift.includes('IR2')) {
+            if (shift.includes('IR2') || getRoomAssignment(shift)==='IR2') {
                 if (['8E','6H','13H'].includes(baseShift)) rooms.IR2.e.push(nameChip);
                 if (['8M'].includes(baseShift))            rooms.IR2.m.push(nameChip);
                 if (['8L','13H'].includes(baseShift))      rooms.IR2.l.push(nameChip);
             }
-            if (shift.includes('IR3')) {
+            if (shift.includes('IR3') || getRoomAssignment(shift)==='IR3') {
                 if (['8E','6H','13H'].includes(baseShift)) rooms.IR3.e.push(nameChip);
                 if (['8M'].includes(baseShift))            rooms.IR3.m.push(nameChip);
                 if (['8L','13H'].includes(baseShift))      rooms.IR3.l.push(nameChip);
             }
-            if (shift.includes('IR4')) {
+            if (shift.includes('IR4') || getRoomAssignment(shift)==='IR4') {
                 if (['8E','6H','13H'].includes(baseShift)) rooms.IR4.e.push(nameChip);
                 if (['8M'].includes(baseShift))            rooms.IR4.m.push(nameChip);
                 if (['8L','13H'].includes(baseShift))      rooms.IR4.l.push(nameChip);
@@ -2326,8 +2270,8 @@ function renderTable() {
             const cellKey  = `${wIndex}_${d}`;
             const selClass = selectedCells.has(cellKey) ? 'selected-cell' : '';
 
-            bodyHTML += `<td data-cell="${cellKey}" class="${selClass}" onclick="handleCellClick(event,${wIndex},${d})">
-                <select class="shift-select ${consecClass}" data-w="${wIndex}" data-d="${d}"
+            bodyHTML += `<td data-cell="${cellKey}" class="${selClass}" onclick="handleCellClick(event,${wIndex},${d})" style="background-color:${bgColor};">
+                <select class="shift-select ${currentRole==='viewer' && viewerCanEditCell(shift) ? "viewer-vac-select" : ""} ${consecClass}" data-w="${wIndex}" data-d="${d}"
                     style="background-color:${bgColor}; ${textCol}"
                     onchange="updateShift(${wIndex},${d},this.value)">
                     ${getDropdownOptions(shift)}
@@ -2396,11 +2340,14 @@ function renderTable() {
         if (isWE || isHol) warnHtml = '';
 
         let vacClass = '';
+        const totalAbsence = vCount + cFB + cPF + cDF + cKrank;
+        if (totalAbsence >= 6) vacClass = 'warning';
+        else if (totalAbsence >= 5) vacClass = 'warning-yellow';
         if (maxVac>0) {
             if (vCount>=maxVac)                    vacClass = 'warning';
-            else if (vCount===maxVac-1&&vCount>0)  vacClass = 'warning-yellow';
+            else if (!vacClass && vCount===maxVac-1&&vCount>0)  vacClass = 'warning-yellow';
         }
-        // maxVac === 0 means disabled — never warn
+        const titleOrDash = arr => arr.length ? arr.join(', ') : '—';
 
         bodyHTML += `${roomCols}
             <td style="text-align:left; vertical-align:middle;">${warnHtml}</td>
@@ -2408,8 +2355,12 @@ function renderTable() {
                 ${sickNames.map(n=>`<span class="name-chip" style="background:#f5b7b1; display:block; margin-bottom:2px;">${n}</span>`).join('')}
             </td>
             <td class="${vacClass}" style="vertical-align:top; font-size:11px; min-width:90px;">
-                ${vacNames.map(n=>`<span class="name-chip" style="background:#d0a9f5; display:block; margin-bottom:2px;">${n}</span>`).join('')}
+                ${vacNames.map(n=>`<span class="name-chip" style="background:${vacationApprovedColor}; display:block; margin-bottom:2px;">${n}</span>`).join('')}
             </td>
+            <td title="${titleOrDash(fbNames)}" style="font-weight:bold;">${cFB || '-'}</td>
+            <td title="${titleOrDash(pfNames)}" style="font-weight:bold;">${cPF || '-'}</td>
+            <td title="${titleOrDash(dfNames)}" style="font-weight:bold;">${cDF || '-'}</td>
+            <td title="${titleOrDash(krankNames)}" style="font-weight:bold; color:${cKrank ? '#c0392b' : '#555'};">${cKrank || '-'}</td>
             <td style="vertical-align:middle;">
                 <input type="text" class="comment-input" data-day="${d}" placeholder="Type notes..."
                     value="${(dailyComments[d]||'').replace(/"/g,'"')}"
@@ -2421,34 +2372,8 @@ function renderTable() {
     // ── Footer: Weekly Hours ──
     const ftLabel = currentLang==='de' ? 'Ca. Wochenstunden:' : 'Approx. Weekly Hours:';
     const wkLabel = currentLang==='de' ? '(Wo1|Wo2|Wo3|Wo4|Wo5)' : '(Wk1|Wk2|Wk3|Wk4|Wk5)';
-    let footHTML = `<tr><th class="sticky-col" colspan="3" style="text-align:right; font-size:11px;">
-        ${ftLabel}<br><small>${wkLabel}</small></th>`;
-    workers.forEach(w => {
-        const wkHrs = [0,0,0,0,0];
-        w.shifts.forEach((s,i) => { wkHrs[Math.min(Math.floor(i/7),4)] += getShiftHours(s); });
-        footHTML += `<td style="font-size:10px; line-height:1.4;">
-            1:${wkHrs[0]}h<br>2:${wkHrs[1]}h<br>3:${wkHrs[2]}h<br>4:${wkHrs[3]}h<br>5:${wkHrs[4]}h</td>`;
-    });
-    footHTML += `<td colspan="16"></td></tr>`;
+    renderTableFoot();
 
-    // ── Footer: Total Late Shifts ──
-    const lateLabel = use13H ? '(8L, 8M, 13H)' : '(8L ≤22:30 | 8M ≤20:00)';
-    let latesHTML = `<tr><th class="sticky-col" colspan="3" style="text-align:right; font-size:12px; color:#c0392b;">
-        Total Late Shifts:<br><small>${lateLabel}</small></th>`;
-    workers.forEach(w => {
-        const lateTypes = use13H ? ['8L','8M','13H','ImL'] : ['8L','8M','ImL'];
-        const nL  = w.shifts.filter(s => getBaseShift(s)==='8L').length;
-        const nM  = w.shifts.filter(s => getBaseShift(s)==='8M').length;
-        const n13 = use13H ? w.shifts.filter(s => getBaseShift(s)==='13H').length : 0;
-        const nIL = w.shifts.filter(s => getBaseShift(s)==='ImL').length;
-        const total = nL + nM + n13 + nIL;
-        const detail = `<span title="8L(22:30): ${nL} | 8M(20:00): ${nM}${use13H?' | 13H: '+n13:''}${nIL?' | ImL: '+nIL:''}" style="cursor:help;">
-            ${total}<br><small style="font-size:9px; color:#e67e22;">${nL}L / ${nM}M${use13H&&n13?' / '+n13+'×13':''}`;
-        latesHTML += `<td style="font-size:13px; font-weight:bold; color:#c0392b; line-height:1.3;">${detail}</small></span></td>`;
-    });
-    latesHTML += `<td colspan="16"></td></tr>`;
-
-    document.getElementById('tableFoot').innerHTML = footHTML + latesHTML;
 
     // Refresh stats if visible
     if (document.getElementById('statsToggle').checked) renderStats();
