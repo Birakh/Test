@@ -63,7 +63,7 @@
         .app-locked .edit-only    { opacity:0.38; pointer-events:none; filter:grayscale(60%); }
         .app-locked .shift-select { pointer-events:none; background:#f0f0f0 !important; color:#888 !important; }
         .app-locked .shift-select.viewer-vac-select { pointer-events:auto; background:inherit !important; color:inherit !important; }
-        .app-locked #maxVacation { pointer-events:none; background:#f0f0f0 !important; color:#888 !important; }
+        .app-locked #maxVacation, .app-locked #maxConsecutive, .app-locked #minStaff { pointer-events:none; background:#f0f0f0 !important; color:#888 !important; }
         .app-locked .tgt-input    { pointer-events:none; background:#f0f0f0 !important; }
         .app-locked .comment-input { } /* comments always free for all roles */
         .app-locked input[type="checkbox"].edit-chk { pointer-events:none; opacity:0.35; }
@@ -451,6 +451,9 @@
         </ul>
         <div style="font-size:11px; padding:6px 8px; background:#fff3e0; border-left:3px solid #e67e22; border-radius:0 4px 4px 0; margin-bottom:6px;">
             ⚖️ <strong>8L vs 8M fairness:</strong> Auto-Fill tracks each worker's 8L (IR2, until 22:30) and 8M (IR3/IR4, until 20:00) counts independently and always assigns the shift type they have fewer of — so no one always ends up with the hardest late slot.
+        </div>
+        <div style="font-size:11px; margin:4px 0; padding:7px 8px; background:#fff8e1; border-left:3px solid #f39c12; border-radius:0 4px 4px 0;">
+            <strong>🎨 IR colours:</strong> IR2 = <span style="background:#fff2a8; padding:1px 4px;">yellow</span>, IR3 = <span style="background:#cfe2ff; padding:1px 4px;">blue</span>, IR4 = <span style="background:#f3d1ff; padding:1px 4px;">rose</span>. Pending Urlaub stays white until approval; approved Urlaub turns green.
         </div>
         <div style="font-size:11px; margin:4px 0; padding:7px 8px; background:#e8f4fc; border-left:3px solid #2e86c1; border-radius:0 4px 4px 0;">
             <strong>🏥 Immo Worker Types:</strong><br>
@@ -1145,14 +1148,12 @@ function getShiftHours(shift) {
 function cusOverlap(shift) {
     const m = String(shift||'').match(/CUS-(\d{2}):(\d{2})-(\d{2}):(\d{2})(?:-(IR2|IR3|IR4))?$/);
     if (!m) return { early:true, late:false, star:false, label:'CUS', room:'' };
-    const sh = parseInt(m[1]), sm = parseInt(m[2]); const eh = parseInt(m[3]), em = parseInt(m[4]);
-    const early = sh < 12 || (sh===12 && sm===0); const late  = eh > 14 || (eh===14 && em===0); const star  = early && late; const hrs = Math.max(0, (eh*60+em - sh*60-sm)/60).toFixed(1); const room = m[5] || '';
+    const sh = parseInt(m[1]), sm = parseInt(m[2]); const eh = parseInt(m[3]), em = parseInt(m[4]); const early = sh < 12 || (sh===12 && sm===0); const late  = eh > 14 || (eh===14 && em===0); const star  = early && late; const hrs = Math.max(0, (eh*60+em - sh*60-sm)/60).toFixed(1); const room = m[5] || '';
     return { early, late, star, room, label:`${m[1]}:${m[2]}–${m[3]}:${m[4]} (${hrs}h)${room ? ' · ' + room : ''}` };
 }
 
 function getColor(shift) {
-    const room = getRoomAssignment(shift); if (room && roomColorMap[room]) return roomColorMap[room]; if (isPendingVacationShift(shift)) return '#ffffff';
-    const b = getBaseShift(shift);
+    const room = getRoomAssignment(shift); if (room && roomColorMap[room]) return roomColorMap[room]; if (isPendingVacationShift(shift)) return '#ffffff'; const b = getBaseShift(shift);
     if (b==='13H') return '#ffe599'; if (b==='8E') return '#cfe2f3'; if (b==='8L') return '#f4cccc'; if (b==='8M') return '#f9cb9c'; if (b==='6H') return '#d9ead3'; if (b==='ImE') return '#a2c4c9'; if (b==='ImL') return '#76a5af'; if (b==='OFF'||b==='DF') return '#e0e0e0'; if (b==='VAC'||b==='Urlaub IR'||b==='Urlaub-ZA'||b==='U-Immo') return vacationApprovedColor; if (b==='SICK') return '#f5b7b1'; if (b==='FB') return '#9fc5e8'; if (b==='PF') return '#ead1dc'; if (b==='LSS') return '#d9d9d9'; if (b==='Offc') return '#b6d7a8'; if (b==='CUS') return '#e8d5f5'; if (b==='RB1'||b==='RB2') return '#fce5cd'; return '#ffffff';
 }
 
@@ -1781,8 +1782,7 @@ function updateShift(wIndex, dIndex, value) {
         if (currentRole !== 'viewer' || !canViewerEditChange(oldValue, value)) { const sel = document.querySelector(`.shift-select[data-w="${wIndex}"][data-d="${dIndex}"]`); if (sel) sel.value = oldValue; if (currentRole === 'viewer') alert('🔒 Viewers can only request Urlaub / vacation (or clear a vacation request).'); else requireEdit('Edit Shift'); return; }
         finalValue = viewerShiftValueForSave(value);
     } else if (isPendingVacationShift(oldValue) && isVacationBase(stripPendingVacation(value))) { finalValue = stripPendingVacation(value); }
-    pushUndo(); workers[wIndex].shifts[dIndex] = finalValue; saveData();
-    const sel = document.querySelector(`.shift-select[data-w="${wIndex}"][data-d="${dIndex}"]`);
+    pushUndo(); workers[wIndex].shifts[dIndex] = finalValue; saveData(); const sel = document.querySelector(`.shift-select[data-w="${wIndex}"][data-d="${dIndex}"]`);
     if (sel) { const bgColor = getColor(finalValue); sel.style.backgroundColor = bgColor; sel.style.color = ''; const td = sel.closest('td'); if (td) td.style.backgroundColor = bgColor; sel.innerHTML = getDropdownOptions(finalValue); sel.value = finalValue; }
     renderTableFoot(); if (document.getElementById('statsToggle') && document.getElementById('statsToggle').checked) renderStats();
 }
@@ -1876,8 +1876,7 @@ function closeLSSModal() {
 // ─────────────────────────────────────────────────────────
 function openCustomHoursModal(wIndex, dIndex) {
     if (!requireEdit("Custom Hours")) return;
-    document.getElementById('cusWorkerIdx').value = wIndex; document.getElementById('cusDayIdx').value = dIndex;
-    const cur = workers[wIndex].shifts[dIndex]; const m = String(cur || '').match(/CUS-(\d{2}:\d{2})-(\d{2}:\d{2})(?:-(IR2|IR3|IR4))?$/);
+    document.getElementById('cusWorkerIdx').value = wIndex; document.getElementById('cusDayIdx').value = dIndex; const cur = workers[wIndex].shifts[dIndex]; const m = String(cur || '').match(/CUS-(\d{2}:\d{2})-(\d{2}:\d{2})(?:-(IR2|IR3|IR4))?$/);
     document.getElementById('cusStartTime').value = m ? m[1] : '07:00'; document.getElementById('cusEndTime').value = m ? m[2] : '15:30'; const roomSel = document.getElementById('cusRoom'); if (roomSel) roomSel.value = m && m[3] ? m[3] : ''; updateCusOverlapInfo(); document.getElementById('customHoursModal').style.display = 'block';
 }
 
@@ -1888,8 +1887,7 @@ function updateCusOverlapInfo() {
 }
 
 function applyCustomHours() {
-    const wIndex = parseInt(document.getElementById('cusWorkerIdx').value); const dIndex = parseInt(document.getElementById('cusDayIdx').value); const s = document.getElementById('cusStartTime').value; const e = document.getElementById('cusEndTime').value; const room = (document.getElementById('cusRoom') || { value:'' }).value;
-    const shM = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]); const ehM = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]); if (ehM <= shM) { alert('End time must be after start time!'); return; }
+    const wIndex = parseInt(document.getElementById('cusWorkerIdx').value); const dIndex = parseInt(document.getElementById('cusDayIdx').value); const s = document.getElementById('cusStartTime').value; const e = document.getElementById('cusEndTime').value; const room = (document.getElementById('cusRoom') || { value:'' }).value; const shM = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]); const ehM = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]); if (ehM <= shM) { alert('End time must be after start time!'); return; }
     pushUndo(); workers[wIndex].shifts[dIndex] = `CUS-${s}-${e}${room ? '-' + room : ''}`; closeCustomHoursModal(); saveData(); renderTable();
 }
 
@@ -2073,8 +2071,7 @@ function restoreData(input) {
 function getDropdownOptions(currentShift) {
     const base=["-","13H","8E","8L","8M","6H","OFF","VAC","SICK","FB","PF","DF","Urlaub IR","Urlaub-ZA","U-Immo","LSS","Offc","RB1","RB2"]; const immo=["ImE","ImL"]; const rooms=["IR2","IR3","IR4","Immo"]; const rShifts=["13H","8E","8L","8M","6H"]; const currentBase=getBaseShift(currentShift); let html=`<option value="-" ${currentShift==='-'?'selected':''}>-</option>`;
     if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${currentShift || '-'}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; } if (isPendingVacationShift(currentShift)) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ request</option>`; vacationTypes.forEach(s => { const selected = stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${selected?'selected':''}>${s}</option>`; }); return html; }
-    if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; } if (isPendingVacationShift(currentShift)) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ pending approval</option>`;
-    html += `<optgroup label="Immo Shifts">`; immo.forEach(s => html += `<option value="${s}" ${currentShift===s?'selected':''}>${s}</option>`); html += `</optgroup><optgroup label="Base Shifts & Special">`; base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${(currentShift===s || stripPendingVacation(currentShift)===s)?'selected':''}>${s}</option>`; }); html += `</optgroup>`; rooms.forEach(room => { html += `<optgroup label="${room} Assigned">`; rShifts.forEach(s => { const v=`${s}-${room}`; html += `<option value="${v}" ${currentShift===v?'selected':''}>${v}</option>`; }); html += `</optgroup>`; }); return html;
+    if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; } if (isPendingVacationShift(currentShift)) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ pending approval</option>`; html += `<optgroup label="Immo Shifts">`; immo.forEach(s => html += `<option value="${s}" ${currentShift===s?'selected':''}>${s}</option>`); html += `</optgroup><optgroup label="Base Shifts & Special">`; base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${(currentShift===s || stripPendingVacation(currentShift)===s)?'selected':''}>${s}</option>`; }); html += `</optgroup>`; rooms.forEach(room => { html += `<optgroup label="${room} Assigned">`; rShifts.forEach(s => { const v=`${s}-${room}`; html += `<option value="${v}" ${currentShift===v?'selected':''}>${v}</option>`; }); html += `</optgroup>`; }); return html;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -3366,122 +3363,54 @@ const T = {
 function getHelpContent(lang) {
   const de = lang === 'de';
   return `
-  <h3>${de?'Schritt 1: Monat einrichten':'Step 1: Set Up the Month'}</h3>
-  ${de?'Wählen Sie den Planungsmonat. Wochenenden und <strong>österreichische Feiertage</strong> werden automatisch erkannt. Passen Sie die <strong>Tagesgenauen Zielwerte</strong> für 8E, 8M, 8L, 13H und 6H an.':'Select your planning month. Weekends and <strong>Austrian National Holidays</strong> are detected automatically. Adjust the <strong>Master Targets</strong> to set exact daily counts for 8E, 8M, 8L, 13H, and 6H.'}
-  <div style="margin:8px 0;padding:8px 10px;background:#fff8e1;border:1px solid #ffe082;border-radius:4px;font-size:12px;">
-    <strong>${de?'⚙️ 13H und 6H aktivieren/deaktivieren:':'⚙️ Enable / Disable 13H and 6H shifts:'}</strong><br>
-    ${de?'Verwenden Sie die Kontrollkästchen im Setup-Bereich. Wenn deaktiviert: Spalte verschwindet, Auto-Befüllung überspringt diesen Dienst.':'Use the checkboxes in the Setup panel. When off: the column disappears from the table and Auto-Fill never assigns that shift type.'}
-  </div>
-  <div style="margin:8px 0;padding:8px 10px;background:#f0faf0;border:1px solid #a5d6a7;border-radius:4px;font-size:12px;">
-    <strong>${de?'⚖️ 8L vs 8M Gerechtigkeit (IR2 vs IR3/IR4):':'⚖️ 8L vs 8M fairness (IR2 vs IR3/IR4):'}</strong><br>
-    ${de?'<strong>8L (14:00–22:30)</strong> = Zimmer IR2 — härterer Spätdienst bis 22:30.<br><strong>8M (11:30–20:00)</strong> = Zimmer IR3/IR4 — Spätdienst bis 20:00.<br>Jeder Mitarbeiter bekommt pro Woche ~2–3 Spätdienste (8L oder 8M) und ~2–3 Frühdienste. Die Fußzeile zeigt die Aufteilung als <code>XL / YM</code>.':'<strong>8L (14:00–22:30)</strong> = IR2 room — harder late shift ending at 22:30.<br><strong>8M (11:30–20:00)</strong> = IR3/IR4 rooms — somewhat easier late shift ending at 20:00.<br>Each worker gets ~2–3 late shifts (8L or 8M) and ~2–3 early shifts per week. The footer shows the split as <code>XL / YM</code>.'}
-  </div>
-
-  <h3>${de?'Schritt 2: Mitarbeiter hinzufügen & bearbeiten':'Step 2: Add & Edit Workers'}</h3>
-  <strong>${de?'System — Neu vs. Alt:':'System — New vs Old:'}</strong>
+  <h3>${de?'Neu in dieser Version':'What is new in this version'}</h3>
   <ul>
-    <li><strong>${de?'Neu':'New'}</strong> — ${de?'Flexibles wöchentliches Stundenziel, wechselnde Hoch-/Niedrigwochen. Mischt 8E, 8L, 8M, 13H und 6H. Pro Woche ~2–3 Spät- und ~2–3 Frühdienste.':'Flexible weekly hour target, alternating high/low weeks. Mixes 8E, 8L, 8M, 13H and 6H. ~2–3 lates and ~2–3 earlies per week.'}</li>
-    <li><strong>${de?'Alt':'Old'}</strong> — ${de?'Strenge Rotation: eine volle Woche Frühdienste (8E), die nächste Woche Spätdienste (8L/8M), usw.':'Strict rotation: one full week of Early shifts (8E), the next full week Late (8L/8M), repeating.'}</li>
-    <li><strong>⚠️ ${de?'System hat keinen Effekt auf Immo-Mitarbeiter.':'System has no effect on Immo workers.'}</strong></li>
+    <li>${de?'Viewer können in <strong>jeder Zelle</strong> Urlaub anfragen. Die Zelle bleibt <strong>weiß</strong>, bis ein Editor/Admin freigibt. Danach wird die <strong>gesamte Zelle grün</strong>.':'Viewers can request vacation in <strong>any cell</strong>. The cell stays <strong>white</strong> until an Editor/Admin approves it. Afterwards the <strong>whole cell turns green</strong>.'}</li>
+    <li>${de?'Individuelle Dienste (⏰) unterstützen jetzt <strong>IR2 / IR3 / IR4</strong>.':'Custom shifts (⏰) now support <strong>IR2 / IR3 / IR4</strong>.'}</li>
+    <li>${de?'IR-Farben: <strong>IR2 = gelb</strong>, <strong>IR3 = blau</strong>, <strong>IR4 = rosa/lila</strong>. Die Farbe gilt für die ganze Zelle, nicht nur für das Dropdown.':'IR colours: <strong>IR2 = yellow</strong>, <strong>IR3 = blue</strong>, <strong>IR4 = rose/purple</strong>. The colour applies to the whole cell, not just the dropdown.'}</li>
+    <li>${de?'Zusätzliche Tageszähler: <strong>FB, PF, DF, Krank</strong>. Für die Abwesenheitswarnung zählen <strong>Urlaub + FB + PF + DF + Krank</strong>. Bei <strong>5</strong> gelb, bei <strong>6</strong> rot. Die normale Regel für maximale Urlaubstage pro Tag bleibt zusätzlich aktiv.':'Additional daily counters: <strong>FB, PF, DF, Krank</strong>. The absence warning uses <strong>Vacation + FB + PF + DF + Krank</strong>. At <strong>5</strong> = yellow, at <strong>6</strong> = red. The normal max-vacation-per-day rule still also applies.'}</li>
+    <li>${de?'Im Viewer-Modus sind <strong>Max Vacation</strong>, <strong>Max Consecutive Days</strong> und <strong>Min Working Staff / day</strong> grau und gesperrt.':'In Viewer mode, <strong>Max Vacation</strong>, <strong>Max Consecutive Days</strong> and <strong>Min Working Staff / day</strong> are greyed out and locked.'}</li>
   </ul>
-  <strong>${de?'Dienstpräferenz:':'Shift Preference:'}</strong>
-  <ul>
-    <li><strong>${de?'Gemischte Dienste':'Mixed Shifts'}</strong> — ${de?'Auto-Befüllung weist 8E, 8L, 8M, 13H und 6H frei zu, um Tagesziele zu erreichen.':'Auto-Fill assigns 8E, 8L, 8M, 13H and 6H freely to hit daily targets.'}</li>
-    <li><strong>${de?'Nur Frühdienst':'Early Only'}</strong> — ${de?'Nur 8E-Dienste.':'Only 8E shifts.'}</li>
-    <li><strong>${de?'Nur Spätdienst':'Late Only'}</strong> — ${de?'Nur 8L/8M-Dienste.':'Only 8L/8M shifts.'}</li>
-  </ul>
-  <strong>${de?'Immo-Rolle:':'Immo Role:'}</strong>
-  <ul>
-    <li><strong>${de?'Standard':'Standard'}</strong> — ${de?'Regulärer Stationsmitarbeiter.':'Regular ward worker.'}</li>
-    <li><strong>${de?'Festes Immo':'Fixed Immo'}</strong> — ${de?'Nur Immo-Dienste (ImE/ImL, Mo–Fr).':'Works in Immo only (ImE/ImL, Mon–Fri).'}</li>
-    <li><strong>${de?'Immo-Einspringer':'Immo Jump-in'}</strong> — ${de?'Regulärer Mitarbeiter, der bei Bedarf Immo abdeckt.':'Regular worker who covers Immo manually when needed.'}</li>
-  </ul>
-  ${de?'Um Einstellungen zu ändern: <strong>✏️-Symbol</strong> in der Spaltenüberschrift klicken.':'To change worker settings: click the <strong>✏️ button</strong> in the column header.'}
-
-  <h3>${de?'Schritt 3: Manuelle Daten eingeben':'Step 3: Enter Manual Data'}</h3>
-  ${de?'Tragen Sie Urlaub, Krankenstand und feste Dienste ein, bevor Sie die Auto-Befüllung starten.':'Enter VAC, SICK and fixed shifts before running Auto-Fill.'}
-
-  <h3>${de?'Schritt 4: Intelligente Auto-Befüllung ✨':'Step 4: Run Smart Auto-Fill ✨'}</h3>
-  ${de?'Berücksichtigt Ruhezeiten, verhindert Verstöße bei aufeinanderfolgenden Tagen und füllt Dienste gemäß Tageszielen auf.<br><strong>13H/6H:</strong> Werden nur zugewiesen wenn die entsprechenden Kontrollkästchen aktiviert sind.<br><strong>Fairness:</strong> Jede Woche erhält jeder "Neu"-System-Mitarbeiter ein Spätdienst-Kontingent (~40% der Wochendienste), damit niemand dauerhaft mehr Spätdienste hat.':'Balances rest times, prevents consecutive-day violations, and fills shifts to hit daily targets.<br><strong>13H/6H:</strong> Only assigned when the corresponding checkboxes are ticked.<br><strong>Fairness:</strong> Each week every "New" system worker is given a late-shift quota (~40% of their weekly shifts), so no one ends up with a disproportionate number of late shifts.'}
-
-  <h3>${de?'Schritt 5: Ansicht aktualisieren 🔄':'Step 5: Refresh Board 🔄'}</h3>
-  ${de?'Nach manuellen Änderungen <strong>Ansicht aktualisieren</strong> klicken.':'After any manual change click <strong>Refresh Board</strong>.'}
-
-  <h3>${de?'Schritt 6: Rückgängig & Wiederholen ↩↪':'Step 6: Undo & Redo ↩↪'}</h3>
-  ${de?'Jede Änderung ist rückgängig machbar (bis zu 20 Schritte). Strg+Z / Strg+Y.':'Every change is undoable (up to 20 steps). Ctrl+Z / Ctrl+Y.'}
-
-  <h3>${de?'Schritt 7: Mindestpersonal-Alarm 🔴':'Step 7: Minimum Staff Alarm 🔴'}</h3>
-  ${de?'Mindestwert in der Legende einstellen. Datumszelle wird rot, wenn der Wert unterschritten wird.':'Set Min Working Staff in the Legend. The date cell turns red when the count drops below it.'}
-
-  <h3>${de?'Schritt 8: Auswahlmodus ⬜':'Step 8: Select Mode ⬜'}</h3>
-  ${de?'Mehrere Zellen markieren und einen Dienst auf alle auf einmal anwenden. Jetzt auch mit Zimmer-Varianten (8E-IR2, 8M-IR3, etc.) in der Auswahlliste.':'Select multiple cells and apply one shift to all at once. Room variants (8E-IR2, 8M-IR3, etc.) are now available in the selection bar dropdown.'}
-
-  <h3>${de?'Schritt 9: Statistikbereich 📊':'Step 9: Worker Stats Panel 📊'}</h3>
-  ${de?'Aktivieren Sie "Statistikbereich anzeigen" für Stunden, Früh/Spät-Aufteilung, Urlaub, Krankenstand und maximale aufeinanderfolgende Tage.':'Tick Show Worker Stats Panel for hours, early/late split, vacation, sick and max consecutive days.'}
-
-  <h3>${de?'Schritt 10: Monatsvergleich 📆':'Step 10: Month Comparison 📆'}</h3>
-  ${de?'Zwei gespeicherte Monate nebeneinander vergleichen. Zeigt Stundenänderungen, Früh/Spät-Verschiebungen und jeden Dienst der sich unterscheidet.':'Compare any two saved months side by side — hours, early/late changes, and every shifted day.'}
-
-  <h3>${de?'Schritt 11: Zimmer zuweisen 🚪':'Step 11: Assign Rooms 🚪'}</h3>
-  ${de?'Dienst wie <code>8E</code> auf <code>8E-IR2</code> ändern, um die Zimmerspalten automatisch zu befüllen.':'Change a shift like <code>8E</code> to <code>8E-IR2</code> to populate the Room columns automatically.'}
-
-  <h3>${de?'Schritt 12: KI-Prüfung & Tauschvorschläge 🤖':'Step 12: AI Check & Swap Suggestions 🤖'}</h3>
-  ${de?'Überprüft Gerechtigkeit, Arbeitszeitverstöße, Unterbesetzung und Immo-Lücken. Schlägt konkrete Tausche vor.':'Checks fairness, labour law violations, understaffing and Immo gaps. Proposes specific swaps.'}
-
-  <h3>${de?'Schritt 13: LSS-Tag — Wer bekommt ihn? 📋':'Step 13: LSS Day — Choose Who Gets It 📋'}</h3>
-  ${de?'LSS-Kontrollkästchen öffnet ein Popup. Feste Immo-Mitarbeiter sind standardmäßig deaktiviert, damit ihre Immo-Dienste nicht überschrieben werden.':'LSS checkbox opens a popup. Fixed Immo workers are unchecked by default so their Immo shifts are never overwritten.'}
-
-  <h3>${de?'Schritt 14: Benutzerdefinierte Dienstzeiten ⏰':'Step 14: Custom Shift Hours ⏰'}</h3>
-  ${de?'Jede Zelle hat einen kleinen <strong style="color:#6c3483;">⏰</strong>-Knopf. Damit können Sie individuelle Start- und Endzeiten festlegen. Wenn der Dienst sowohl vor Mittag beginnt als auch nach 14:00 endet, wird er in beiden Spalten (8E und 8L) gezählt und mit <strong>★</strong> markiert.':'Every cell has a tiny <strong style="color:#6c3483;">⏰</strong> button. Set a custom start and end time. If the shift spans before noon and after 14:00, it counts in both 8E and 8L buckets and is marked ★.'}
-
-  <h3>${de?'Schritt 15: Sicherung, Wiederherstellung & GitHub-Sync 💾':'Step 15: Backup, Restore & GitHub Sync 💾'}</h3>
-  ${de?'<strong>JSON-Sicherung</strong> speichert alle Daten. <strong>JSON wiederherstellen</strong> lädt sie neu.<br><strong>🐙 GitHub-Sync:</strong> Geben Sie Ihren GitHub-Besitzer, Repo-Namen und ein Personal Access Token (PAT) ein. Alle können denselben Dienstplan über GitHub Pages teilen. Pull = Daten abrufen, Push = Daten hochladen.':'<strong>Backup JSON</strong> saves all data. <strong>Restore JSON</strong> reloads it.<br><strong>🐙 GitHub Sync:</strong> Enter your GitHub owner, repo name, and a Personal Access Token (PAT with Contents read/write). Everyone accesses the same schedule via GitHub Pages. Pull = fetch shared data, Push = upload your data.'}
-
-  <hr style="margin-top:20px;border:0;border-top:1px solid #eee;">
-  <p style="text-align:right;color:#888;font-style:italic;font-size:11px;">Created and Designed with ❤️ by Anis :) | v4 — EN/DE toggle, 6H toggle, Select Mode rooms, Fair weekly quota</p>`;
+  <h3>${de?'Kurzanleitung':'Quick guide'}</h3>
+  <ol>
+    <li>${de?'Monat auswählen und Ziele anpassen.':'Choose the month and adjust targets.'}</li>
+    <li>${de?'Mitarbeiter hinzufügen oder mit ✏️ bearbeiten.':'Add workers or edit them with ✏️.'}</li>
+    <li>${de?'Urlaub anfragen: Viewer wählen Urlaub, die Zelle bleibt weiß; Editor/Admin bestätigt und die ganze Zelle wird grün.':'Vacation request: Viewers choose vacation, the cell stays white; Editor/Admin confirms and the whole cell turns green.'}</li>
+    <li>${de?'Individuelle Zeiten: ⏰ anklicken, Zeiten + optional IR2/IR3/IR4 wählen.':'Custom hours: click ⏰, choose times + optional IR2/IR3/IR4.'}</li>
+    <li>${de?'Tageszusammenfassung rechts prüfen: Schichtzahlen, Räume, FB/PF/DF/Krank und Abwesenheitswarnung.':'Check the daily summary on the right: shift counts, rooms, FB/PF/DF/Krank and the absence warning.'}</li>
+  </ol>
+  `;
 }
 
-
-// ─────────────────────────────────────────────────────────
-//  Field Guide (translatable)
-// ─────────────────────────────────────────────────────────
 function getFieldGuide(lang) {
     const de = lang === 'de';
     return `
 <strong style="font-size:12px;">📋 ${de?'Feldbeschreibung':'Field Guide'}</strong><br>
-<strong>${de?'System — Neu vs. Alt:':'System — New vs Old:'}</strong><br>
+<strong>${de?'Benutzerrollen & Urlaub:':'User roles & vacation:'}</strong><br>
 <span style="display:inline-block; margin-left:8px;">
-    <strong>${de?'Neu':'New'}</strong> = ${de?'Neueres Beschäftigungssystem — Auto-Befüllung nutzt ein <em>flexibles wöchentliches Stundenziel</em> (~2–3 Spät- und ~2–3 Frühdienste pro Woche).':'Newer employment system — Auto-Fill uses a <em>flexible weekly hour target</em> (~2–3 lates and ~2–3 earlies per week).'}<br>
-    <strong>${de?'Alt':'Old'}</strong> = ${de?'Älteres System — strikte Rotation: eine volle Woche Frühdienste (8E), die nächste Woche Spätdienste (8L/8M), usw. Kein 13H oder 6H.':'Older employment system — strict rotation: one full week Early (8E), next week Late (8L/8M), repeating. No 13H or 6H assigned.'}
-</span>
-<strong>⚠️ ${de?'System hat keinen Einfluss auf Immo-Mitarbeiter.':'System has no effect on Immo workers.'}</strong><br><br>
-
-<strong>${de?'Dienstpräferenz (nur Nicht-Immo-Mitarbeiter):':'Shift Preference (non-Immo workers only):'}</strong><br>
+    <strong>${de?'Viewer':'Viewer'}</strong> = ${de?'Kann Urlaub in jeder Zelle anfragen. Anfrage bleibt weiß, bis ein Editor/Admin freigibt.':'Can request vacation in any cell. Request stays white until an Editor/Admin approves it.'}<br>
+    <strong>${de?'Editor/Admin':'Editor/Admin'}</strong> = ${de?'Kann Anfragen freigeben — danach wird die ganze Zelle grün.':'Can approve requests — then the whole cell turns green.'}
+</span><br><br>
+<strong>${de?'IR-Farben:':'IR colours:'}</strong><br>
 <span style="display:inline-block; margin-left:8px;">
-    <strong>${de?'Gemischte Dienste':'Mixed Shifts'}</strong> = ${de?'Auto-Befüllung weist frei 8E, 8L, 8M (und 13H/6H wenn aktiv) zu, ~40% Spät, ~60% Früh.':'Auto-Fill freely assigns 8E, 8L, 8M (and 13H/6H when enabled), ~40% late, ~60% early.'}<br>
-    <strong>${de?'Nur Frühdienst':'Early Only'}</strong> = ${de?'Nur 8E-Dienste — nie ein Spät- oder Mitteldienst.':'Only 8E shifts — never a late or mid shift.'}<br>
-    <strong>${de?'Nur Spätdienst':'Late Only'}</strong> = ${de?'Nur 8L/8M-Dienste — nie ein Frühdienst.':'Only 8L/8M shifts — never an early.'}
+    <strong>IR2</strong> = ${de?'gelb':'yellow'} · <strong>IR3</strong> = ${de?'blau':'blue'} · <strong>IR4</strong> = ${de?'rosa/lila':'rose/purple'}<br>
+    ${de?'Die Farbe gilt für die gesamte Zelle, auch bei individuellen Zeiten.':'The colour applies to the full cell, including custom hours.'}
 </span>
-
-<strong>${de?'Immo-Rolle:':'Immo Role:'}</strong><br>
-<span style="display:inline-block; margin-left:8px;">
-    <strong>${de?'Standard':'Standard'}</strong> = ${de?'Regulärer Stationsmitarbeiter, keine Immo-Beteiligung.':'Regular ward worker, no Immo involvement.'}<br>
-    <strong>${de?'Festes Immo':'Fixed Immo'}</strong> = ${de?'Arbeitet <em>nur</em> in der Immo (ImE 07:00–15:30 oder ImL 07:30–16:00). System und Dienstpräferenz werden ignoriert.':'Works in Immo <em>only</em> (ImE 07:00–15:30 or ImL 07:30–16:00). System and Shift Preference are ignored.'}<br>
-    <strong>${de?'Immo-Einspringer':'Immo Jump-in'}</strong> = ${de?'Regulärer Mitarbeiter. ImE/ImL manuell in der Tabelle zuweisen, wenn Immo Abdeckung benötigt.':'Regular worker. Manually assign ImE/ImL in the table when Immo needs cover.'}
-</span>
-
 <div style="margin-top:6px; padding:5px 7px; background:#f3e5ff; border-left:3px solid #6c3483; border-radius:0 3px 3px 0; font-size:11px;">
     <strong style="color:#6c3483;">⏰ ${de?'Individuelle Dienstzeiten':'Custom Shift Hours'}</strong><br>
-    ${de?'Jede Zelle hat einen kleinen <strong>⏰</strong>-Knopf. Damit legen Sie individuelle Start- und Endzeiten fest. Übergreifende Dienste (vor Mittag und nach 14:00) zählen in <strong>beiden</strong> Spalten (8E und 8L) und werden mit <strong style="color:#6c3483;">★</strong> markiert.':'Every cell has a tiny <strong>⏰</strong> button. Set a custom start and end time. Shifts spanning both before noon and after 14:00 count in <strong>both</strong> 8E and 8L buckets and are marked <strong style="color:#6c3483;">★</strong>.'}
+    ${de?'Mit ⏰ Start/Ende setzen und optional IR2/IR3/IR4 wählen. Übergreifende Dienste (vor Mittag und nach 14:00) zählen in 8E und 8L.':'Use ⏰ to set start/end and optionally choose IR2/IR3/IR4. Overlap shifts (before noon and after 14:00) count in both 8E and 8L.'}
 </div>
-
-<div style="margin-top:6px; padding:5px 7px; background:#eaf0fb; border-left:3px solid #34495e; border-radius:0 3px 3px 0; font-size:11px;">
-    <strong style="color:#34495e;">📋 ${de?'LSS-Tag-Popup':'LSS Day Popup'}</strong><br>
-    ${de?'Das LSS-Kontrollkästchen öffnet ein Popup. Wählen Sie genau, welche Mitarbeiter an diesem Tag LSS erhalten. Feste Immo-Mitarbeiter sind standardmäßig deaktiviert.':'The LSS checkbox opens a popup. Choose exactly which workers get LSS that day. Fixed Immo workers are unchecked by default.'}
+<div style="margin-top:6px; padding:5px 7px; background:#fff8e1; border-left:3px solid #f39c12; border-radius:0 3px 3px 0; font-size:11px;">
+    <strong style="color:#a67c00;">📊 ${de?'Abwesenheitswarnung':'Absence warning'}</strong><br>
+    ${de?'FB + PF + DF + Krank + Urlaub werden zusammen gezählt. Bei 5 gelb, bei 6 rot. Die Max-Urlaub-pro-Tag-Regel bleibt zusätzlich aktiv.':'FB + PF + DF + Krank + Vacation are counted together. At 5 = yellow, at 6 = red. The max-vacation-per-day rule still also stays active.'}
+</div>
+<div style="margin-top:6px; padding:5px 7px; background:#eef2f6; border-left:3px solid #7f8c8d; border-radius:0 3px 3px 0; font-size:11px;">
+    <strong style="color:#5d6d7e;">🔒 ${de?'Gesperrte Felder im Viewer-Modus':'Locked fields in Viewer mode'}</strong><br>
+    ${de?'Max Vacation per day, Max Consecutive Days und Min Working Staff / day sind für Viewer grau und gesperrt.':'Max Vacation per day, Max Consecutive Days and Min Working Staff / day are greyed out and locked for Viewers.'}
 </div>`;
 }
 
-function updateFieldGuide() {
+function updateFieldGuide() {function updateFieldGuide() {
     const box = document.getElementById('fieldGuideBox');
     if (box) box.innerHTML = getFieldGuide(currentLang);
 }
