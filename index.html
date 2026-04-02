@@ -163,6 +163,7 @@
         .mob-full-link a { color: #0969da; text-decoration: none; }
         </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -273,6 +274,7 @@
             <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(this)">
         </div>
         <button id="btnExcel"  class="btn-export btn-full" onclick="copyColorfulExcel()">📋 Copy for Excel</button>
+        <button id="btnXLSX" style="background:#0f766e; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#115e59'" onmouseout="this.style.background='#0f766e'" onclick="downloadExcelWithFormulas()">📥 Download Excel (.xlsx)</button>
         <button id="btnHTML"   style="background:#1e8449; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#196f3d'" onmouseout="this.style.background='#1e8449'" onclick="downloadAsHTML()">⬇️ Download as HTML</button>
         <button id="btnSPSync" style="background:#24292f; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='#24292f'" onclick="openGHSyncOrSetup()">🐙 GitHub Sync</button>
         <button onclick="clearAppCache()" style="background:#7f8c8d; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#6c7a7a'" onmouseout="this.style.background='#7f8c8d'">🗑️ Clear Cache</button>
@@ -712,7 +714,7 @@
 <div id="helpModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="document.getElementById('helpModal').style.display='none'">&times;</span>
-        <h2 id="helpTitle" style="color:#0056b3;">📖 A to Z User Guide — v4</h2>
+        <h2 id="helpTitle" style="color:#0056b3;">📖 A to Z User Guide — v5</h2>
         <div id="helpContent" style="line-height:1.6; font-size:13px;"></div>
     </div>
 </div>
@@ -2080,6 +2082,7 @@ function getDropdownOptions(currentShift) {
 function renderTableFoot() {
     const ftLabel = currentLang==='de' ? 'Ca. Wochenstunden:' : 'Approx. Weekly Hours:';
     const wkLabel = currentLang==='de' ? '(Wo1|Wo2|Wo3|Wo4|Wo5)' : '(Wk1|Wk2|Wk3|Wk4|Wk5)';
+    const trailingCols = 18 + (use13H?1:0) + (use6H?1:0);
     let footHTML = `<tr><th class="sticky-col" colspan="3" style="text-align:right; font-size:11px;">
         ${ftLabel}<br><small>${wkLabel}</small></th>`;
     workers.forEach(w => {
@@ -2088,16 +2091,14 @@ function renderTableFoot() {
         footHTML += `<td style="font-size:10px; line-height:1.4;">
             1:${wkHrs[0]}h<br>2:${wkHrs[1]}h<br>3:${wkHrs[2]}h<br>4:${wkHrs[3]}h<br>5:${wkHrs[4]}h</td>`;
     });
-    footHTML += `<td colspan="16"></td></tr>`;
+    footHTML += `<td colspan="${trailingCols}"></td></tr>`;
 
-    // ── Footer: Total Late Shifts ──
     const lateLabel = use13H ? '(8L, 8M, 13H)' : '(8L ≤22:30 | 8M ≤20:00)';
     let latesHTML = `<tr><th class="sticky-col" colspan="3" style="text-align:right; font-size:12px; color:#c0392b;">
         Total Late Shifts:<br><small>${lateLabel}</small></th>`;
     workers.forEach(w => {
-        const lateTypes = use13H ? ['8L','8M','13H','ImL'] : ['8L','8M','ImL'];
-        const nL  = w.shifts.filter(s => getBaseShift(s)==='8L').length;
-        const nM  = w.shifts.filter(s => getBaseShift(s)==='8M').length;
+        const nL = w.shifts.filter(s => getBaseShift(s)==='8L').length;
+        const nM = w.shifts.filter(s => getBaseShift(s)==='8M').length;
         const n13 = use13H ? w.shifts.filter(s => getBaseShift(s)==='13H').length : 0;
         const nIL = w.shifts.filter(s => getBaseShift(s)==='ImL').length;
         const total = nL + nM + n13 + nIL;
@@ -2105,12 +2106,11 @@ function renderTableFoot() {
             ${total}<br><small style="font-size:9px; color:#e67e22;">${nL}L / ${nM}M${use13H&&n13?' / '+n13+'×13':''}`;
         latesHTML += `<td style="font-size:13px; font-weight:bold; color:#c0392b; line-height:1.3;">${detail}</small></span></td>`;
     });
-    latesHTML += `<td colspan="16"></td></tr>`;
-
+    latesHTML += `<td colspan="${trailingCols}"></td></tr>`;
     document.getElementById('tableFoot').innerHTML = footHTML + latesHTML;
 }
 
-function renderTable() {
+function renderTable() {function renderTable() {
     if (!currentYear) return;
     const maxVac    = parseInt(document.getElementById('maxVacation').value)    || 0;
     const maxConsec = parseInt(document.getElementById('maxConsecutive').value) || 5;
@@ -3170,48 +3170,49 @@ function downloadAsHTML() {
 
 
 function copyColorfulExcel() {
+    const hdrDate = currentLang==='de' ? 'Datum' : 'Date';
+    const hdrHol = currentLang==='de' ? 'Feiertag?' : 'Holiday?';
+    const hdrLSS = 'LSS?';
+    const hdrComments = currentLang==='de' ? 'Kommentare' : 'Comments';
+    const hdrVacation = currentLang==='de' ? 'Urlaub (Namen)' : 'Vacation (names)';
+    const hdrSick = currentLang==='de' ? 'Krank (Namen)' : 'Sick (names)';
     let html = "<table border='1' style='font-family:Arial,sans-serif; font-size:12px; border-collapse:collapse;'>";
-    html += `<tr><th>Date</th><th>Holiday?</th><th>LSS?</th>`;
+    html += `<tr><th>${hdrDate}</th><th>${hdrHol}</th><th>${hdrLSS}</th>`;
     workers.forEach(w => html += `<th>${w.name} (${w.contract}h)</th>`);
-    html += `<th>8E</th><th>8M</th><th>8L</th>${use13H?'<th>13H</th>':''}${use6H?'<th>6H</th>':''}<th>ImE</th><th>ImL</th><th>Total</th><th>Sick (names)</th><th>Vacation (names)</th><th>Comments</th></tr>`;
-
+    html += `<th>8E</th><th>8M</th><th>8L</th>${use13H?'<th>13H</th>':''}${use6H?'<th>6H</th>':''}<th>ImE</th><th>ImL</th><th>Total</th><th>FB</th><th>PF</th><th>DF</th><th>Krank</th><th>${hdrSick}</th><th>${hdrVacation}</th><th>${hdrComments}</th></tr>`;
     for (let d=0; d<daysInMonth; d++) {
-        const dow = new Date(currentYear, currentMonth-1, d+1).getDay();
-        let row = `<tr><td>${dayNames[dow]} ${d+1}.${currentMonth}.</td>
-            <td>${isHoliday(d)?'Y':'N'}</td><td>${lssDays.includes(d)?'Y':'N'}</td>`;
-        let s8E=0,s8M=0,s8L=0,s13H=0,s6H=0,sImE=0,sImL=0,sWork=0,svac=0,ssick=0;
+        const dateObj = new Date(currentYear, currentMonth-1, d+1);
+        const dow = dateObj.getDay();
+        const dateText = `${String(d+1).padStart(2,'0')}.${String(currentMonth).padStart(2,'0')}.${currentYear}`;
+        let row = `<tr><td>${dayNames[dow]} ${dateText}</td><td>${isHoliday(d)?'Y':'N'}</td><td>${lssDays.includes(d)?'Y':'N'}</td>`;
+        let s8E=0,s8M=0,s8L=0,s13H=0,s6H=0,sImE=0,sImL=0,sWork=0,cFB=0,cPF=0,cDF=0,cKrank=0;
         const exSickNames=[], exVacNames=[];
         workers.forEach(w => {
-            const sh=w.shifts[d], b=getBaseShift(sh);
+            const sh = w.shifts[d] || '-';
+            const b = getBaseShift(sh);
             const bgColor = getColor(sh);
-            const reqStr  = (w.requests&&w.requests[d]) ? ' (*)' : '';
+            const reqStr = (w.requests&&w.requests[d]) ? ' (*)' : '';
             row += `<td style="background-color:${bgColor}; text-align:center; font-weight:bold;">${sh!=='-'?sh+reqStr:''}</td>`;
             if (b==='8E') s8E++; if (b==='8M') s8M++; if (b==='8L') s8L++;
             if (b==='13H') s13H++; if (b==='6H') s6H++;
             if (b==='ImE') sImE++; if (b==='ImL') sImL++;
             if (b==='CUS') { const ov=cusOverlap(sh); if(ov.early) s8E++; if(ov.late) s8L++; }
             if (workShifts.includes(b)) sWork++;
-            if (['VAC','Urlaub IR','Urlaub-ZA','U-Immo'].includes(b)) { svac++; exVacNames.push(w.name); }
-            if (b==='SICK') { ssick++; exSickNames.push(w.name); }
+            if (['VAC','Urlaub IR','Urlaub-ZA','U-Immo'].includes(b)) exVacNames.push(w.name);
+            if (b==='SICK') { exSickNames.push(w.name); cKrank++; }
+            if (b==='FB') cFB++; if (b==='PF') cPF++; if (b==='DF') cDF++;
         });
-        row += `<td>${s8E}</td><td>${s8M}</td><td>${s8L}</td>` + (use13H?`<td>${s13H}</td>`:'') + (use6H?`<td>${s6H}</td>`:'') + `
-            <td style="background:#dff0f8;">${sImE}</td>
-            <td style="background:#cce0e8;">${sImL}</td>
-            <td style="background:#e8f4fc; font-weight:bold;">${sWork}</td>
-            <td style="color:red;">${exSickNames.join(', ')||''}</td>
-            <td>${exVacNames.join(', ')||''}</td><td>${dailyComments[d]||''}</td></tr>`;
+        row += `<td>${s8E}</td><td>${s8M}</td><td>${s8L}</td>` + (use13H?`<td>${s13H}</td>`:'') + (use6H?`<td>${s6H}</td>`:'') + `<td style="background:#dff0f8;">${sImE}</td><td style="background:#cce0e8;">${sImL}</td><td style="background:#e8f4fc; font-weight:bold;">${sWork}</td><td>${cFB||''}</td><td>${cPF||''}</td><td>${cDF||''}</td><td>${cKrank||''}</td><td style="color:red;">${exSickNames.join(', ')||''}</td><td>${exVacNames.join(', ')||''}</td><td>${dailyComments[d]||''}</td></tr>`;
         html += row;
     }
-
     html += `<tr><th colspan="3" style="text-align:right; color:#c0392b;">Total Late (8L/8M${use13H?'/13H':''}):</th>`;
     workers.forEach(w => {
         const lateTypes = use13H ? ['8L','8M','13H','ImL'] : ['8L','8M','ImL'];
         const n = w.shifts.filter(s=>lateTypes.includes(getBaseShift(s))).length;
         html += `<th style="color:#c0392b;">${n}</th>`;
     });
-    const colSpan = 9 + (use13H?1:0) + (use6H?1:0);
+    const colSpan = 15 + (use13H?1:0) + (use6H?1:0);
     html += `<td colspan="${colSpan}"></td></tr></table>`;
-
     const tmp = document.createElement('div');
     tmp.style.cssText = 'position:absolute; left:-9999px;';
     tmp.innerHTML = html;
@@ -3222,15 +3223,103 @@ function copyColorfulExcel() {
     window.getSelection().addRange(range);
     try {
         document.execCommand('copy');
-        alert('✅ Success! Open Excel, select top-left cell, press Ctrl+V.');
+        alert(currentLang==='de' ? '✅ Erfolgreich kopiert! In Excel oben links einfügen.' : '✅ Success! Open Excel, select top-left cell, press Ctrl+V.');
     } catch(err) {
-        alert('Oops! Browser blocked the clipboard. Error: ' + err);
+        alert((currentLang==='de' ? 'Zwischenablage blockiert: ' : 'Clipboard blocked: ') + err);
     }
     window.getSelection().removeAllRanges();
     document.body.removeChild(tmp);
 }
 
+function excelCol(n) { return XLSX.utils.encode_col(n); }
+function excelCell(r, c) { return XLSX.utils.encode_cell({r:r, c:c}); }
+function excelRange(r, c1, c2) { return `${excelCol(c1)}${r+1}:${excelCol(c2)}${r+1}`; }
+function buildExcelExportConfig() {
+    const workerStartCol = 4;
+    const summary = [{ key:'c8E', label:'8E' },{ key:'c8M', label:'8M' },{ key:'c8L', label:'8L' }];
+    if (use13H) summary.push({ key:'c13H', label:'13H' });
+    if (use6H) summary.push({ key:'c6H', label:'6H' });
+    summary.push({ key:'cImE', label:'ImE' },{ key:'cImL', label:'ImL' },{ key:'work', label:'Total' },{ key:'vac', label:'Vacation' },{ key:'sick', label:'Sick' },{ key:'fb', label:'FB' },{ key:'pf', label:'PF' },{ key:'df', label:'DF' },{ key:'krank', label:'Krank' },{ key:'absence', label: currentLang==='de' ? 'Abw. gesamt' : 'Absence Total' },{ key:'comments', label: currentLang==='de' ? 'Kommentare' : 'Comments' });
+    return { workerStartCol, summaryStartCol: workerStartCol + workers.length, summary };
+}
+function excelHelperFormula(planRef, key) {
+    const base = `LET(v,UPPER(TRIM(${planRef})),c,SUBSTITUTE(v,"-PENDING",""),b,IF(c="U-IMMO","U-IMMO",IF(LEFT(c,4)="CUS-",c,IF(OR(ISNUMBER(SEARCH("-IR",c)),ISNUMBER(SEARCH("-IMMO",c))),LEFT(c,FIND("-",c)-1),c))),st,IF(LEFT(c,4)="CUS-",TIMEVALUE(MID(c,5,5)),0),et,IF(LEFT(c,4)="CUS-",TIMEVALUE(MID(c,11,5)),0),`;
+    const m = { c8E:'IF(LEFT(c,4)="CUS-",--(st<=TIME(12,0,0)),--(b="8E"))', c8M:'--(b="8M")', c8L:'IF(LEFT(c,4)="CUS-",--(et>=TIME(14,0,0)),--(b="8L"))', c13H:'--(b="13H")', c6H:'--(b="6H")', cImE:'--(b="IME")', cImL:'--(b="IML")', work:'N(OR(b="13H",b="8E",b="8L",b="8M",b="6H",b="FB",b="LSS",b="OFFC",b="IME",b="IML",LEFT(c,4)="CUS-"))', vac:'N(OR(b="VAC",b="URLAUB IR",b="URLAUB-ZA",b="U-IMMO"))', sick:'--(b="SICK")', fb:'--(b="FB")', pf:'--(b="PF")', df:'--(b="DF")', krank:'--(b="SICK")' };
+    return '=' + base + m[key] + ')';
+}
+function downloadExcelWithFormulas() {
+    if (typeof XLSX === 'undefined') {
+        alert(currentLang==='de' ? 'Die Excel-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden und erneut versuchen.' : 'The Excel library could not be loaded. Please reload the page and try again.');
+        return;
+    }
+    const cfg = buildExcelExportConfig();
+    const wb = XLSX.utils.book_new();
+    const monthTitle = new Date(currentYear, currentMonth-1, 1).toLocaleString(currentLang==='de'?'de-DE':'en-US', { month:'long', year:'numeric' });
+    const planHeader = [currentLang==='de' ? 'Datum' : 'Date', currentLang==='de' ? 'Wochentag' : 'Weekday', currentLang==='de' ? 'Feiertag?' : 'Holiday?', 'LSS?'];
+    workers.forEach(w => planHeader.push(`${w.name} (${w.contract}h)`));
+    cfg.summary.forEach(s => planHeader.push(s.label));
+    const planRows = [planHeader];
+    for (let d = 0; d < daysInMonth; d++) {
+        const dateObj = new Date(currentYear, currentMonth-1, d+1);
+        const row = [dateObj, dayNames[dateObj.getDay()], isHoliday(d) ? 'Y' : '', lssDays.includes(d) ? 'Y' : ''];
+        workers.forEach(w => row.push(w.shifts[d] || '-'));
+        cfg.summary.forEach(s => row.push(s.key === 'comments' ? (dailyComments[d] || '') : null));
+        planRows.push(row);
+    }
+    const planWs = XLSX.utils.aoa_to_sheet(planRows);
+    planWs['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 9 }, { wch: 8 }, ...workers.map(() => ({ wch: 16 })), ...cfg.summary.map(s => ({ wch: s.key === 'comments' ? 26 : 12 }))];
+    planWs['!autofilter'] = { ref: `A1:${excelCol(planHeader.length-1)}${planRows.length}` };
+    planWs['!freeze'] = { xSplit: 4, ySplit: 1, topLeftCell: 'E2', activePane: 'bottomRight', state: 'frozen' };
+    const helperKeys = ['c8E','c8M','c8L', ...(use13H?['c13H']:[]), ...(use6H?['c6H']:[]), 'cImE','cImL','work','vac','sick','fb','pf','df','krank'];
+    const helperHeader = [currentLang==='de' ? 'Datum' : 'Date', 'DayIndex'];
+    helperKeys.forEach(key => workers.forEach(w => helperHeader.push(`${key}_${w.name}`)));
+    const helperRows = [helperHeader];
+    for (let d = 0; d < daysInMonth; d++) helperRows.push([new Date(currentYear, currentMonth-1, d+1), d+1, ...Array(helperHeader.length-2).fill(null)]);
+    const helperWs = XLSX.utils.aoa_to_sheet(helperRows);
+    helperWs['!freeze'] = { xSplit: 2, ySplit: 1, topLeftCell: 'C2', activePane: 'bottomRight', state: 'frozen' };
+    for (let d = 0; d < daysInMonth; d++) {
+        const rowIdx = d + 1;
+        planWs[excelCell(rowIdx, 0)].t = 'd'; planWs[excelCell(rowIdx, 0)].z = 'dd.mm.yyyy';
+        helperWs[excelCell(rowIdx, 0)].t = 'd'; helperWs[excelCell(rowIdx, 0)].z = 'dd.mm.yyyy';
+        helperKeys.forEach((key, keyIdx) => {
+            workers.forEach((w, wIdx) => {
+                const helperCol = 2 + keyIdx * workers.length + wIdx;
+                const planCellRef = `Plan!${excelCol(cfg.workerStartCol + wIdx)}${rowIdx + 1}`;
+                helperWs[excelCell(rowIdx, helperCol)] = { t:'n', f: excelHelperFormula(planCellRef, key) };
+            });
+        });
+    }
+    const helperBlockStart = {}; helperKeys.forEach((key, idx) => helperBlockStart[key] = 2 + idx * workers.length);
+    for (let d = 0; d < daysInMonth; d++) {
+        const rowIdx = d + 1;
+        cfg.summary.forEach((s, idx) => {
+            const planCol = cfg.summaryStartCol + idx;
+            const planAddr = excelCell(rowIdx, planCol);
+            if (s.key === 'comments') { planWs[planAddr] = { t:'s', v: dailyComments[d] || '' }; return; }
+            if (s.key === 'absence') {
+                const vacCol = excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key==='vac'));
+                const fbCol = excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key==='fb'));
+                const pfCol = excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key==='pf'));
+                const dfCol = excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key==='df'));
+                const krankCol = excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key==='krank'));
+                planWs[planAddr] = { t:'n', f:`SUM(${vacCol}${rowIdx+1},${fbCol}${rowIdx+1},${pfCol}${rowIdx+1},${dfCol}${rowIdx+1},${krankCol}${rowIdx+1})` };
+                return;
+            }
+            const startCol = helperBlockStart[s.key], endCol = startCol + workers.length - 1;
+            planWs[planAddr] = { t:'n', f:`SUM(Helpers!${excelRange(rowIdx, startCol, endCol)})` };
+        });
+    }
+    const legendRows = [[currentLang==='de' ? 'Schichtplan – Export mit Formeln' : 'Shift Planner – Formula Export'], [monthTitle], [''], [currentLang==='de' ? 'Hinweise' : 'Notes'], [currentLang==='de' ? '• Plan: Hauptblatt zum Bearbeiten. Wenn Sie Dienstcodes ändern, berechnen sich Summen automatisch neu.' : '• Plan: Main sheet for editing. If you change shift codes, totals recalculate automatically.'], [currentLang==='de' ? '• Helpers: verstecktes Blatt für die Formel-Logik (auch CUS/Custom Hours).' : '• Helpers: hidden sheet used for the formula logic (including CUS/custom hours).'], [currentLang==='de' ? '• CUS zählt zu 8E, wenn der Start vor/nicht später als 12:00 ist, und zu 8L, wenn das Ende ab 14:00 ist.' : '• CUS counts as 8E if the start is before / not later than 12:00, and as 8L if the end is at or after 14:00.'], [currentLang==='de' ? '• Absence Total = Urlaub + FB + PF + DF + Krank.' : '• Absence Total = Vacation + FB + PF + DF + Krank.']];
+    const legendWs = XLSX.utils.aoa_to_sheet(legendRows);
+    XLSX.utils.book_append_sheet(wb, planWs, 'Plan');
+    XLSX.utils.book_append_sheet(wb, helperWs, 'Helpers');
+    XLSX.utils.book_append_sheet(wb, legendWs, 'Legend');
+    wb.Workbook = wb.Workbook || {}; wb.Workbook.Sheets = [{ name:'Plan', Hidden:0 }, { name:'Helpers', Hidden:1 }, { name:'Legend', Hidden:0 }];
+    XLSX.writeFile(wb, `ShiftPlanner_${currentYear}-${String(currentMonth).padStart(2,'0')}.xlsx`, { bookType:'xlsx', compression:true });
+}
+
 // ─────────────────────────────────────────────────────────
+//  Language Toggle — EN / DE// ─────────────────────────────────────────────────────────
 //  Language Toggle — EN / DE
 // ─────────────────────────────────────────────────────────
 const T = {
@@ -3261,6 +3350,7 @@ const T = {
     btnBackup:      '💾 Backup JSON',
     btnRestore:     '📂 Restore JSON',
     btnExcel:       '📋 Copy for Excel',
+    btnXLSX:        '📥 Download Excel (.xlsx)',
     btnHTML:        '⬇️ Download as HTML',
     btnSPSync:      '🐙 GitHub Sync',
     btnDiff:        '📆 Month Comparison',
@@ -3323,6 +3413,7 @@ const T = {
     btnBackup:      '💾 JSON-Sicherung',
     btnRestore:     '📂 JSON wiederherstellen',
     btnExcel:       '📋 Für Excel kopieren',
+    btnXLSX:        '📥 Excel herunterladen (.xlsx)',
     btnHTML:        '⬇️ Als HTML herunterladen',
     btnSPSync:      '🐙 GitHub-Synchronisation',
     btnDiff:        '📆 Monatsvergleich',
@@ -3459,6 +3550,7 @@ function applyLang() {
     set('btnBackup',     t.btnBackup,    'text');
     set('btnRestore',    t.btnRestore,   'text');
     set('btnExcel',      t.btnExcel,     'text');
+    set('btnXLSX',       t.btnXLSX,      'text');
     set('btnHTML',       t.btnHTML,      'text');
     set('btnSPSync',     t.btnSPSync,    'text');
     set('btnDiff',       t.btnDiff,      'text');
