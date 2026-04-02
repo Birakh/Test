@@ -4677,5 +4677,390 @@ function renderMobileView() {
     }, 700);
 })();
 </script>
+
+<script>
+(function(){
+  function extInjectStyles(){
+    if(document.getElementById('ext-v3-style')) return;
+    const st = document.createElement('style');
+    st.id = 'ext-v3-style';
+    st.textContent = [
+      '.app-locked #selectModeBtn{opacity:1 !important;pointer-events:auto !important;filter:none !important;display:inline-block !important;}',
+      '.app-editor .admin-only{opacity:1 !important;pointer-events:auto !important;filter:none !important;}',
+      '.status-badge-bar{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px 0;align-items:center;}',
+      '.status-chip{display:inline-block;padding:4px 9px;border-radius:999px;font-size:11px;font-weight:bold;border:1px solid rgba(0,0,0,.08);}',
+      '.chip-ok{background:#e8f7ec;color:#1a7f37;}',
+      '.chip-warn{background:#fff4ce;color:#8a6d1f;}',
+      '.chip-off{background:#f3f4f6;color:#555;}',
+      '.vac-range-panel{margin-top:10px;background:#f8fbff;border:1px solid #cfe2f3;border-radius:6px;padding:10px;font-size:11px;}',
+      '.vac-range-panel h3{margin:0 0 8px 0;font-size:13px;color:#0b5394;}',
+      '.vac-range-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}',
+      '.vac-range-grid input,.vac-range-grid select{width:100%;box-sizing:border-box;}',
+      '.vac-range-result{margin-top:8px;font-size:11px;color:#555;min-height:18px;}',
+      '.worker-search-row{grid-column:1 / span 2;display:block;}',
+      '.viewer-only-select-note{font-size:11px;color:#666;margin-top:4px;}',
+      '.pw-old-box{background:#fff8e1;border:1px solid #f3d27a;border-radius:6px;padding:10px;margin-bottom:10px;}'
+    ].join('');
+    document.head.appendChild(st);
+  }
+
+  function ensureSelectModeButtonForViewer(){
+    const btn = document.getElementById('selectModeBtn');
+    if(!btn) return;
+    btn.classList.remove('edit-only','admin-only');
+    btn.style.display = 'inline-block';
+  }
+
+  let bulkSelectFullHTML = '';
+  function setBulkSelectOptionsByRole(){
+    const sel = document.getElementById('bulkShiftSelect');
+    if(!sel) return;
+    if(!bulkSelectFullHTML) bulkSelectFullHTML = sel.innerHTML;
+    if(window.currentRole === 'viewer' && !window.isEditMode){
+      sel.innerHTML = '<optgroup label="Vacation Requests">'
+        + '<option value="Urlaub IR">U-IR</option>'
+        + '<option value="Urlaub-ZA">U-ZA</option>'
+        + '<option value="U-Immo">U-Immo</option>'
+        + '</optgroup>';
+    } else {
+      sel.innerHTML = bulkSelectFullHTML;
+    }
+  }
+
+  function updateSelectModeUI(){
+    ensureSelectModeButtonForViewer();
+    const btn = document.getElementById('selectModeBtn');
+    const lbl = document.getElementById('selModeLabel');
+    const apply = document.getElementById('btnApplyBulk');
+    if(btn) btn.textContent = window.selectMode
+      ? ((window.currentRole === 'viewer' && !window.isEditMode) ? '🏖 Vacation Select ON' : '✔ Select Mode ON')
+      : ((window.currentRole === 'viewer' && !window.isEditMode) ? '🏖 Request Vacation' : '⬜ Select Mode');
+    if(lbl) lbl.textContent = (window.currentRole === 'viewer' && !window.isEditMode) ? '🏖 Vacation Request Select' : '⬜ Select Mode';
+    if(apply) apply.textContent = (window.currentRole === 'viewer' && !window.isEditMode) ? '✔ Request Vacation for Selected' : '✔ Apply to All Selected';
+    setBulkSelectOptionsByRole();
+  }
+
+  function ensureBadgeBar(){
+    if(document.getElementById('syncStatusBadgeBar')) return;
+    const roleBadge = document.getElementById('roleBadge');
+    if(!roleBadge || !roleBadge.parentNode) return;
+    const bar = document.createElement('div');
+    bar.id = 'syncStatusBadgeBar';
+    bar.className = 'status-badge-bar desktop-only';
+    roleBadge.parentNode.insertBefore(bar, roleBadge.nextSibling);
+  }
+
+  function renderSyncStatusBadges(){
+    ensureBadgeBar();
+    const bar = document.getElementById('syncStatusBadgeBar');
+    if(!bar) return;
+    const ghReady = !!(window.spConfig && window.spConfig.siteUrl && window.spConfig.folderPath);
+    const patReady = !!(window.spConfig && window.spConfig.fileName);
+    const encryptionOn = !!window.dataPassword;
+    const rosterCount = (window.workerRoster && window.workerRoster.length) || (window.workers && window.workers.length) || 0;
+    const lastSync = localStorage.getItem('shiftPlannerSPLastSync');
+    bar.innerHTML = ''
+      + '<span class="status-chip ' + (ghReady ? 'chip-ok' : 'chip-off') + '">' + (ghReady ? '🐙 GitHub Ready' : '🐙 GitHub Not Set') + '</span>'
+      + '<span class="status-chip ' + (patReady ? 'chip-ok' : 'chip-warn') + '">' + (patReady ? '✅ PAT Saved' : '⚠️ Add PAT') + '</span>'
+      + '<span class="status-chip ' + (encryptionOn ? 'chip-ok' : 'chip-warn') + '">' + (encryptionOn ? '🔐 Encryption On' : '🔓 Encryption Off') + '</span>'
+      + '<span class="status-chip ' + (rosterCount ? 'chip-ok' : 'chip-off') + '">👥 Roster ' + rosterCount + '</span>'
+      + '<span class="status-chip ' + (lastSync ? 'chip-ok' : 'chip-off') + '">' + (lastSync ? '🕒 ' + lastSync : '🕒 Not synced yet') + '</span>';
+  }
+
+  function ensureVacationRangePanel(){
+    if(document.getElementById('vacRangePanel')) return;
+    const clearBtn = document.getElementById('btnClearAll');
+    if(!clearBtn || !clearBtn.parentNode) return;
+    const panel = document.createElement('div');
+    panel.id = 'vacRangePanel';
+    panel.className = 'vac-range-panel';
+    panel.innerHTML = ''
+      + '<h3>🏖 Vacation Range Request</h3>'
+      + '<div class="vac-range-grid">'
+      + '  <div class="worker-search-row">'
+      + '    <label style="display:block; margin-bottom:3px; font-weight:bold;">Search worker</label>'
+      + '    <input id="vacRangeWorkerSearch" type="text" placeholder="Type to filter workers..." style="margin-bottom:6px;">'
+      + '    <label style="display:block; margin-bottom:3px; font-weight:bold;">Select worker</label>'
+      + '    <select id="vacRangeWorkerSelect"></select>'
+      + '  </div>'
+      + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">Vacation type</label><select id="vacRangeType"><option value="Urlaub IR">U-IR</option><option value="Urlaub-ZA">U-ZA</option><option value="U-Immo">U-Immo</option></select></div>'
+      + '  <div></div>'
+      + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">Start date</label><input type="date" id="vacRangeStart"></div>'
+      + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">End date</label><input type="date" id="vacRangeEnd"></div>'
+      + '</div>'
+      + '<button id="vacRangeApplyBtn" style="margin-top:8px; background:#8e44ad; color:white; border:none; border-radius:4px; padding:7px 12px; font-weight:bold; cursor:pointer; width:100%;">Apply Vacation Range</button>'
+      + '<div class="viewer-only-select-note">Skips weekends, holidays and the worker\'s fixed days off.</div>'
+      + '<div class="vac-range-result" id="vacRangeResult"></div>';
+    clearBtn.insertAdjacentElement('afterend', panel);
+    document.getElementById('vacRangeApplyBtn').addEventListener('click', window.applyVacationRange);
+    const search = document.getElementById('vacRangeWorkerSearch');
+    if(search) search.addEventListener('input', window.filterVacationWorkerSelect);
+  }
+
+  window.populateVacationRangeWorkerSelect = function(){
+    ensureVacationRangePanel();
+    const sel = document.getElementById('vacRangeWorkerSelect');
+    if(!sel) return;
+    const current = sel.value;
+    sel.innerHTML = '';
+    (window.workers || []).forEach(function(w){
+      const opt = document.createElement('option');
+      opt.value = w.name;
+      opt.textContent = w.name;
+      sel.appendChild(opt);
+    });
+    if(current && Array.from(sel.options).some(function(o){ return o.value === current; })) sel.value = current;
+    window.filterVacationWorkerSelect();
+  };
+
+  window.filterVacationWorkerSelect = function(){
+    const search = document.getElementById('vacRangeWorkerSearch');
+    const sel = document.getElementById('vacRangeWorkerSelect');
+    if(!sel) return;
+    const term = ((search && search.value) || '').trim().toLowerCase();
+    const current = sel.value;
+    const all = (window.workers || []).map(function(w){ return w.name; }).filter(function(name){ return !term || name.toLowerCase().indexOf(term) !== -1; });
+    sel.innerHTML = all.map(function(name){ return '<option value="' + name.replace(/"/g,'&quot;') + '">' + name + '</option>'; }).join('');
+    if(current && all.indexOf(current) !== -1) sel.value = current;
+    else if(all.length) sel.value = all[0];
+  };
+
+  function canVacationRangeOverwrite(oldValue, viewerMode, newValue){
+    if(viewerMode && typeof window.canViewerEditChange === 'function') return window.canViewerEditChange(oldValue, newValue);
+    const oldBase = window.getBaseShift ? window.getBaseShift(oldValue) : oldValue;
+    return oldValue === '-' || oldBase === 'OFF' || oldBase === 'DF'
+      || (window.isPendingVacationShift && window.isPendingVacationShift(oldValue))
+      || (window.isVacationBase && window.isVacationBase(window.stripPendingVacation ? window.stripPendingVacation(oldValue) : oldValue));
+  }
+
+  window.applyVacationRange = function(){
+    const sel = document.getElementById('vacRangeWorkerSelect');
+    const workerName = ((sel && sel.value) || '').trim().toUpperCase();
+    const start = document.getElementById('vacRangeStart') ? document.getElementById('vacRangeStart').value : '';
+    const end = document.getElementById('vacRangeEnd') ? document.getElementById('vacRangeEnd').value : '';
+    const vacType = document.getElementById('vacRangeType') ? document.getElementById('vacRangeType').value : 'Urlaub IR';
+    const res = document.getElementById('vacRangeResult');
+    if(!workerName){ if(res) res.textContent = 'Please select a worker.'; return; }
+    const wIndex = (window.workers || []).findIndex(function(w){ return (w.name || '').toUpperCase() === workerName; });
+    if(wIndex === -1){ if(res) res.textContent = 'Worker not found in current list.'; return; }
+    if(!start || !end){ if(res) res.textContent = 'Please select start and end dates.'; return; }
+    const d0 = new Date(start + 'T12:00:00');
+    const d1 = new Date(end + 'T12:00:00');
+    if(Number.isNaN(d0.getTime()) || Number.isNaN(d1.getTime()) || d1 < d0){ if(res) res.textContent = 'Invalid date range.'; return; }
+    const viewerMode = (window.currentRole === 'viewer' && !window.isEditMode);
+    let changed=0, skipWeekend=0, skipHoliday=0, skipFixed=0, skipBusy=0, skipMonth=0, pushed=false;
+    const worker = window.workers[wIndex];
+    for(let cur = new Date(d0); cur <= d1; cur.setDate(cur.getDate() + 1)){
+      if(cur.getFullYear() !== window.currentYear || (cur.getMonth() + 1) !== window.currentMonth){ skipMonth++; continue; }
+      const idx = cur.getDate() - 1;
+      const dow = cur.getDay();
+      if(dow === 0 || dow === 6){ skipWeekend++; continue; }
+      if(typeof window.isHoliday === 'function' && window.isHoliday(idx)){ skipHoliday++; continue; }
+      if((worker.fixedOff || []).includes(dow)){ skipFixed++; continue; }
+      const oldValue = worker.shifts[idx];
+      if(!canVacationRangeOverwrite(oldValue, viewerMode, vacType)){ skipBusy++; continue; }
+      if(!pushed && typeof window.pushUndo === 'function'){ window.pushUndo(); pushed = true; }
+      worker.shifts[idx] = (viewerMode && typeof window.viewerShiftValueForSave === 'function') ? window.viewerShiftValueForSave(vacType) : vacType;
+      changed++;
+    }
+    if(changed > 0){ window.saveData(); window.renderTable(); }
+    if(res) res.textContent = 'Updated ' + changed + ' day(s). Skipped: ' + skipWeekend + ' weekend, ' + skipHoliday + ' holiday, ' + skipFixed + ' fixed day-off, ' + skipBusy + ' occupied, ' + skipMonth + ' outside this month.';
+  };
+
+  const origRequireAdmin = window.requireAdmin;
+  window.requireAdmin = function(actionName){
+    if(window.currentRole === 'admin' || window.currentRole === 'editor') return true;
+    if(typeof origRequireAdmin === 'function') return origRequireAdmin.call(this, actionName);
+    return false;
+  };
+
+  const origToggleSelectMode = window.toggleSelectMode;
+  window.toggleSelectMode = function(){
+    const viewerMode = (window.currentRole === 'viewer' && !window.isEditMode);
+    if(!viewerMode) {
+      const r = origToggleSelectMode.apply(this, arguments);
+      updateSelectModeUI();
+      return r;
+    }
+    setBulkSelectOptionsByRole();
+    window.selectMode = !window.selectMode;
+    if(window.selectedCells && window.selectedCells.clear) window.selectedCells.clear();
+    const btn = document.getElementById('selectModeBtn');
+    const bar = document.getElementById('selectionBar');
+    const wrapper = document.querySelector('.table-wrapper');
+    if(window.selectMode){
+      if(btn) btn.classList.add('active');
+      if(bar) bar.classList.add('visible');
+      if(wrapper) wrapper.classList.add('select-mode-active');
+    } else {
+      if(btn) btn.classList.remove('active');
+      if(bar) bar.classList.remove('visible');
+      if(wrapper) wrapper.classList.remove('select-mode-active');
+      document.querySelectorAll('td.selected-cell').forEach(function(td){ td.classList.remove('selected-cell'); });
+    }
+    const cnt = document.getElementById('selectionCount');
+    if(cnt) cnt.textContent = 0;
+    updateSelectModeUI();
+  };
+
+  const origApplyBulkShift = window.applyBulkShift;
+  window.applyBulkShift = function(){
+    const viewerMode = (window.currentRole === 'viewer' && !window.isEditMode);
+    if(!viewerMode) return origApplyBulkShift.apply(this, arguments);
+    if(!window.selectedCells || window.selectedCells.size === 0) return alert('No cells selected!');
+    const shift = document.getElementById('bulkShiftSelect') ? document.getElementById('bulkShiftSelect').value : '';
+    if(['Urlaub IR','Urlaub-ZA','U-Immo'].indexOf(shift) === -1) return alert('Viewers can only request U-IR, U-ZA or U-Immo in select mode.');
+    let changed=0, skipped=0, pushed=false;
+    window.selectedCells.forEach(function(key){
+      const parts = key.split('_').map(Number);
+      const w = parts[0], d = parts[1];
+      const oldValue = window.workers[w].shifts[d];
+      if(!(window.canViewerEditChange && window.canViewerEditChange(oldValue, shift))){ skipped++; return; }
+      if(!pushed && typeof window.pushUndo === 'function'){ window.pushUndo(); pushed = true; }
+      window.workers[w].shifts[d] = window.viewerShiftValueForSave ? window.viewerShiftValueForSave(shift) : shift;
+      changed++;
+    });
+    window.selectedCells.clear();
+    const cnt = document.getElementById('selectionCount');
+    if(cnt) cnt.textContent = 0;
+    window.saveData(); window.renderTable();
+    alert('Vacation requests added to ' + changed + ' cell(s). Skipped ' + skipped + ' locked/occupied cell(s).');
+  };
+
+  const origRenderTable = window.renderTable;
+  window.renderTable = function(){
+    const r = origRenderTable.apply(this, arguments);
+    ensureSelectModeButtonForViewer();
+    populateVacationRangeWorkerSelect();
+    renderSyncStatusBadges();
+    updateSelectModeUI();
+    return r;
+  };
+
+  ['addWorkerFromForm','saveEditWorker','deleteWorker','clearAllWorkers'].forEach(function(fn){
+    const orig = window[fn];
+    if(typeof orig === 'function'){
+      window[fn] = function(){
+        const r = orig.apply(this, arguments);
+        populateVacationRangeWorkerSelect();
+        return r;
+      };
+    }
+  });
+
+  const origApplyLockState = window.applyLockState;
+  if(typeof origApplyLockState === 'function'){
+    window.applyLockState = function(){
+      const r = origApplyLockState.apply(this, arguments);
+      ensureSelectModeButtonForViewer();
+      renderSyncStatusBadges();
+      updateSelectModeUI();
+      return r;
+    };
+  }
+
+  function ensureOldPasswordFields(){
+    if(document.getElementById('pw_admin_old')) return;
+    const adminNew = document.getElementById('pw_admin1');
+    const editorNew = document.getElementById('pw_editor1');
+    if(!adminNew || !editorNew) return;
+    const adminWrap = adminNew.closest('div[style*="background:#eaffea"]') || adminNew.parentNode.parentNode;
+    const editorWrap = editorNew.closest('div[style*="background:#e8f4fc"]') || editorNew.parentNode.parentNode;
+    if(adminWrap){
+      const old = document.createElement('input');
+      old.type = 'password'; old.id = 'pw_admin_old'; old.placeholder = 'Current admin password'; old.autocomplete = 'current-password';
+      old.style.cssText = 'width:100%; box-sizing:border-box; padding:7px; font-size:13px; border:1px solid #ccc; border-radius:4px; margin-bottom:6px;';
+      adminNew.parentNode.insertBefore(old, adminNew);
+    }
+    if(editorWrap){
+      const old = document.createElement('input');
+      old.type = 'password'; old.id = 'pw_editor_old'; old.placeholder = 'Current editor password'; old.autocomplete = 'current-password';
+      old.style.cssText = 'width:100%; box-sizing:border-box; padding:7px; font-size:13px; border:1px solid #ccc; border-radius:4px; margin-bottom:6px;';
+      editorNew.parentNode.insertBefore(old, editorNew);
+    }
+  }
+
+  const origOpenSetPasswordModal = window.openSetPasswordModal;
+  if(typeof origOpenSetPasswordModal === 'function'){
+    window.openSetPasswordModal = function(){
+      const r = origOpenSetPasswordModal.apply(this, arguments);
+      ensureOldPasswordFields();
+      ['pw_admin_old','pw_editor_old'].forEach(function(id){ const el = document.getElementById(id); if(el) el.value = ''; });
+      return r;
+    };
+  }
+
+  const origSaveAllPasswords = window.saveAllPasswords;
+  if(typeof origSaveAllPasswords === 'function'){
+    window.saveAllPasswords = async function(){
+      if(!(window.currentRole === 'admin' || window.currentRole === 'editor')) return window.requireAdmin('Set Passwords');
+      const err = document.getElementById('setPwError');
+      if(!window.spConfig.siteUrl || !window.spConfig.folderPath || !window.spConfig.fileName){
+        if(err){ err.textContent = '⚠️ Connect to GitHub first (🐙 button).'; err.style.display = 'block'; }
+        return;
+      }
+      if(err) err.style.display = 'none';
+      ensureOldPasswordFields();
+      const aOld = document.getElementById('pw_admin_old') ? document.getElementById('pw_admin_old').value : '';
+      const eOld = document.getElementById('pw_editor_old') ? document.getElementById('pw_editor_old').value : '';
+      const a1 = document.getElementById('pw_admin1').value;
+      const a2 = document.getElementById('pw_admin2').value;
+      const e1 = document.getElementById('pw_editor1').value;
+      const e2 = document.getElementById('pw_editor2').value;
+      if(a1 && a1 !== a2){ err.textContent = '⚠️ Admin passwords do not match.'; err.style.display='block'; return; }
+      if(e1 && e1 !== e2){ err.textContent = '⚠️ Editor passwords do not match.'; err.style.display='block'; return; }
+      if(a1 && a1.length < 4){ err.textContent = '⚠️ Admin password must be at least 4 characters.'; err.style.display='block'; return; }
+      if(e1 && e1.length < 4){ err.textContent = '⚠️ Editor password must be at least 4 characters.'; err.style.display='block'; return; }
+      if(!a1 && !e1){ err.textContent = '⚠️ Enter at least one password to save.'; err.style.display='block'; return; }
+      try {
+        let cfg = { version: 2 };
+        try {
+          const existing = await window.ghReadFile(window.spCfgFile);
+          if(existing) cfg = JSON.parse(existing);
+        } catch(ex) {}
+        const currentAdminHash = cfg.adminHash || window.adminHash || '';
+        const currentEditorHash = cfg.editorHash || window.editorHash || '';
+        if(a1 && currentAdminHash){
+          const oldHash = await window.sha256(aOld || '');
+          if(oldHash !== currentAdminHash){ err.textContent = '⚠️ Current admin password is incorrect.'; err.style.display='block'; return; }
+        }
+        if(e1 && currentEditorHash){
+          const oldHash = await window.sha256(eOld || '');
+          if(oldHash !== currentEditorHash){ err.textContent = '⚠️ Current editor password is incorrect.'; err.style.display='block'; return; }
+        }
+        if(a1){ cfg.adminHash = await window.sha256(a1); window.adminHash = cfg.adminHash; window.pwHash = cfg.adminHash; }
+        if(e1){ cfg.editorHash = await window.sha256(e1); window.editorHash = cfg.editorHash; }
+        cfg.version = 2;
+        await window.ghWriteFile(window.spCfgFile, JSON.stringify(cfg, null, 2));
+        document.getElementById('setPasswordModal').style.display = 'none';
+        const saved = [a1 ? 'Admin' : '', e1 ? 'Editor' : ''].filter(Boolean).join(' & ');
+        alert('✅ ' + saved + ' password' + (saved.indexOf('&') !== -1 ? 's' : '') + ' saved to GitHub!\n\nOld password verification was required.');
+      } catch(e) {
+        err.textContent = '❌ Failed to save: ' + e.message;
+        err.style.display = 'block';
+      }
+    };
+    window.saveNewPassword = window.saveAllPasswords;
+  }
+
+  function refreshEnhancements(){
+    extInjectStyles();
+    ensureSelectModeButtonForViewer();
+    ensureBadgeBar();
+    ensureVacationRangePanel();
+    ensureOldPasswordFields();
+    populateVacationRangeWorkerSelect();
+    renderSyncStatusBadges();
+    updateSelectModeUI();
+  }
+
+  const origOnload = window.onload;
+  window.onload = function(){
+    if(typeof origOnload === 'function') origOnload.apply(this, arguments);
+    refreshEnhancements();
+  };
+})();
+</script>
+
 </body>
 </html>
