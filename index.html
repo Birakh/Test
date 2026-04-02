@@ -990,6 +990,50 @@ let dailyComments = [];
 let dailyTargets  = [];
 let masterTargets = { wd8E:4, wd8M:2, wd8L:4, wd13:2, wd6:1, we8E:0, we8M:0, we8L:0, we13:0, we6:0,
                       wdImE:2, wdImL:1 };
+let workerRoster = []; // master worker list that carries across months
+function workerMetaFromWorker(w) {
+    return {
+        name: w.name,
+        system: w.system,
+        contract: w.contract,
+        pref: w.pref,
+        immo: w.immo,
+        immoShiftPref: w.immoShiftPref,
+        immoEarlyPct: w.immoEarlyPct,
+        fixedOff: [...(w.fixedOff || [])],
+        fixed6HDay: w.fixed6HDay != null ? w.fixed6HDay : null,
+        summerMode: w.summerMode || 'none',
+        summerWeekOffset: w.summerWeekOffset != null ? w.summerWeekOffset : 0,
+        summerMonths: [...(w.summerMonths || [])]
+    };
+}
+function buildWorkerRosterFromCurrent() {
+    return workers.map(workerMetaFromWorker);
+}
+function workersFromRoster(days) {
+    return (workerRoster || []).map(meta => ({
+        ...meta,
+        fixedOff: [...(meta.fixedOff || [])],
+        summerMonths: [...(meta.summerMonths || [])],
+        shifts: Array(days).fill('-'),
+        requests: Array(days).fill(false)
+    }));
+}
+function loadWorkerRoster() {
+    const local = localStorage.getItem('shiftPlannerWorkerRosterV1');
+    if (local) {
+        try { workerRoster = JSON.parse(local) || []; } catch(e) { workerRoster = []; }
+    }
+    if ((!workerRoster || workerRoster.length === 0) && allMonthsData && allMonthsData.__workerRoster && Array.isArray(allMonthsData.__workerRoster.workers)) {
+        workerRoster = allMonthsData.__workerRoster.workers;
+    }
+}
+function saveWorkerRoster() {
+    workerRoster = buildWorkerRosterFromCurrent();
+    try { localStorage.setItem('shiftPlannerWorkerRosterV1', JSON.stringify(workerRoster)); } catch(e) {}
+    if (allMonthsData) allMonthsData.__workerRoster = { workers: workerRoster };
+}
+
 let use13H = false;  // toggled via "Enable 13H" checkbox in Setup panel
 let use6H  = false;  // toggled via "Enable 6H"  checkbox in Setup panel
 let currentLang = 'en'; // 'en' or 'de'
@@ -1239,6 +1283,7 @@ function getHolidayName(dIndex) {
 // ─────────────────────────────────────────────────────────
 window.onload = () => { try {
     allMonthsData = JSON.parse(localStorage.getItem('shiftPlannerAllMonthsV23')) || {};
+    loadWorkerRoster();
 
     // Load GitHub config
     const savedSPCfg = localStorage.getItem('shiftPlannerSPConfig');
@@ -1257,6 +1302,7 @@ window.onload = () => { try {
     // (old versions defaulted them to true; new default is false)
     if (!localStorage.getItem('shiftPlannerV5migrated')) {
         Object.keys(allMonthsData).forEach(k => {
+            if (k.startsWith('__')) return;
             allMonthsData[k].use13H = false;
             allMonthsData[k].use6H  = false;
         });
@@ -1269,6 +1315,7 @@ window.onload = () => { try {
     if (old22 && Object.keys(allMonthsData).length===0) {
         const parsed = JSON.parse(old22);
         for (const key in parsed) {
+            if (key.startsWith('__')) continue;
             parsed[key].masterTargets = masterTargets;
             parsed[key].dailyTargets  = [];
             allMonthsData[key] = parsed[key];
@@ -1410,8 +1457,10 @@ function loadMonthData(monthKey) {
         if (saved.currentLang) {
             currentLang = saved.currentLang;
         }
+        if (!workerRoster || workerRoster.length === 0) workerRoster = buildWorkerRosterFromCurrent();
     } else {
-        if (workers.length===0) loadTestWorkers();
+        if (workerRoster && workerRoster.length > 0) workers = workersFromRoster(daysInMonth);
+        else if (workers.length===0) loadTestWorkers();
         else workers.forEach(w => {
             w.shifts   = Array(daysInMonth).fill('-');
             w.requests = Array(daysInMonth).fill(false);
@@ -1495,10 +1544,12 @@ function saveData() {
     const maxVac    = parseInt(document.getElementById('maxVacation').value)    || 0;
     const maxConsec = parseInt(document.getElementById('maxConsecutive').value) || 5;
     const minStaff  = parseInt(document.getElementById('minStaff').value)       || 0;
+    saveWorkerRoster();
     allMonthsData[currentMonthKey] = {
         workers, holidays, lssDays, dailyComments, dailyTargets,
         masterTargets, monthValue:currentMonthKey, maxVac, maxConsec, minStaff, use13H, use6H, currentLang
     };
+    allMonthsData.__workerRoster = { workers: workerRoster };
     localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
     // Auto-push to GitHub if configured
     if (spConfig.autoSync && spConfig.siteUrl) spPush(true);
@@ -3016,6 +3067,19 @@ function runAIAnalysis() {
     report += immoGaps.length>0
         ? `<ul style="color:#856404; background:#fff3cd; padding:10px 10px 10px 28px; border-radius:4px; font-size:12px; border:1px solid #ffc107;"><li>${immoGaps.join('</li><li>')}</li></ul>`
         : `<p style="color:green;">✔️ All Immo targets are covered!</p>`;
+
+    report += `<h3>⏳ Pending Vacation Requests</h3>`;
+    const pendingVac = [];
+    workers.forEach(w => {
+        w.shifts.forEach((s,d) => {
+            if (isPendingVacationShift(s)) {
+                pendingVac.push(`${w.name} — Day ${d+1} (${stripPendingVacation(s)})`);
+            }
+        });
+    });
+    report += pendingVac.length>0
+        ? `<p style="color:#8e44ad;"><strong>Pending approval:</strong><br>${pendingVac.join('<br>')}</p><p style="font-size:11px; color:#666;">These requests stay white until approved by an Editor or Admin.</p>`
+        : `<p style="color:green;">✔️ No pending vacation requests.</p>`;
 
     // ── Shift Swap Suggestions ──
     report += `<h3>🔄 Shift Swap Suggestions</h3>`;
