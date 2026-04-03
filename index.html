@@ -168,7 +168,7 @@
         .mob-full-link a { color: #0969da; text-decoration: none; }
         </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 </head>
 <body>
 
@@ -1446,6 +1446,17 @@ function loadMonthData(monthKey) {
             ? saved.dailyComments
             : Array(daysInMonth).fill('');
 
+        // ── Initialize comment baseline from localStorage ──
+        // cmtPull() will overwrite this with the true remote baseline.
+        // This is the fallback so the merge logic always has something to diff against.
+        _baseComments = [...dailyComments];
+
+        // ── Initialize shift baseline (used for viewer vacation-request merge) ──
+        // Keyed by worker name → array of shift values for the current month.
+        // spPull() will overwrite this with the true remote baseline.
+        _baseShifts[currentMonthKey] = {};
+        workers.forEach(w => { _baseShifts[currentMonthKey][w.name] = [...w.shifts]; });
+
         workers.forEach(w => w.requests = w.requests || Array(daysInMonth).fill(false));
 
         if (saved.masterTargets && saved.masterTargets.wd8E !== undefined) {
@@ -1500,6 +1511,9 @@ function loadMonthData(monthKey) {
         holidays     = getAustrianHolidays(currentYear, currentMonth);
         lssDays      = [];
         dailyComments = Array(daysInMonth).fill('');
+        // New month — reset baselines so merge logic starts clean
+        _baseComments = [];
+        _baseShifts[currentMonthKey] = {};
         initTargets();
         // New month with no saved data — apply defaults
         use13H = false; use6H = false;
@@ -2180,8 +2194,13 @@ function restoreData(input) {
 function getDropdownOptions(currentShift) {
     const base=["-","13H","8E","8L","8M","6H","OFF","VAC","SICK","FB","PF","DF","Urlaub IR","Urlaub-ZA","U-Immo","LSS","Offc","RB1","RB2"]; const immo=["ImE","ImL"]; const rooms=["IR2","IR3","IR4","Immo"]; const rShifts=["13H","8E","8L","8M","6H"]; const currentBase=getBaseShift(currentShift); let html=`<option value="-" ${currentShift==='-'?'selected':''}>-</option>`;
     if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${currentShift || '-'}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; } if (isPendingVacationShift(currentShift)) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ request</option>`; vacationTypes.forEach(s => { const selected = stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${selected?'selected':''}>${s}</option>`; }); return html; }
-    if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; } if (isPendingVacationShift(currentShift)) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ pending approval</option>`;
-    html += `<optgroup label="Immo Shifts">`; immo.forEach(s => html += `<option value="${s}" ${currentShift===s?'selected':''}>${s}</option>`); html += `</optgroup><optgroup label="Base Shifts & Special">`; base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${(currentShift===s || stripPendingVacation(currentShift)===s)?'selected':''}>${s}</option>`; }); html += `</optgroup>`; rooms.forEach(room => { html += `<optgroup label="${room} Assigned">`; rShifts.forEach(s => { const v=`${s}-${room}`; html += `<option value="${v}" ${currentShift===v?'selected':''}>${v}</option>`; }); html += `</optgroup>`; }); return html;
+    if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; }
+    // ── FIX: for VAC-PENDING cells, only the pending option gets 'selected'. ──
+    // Do NOT also mark the plain VAC option as selected — that caused the browser
+    // to display VAC as the active selection, making an accidental click auto-approve.
+    const isPending = isPendingVacationShift(currentShift);
+    if (isPending) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ pending approval</option>`;
+    html += `<optgroup label="Immo Shifts">`; immo.forEach(s => html += `<option value="${s}" ${currentShift===s?'selected':''}>${s}</option>`); html += `</optgroup><optgroup label="Base Shifts & Special">`; base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${(currentShift===s || (!isPending && stripPendingVacation(currentShift)===s))?'selected':''}>${s}</option>`; }); html += `</optgroup>`; rooms.forEach(room => { html += `<optgroup label="${room} Assigned">`; rShifts.forEach(s => { const v=`${s}-${room}`; html += `<option value="${v}" ${currentShift===v?'selected':''}>${v}</option>`; }); html += `</optgroup>`; }); return html;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -3246,68 +3265,314 @@ function copyPersonalText() {
 }
 
 // ─────────────────────────────────────────────────────────
+//  Excel Export Helpers
+// ─────────────────────────────────────────────────────────
+
+// Convert 0-based column index → Excel letter (0→A, 25→Z, 26→AA …)
+function excelCol(idx) {
+    let col = '', n = idx + 1;
+    while (n > 0) { const rem = (n - 1) % 26; col = String.fromCharCode(65 + rem) + col; n = Math.floor((n - 1) / 26); }
+    return col;
+}
+
+// 0-based row + col → Excel cell reference e.g. excelCell(1,0) → "A2"
+function excelCell(rowIdx, colIdx) { return `${excelCol(colIdx)}${rowIdx + 1}`; }
+
+// Horizontal range on one row  e.g. excelRange(1, 2, 4) → "C2:E2"
+function excelRange(rowIdx, startCol, endCol) { return `${excelCell(rowIdx, startCol)}:${excelCell(rowIdx, endCol)}`; }
+
+// Generate a Helper-sheet IF formula for a given shift key.
+// ref = cell reference string like "Plan!C2"
+function excelHelperFormula(ref, key) {
+    // CUS start-hour lives at position 5 (1-based), end-hour at position 11
+    const cusStart = `VALUE(MID(${ref},5,2))`;
+    const cusEnd   = `VALUE(MID(${ref},11,2))`;
+    const isCus    = `LEFT(${ref},3)="CUS"`;
+    switch (key) {
+        case 'c8E':   return `IF(${ref}="8E",1,IF(AND(${isCus},${cusStart}<=12),1,0))`;
+        case 'c8M':   return `IF(${ref}="8M",1,0)`;
+        case 'c8L':   return `IF(${ref}="8L",1,IF(AND(${isCus},${cusEnd}>=14),1,0))`;
+        case 'c13H':  return `IF(${ref}="13H",1,0)`;
+        case 'c6H':   return `IF(${ref}="6H",1,0)`;
+        case 'cImE':  return `IF(${ref}="ImE",1,0)`;
+        case 'cImL':  return `IF(${ref}="ImL",1,0)`;
+        case 'work':  return `IF(OR(${ref}="8E",${ref}="8L",${ref}="8M",${ref}="13H",${ref}="6H",${ref}="FB",${ref}="LSS",${ref}="Offc",${ref}="ImE",${ref}="ImL",${isCus}),1,0)`;
+        case 'vac':   return `IF(OR(${ref}="VAC",${ref}="Urlaub IR",${ref}="Urlaub-ZA",${ref}="U-Immo"),1,0)`;
+        case 'sick':  return `IF(${ref}="SICK",1,0)`;
+        case 'fb':    return `IF(${ref}="FB",1,0)`;
+        case 'pf':    return `IF(${ref}="PF",1,0)`;
+        case 'df':    return `IF(${ref}="DF",1,0)`;
+        case 'krank': return `IF(${ref}="SICK",1,0)`;
+        default:      return `0`;
+    }
+}
+
+// Same as excelHelperFormula but handles the "VAC ⏳" display format used in the Plan sheet.
+// Pending vacation is shown as e.g. "VAC ⏳" — formulas must match both "VAC" and "VAC ⏳".
+function excelHelperFormulaPending(ref, key) {
+    const cusStart = `VALUE(MID(${ref},5,2))`;
+    const cusEnd   = `VALUE(MID(${ref},11,2))`;
+    const isCus    = `LEFT(${ref},3)="CUS"`;
+    // Vacation types — also match the ⏳ pending variant
+    const isVac    = `OR(${ref}="VAC",${ref}="VAC ⏳",${ref}="Urlaub IR",${ref}="Urlaub IR ⏳",${ref}="Urlaub-ZA",${ref}="Urlaub-ZA ⏳",${ref}="U-Immo",${ref}="U-Immo ⏳")`;
+    switch (key) {
+        case 'c8E':   return `IF(${ref}="8E",1,IF(AND(${isCus},${cusStart}<=12),1,0))`;
+        case 'c8M':   return `IF(${ref}="8M",1,0)`;
+        case 'c8L':   return `IF(${ref}="8L",1,IF(AND(${isCus},${cusEnd}>=14),1,0))`;
+        case 'c13H':  return `IF(${ref}="13H",1,0)`;
+        case 'c6H':   return `IF(${ref}="6H",1,0)`;
+        case 'cImE':  return `IF(${ref}="ImE",1,0)`;
+        case 'cImL':  return `IF(${ref}="ImL",1,0)`;
+        case 'work':  return `IF(OR(${ref}="8E",${ref}="8L",${ref}="8M",${ref}="13H",${ref}="6H",${ref}="FB",${ref}="LSS",${ref}="Offc",${ref}="ImE",${ref}="ImL",${isCus}),1,0)`;
+        case 'vac':   return `IF(${isVac},1,0)`;
+        case 'sick':  return `IF(${ref}="SICK",1,0)`;
+        case 'fb':    return `IF(${ref}="FB",1,0)`;
+        case 'pf':    return `IF(${ref}="PF",1,0)`;
+        case 'df':    return `IF(${ref}="DF",1,0)`;
+        case 'krank': return `IF(${ref}="SICK",1,0)`;
+        default:      return `0`;
+    }
+}
+
+// Build the export configuration: column positions + summary column definitions
+function buildExcelExportConfig() {
+    // Fixed columns: Date, Weekday, Holiday?, LSS?  → indices 0-3
+    // Worker columns start at index 4
+    const workerStartCol  = 4;
+    const summaryStartCol = workerStartCol + workers.length;
+
+    const de = currentLang === 'de';
+    const summary = [
+        { label: '8E',                    key: 'c8E'   },
+        { label: '8M',                    key: 'c8M'   },
+        { label: '8L',                    key: 'c8L'   },
+        ...(use13H ? [{ label: '13H',     key: 'c13H'  }] : []),
+        ...(use6H  ? [{ label: '6H',      key: 'c6H'   }] : []),
+        { label: 'ImE',                   key: 'cImE'  },
+        { label: 'ImL',                   key: 'cImL'  },
+        { label: de ? 'Arbeitend'       : 'Working',   key: 'work'    },
+        { label: de ? 'Urlaub'          : 'Vacation',  key: 'vac'     },
+        { label: de ? 'Krank (SICK)'    : 'Sick',      key: 'sick'    },
+        { label: 'FB',                                 key: 'fb'      },
+        { label: 'PF',                                 key: 'pf'      },
+        { label: 'DF',                                 key: 'df'      },
+        { label: 'Krank',                              key: 'krank'   },
+        { label: de ? 'Abwesenheit ges.': 'Absence Total', key: 'absence' },
+        { label: de ? 'Kommentare'      : 'Comments',  key: 'comments'},
+    ];
+
+    return { workerStartCol, summaryStartCol, summary };
+}
+
+// ─────────────────────────────────────────────────────────
 //  Download as HTML (with embedded data for SharePoint)
 // ─────────────────────────────────────────────────────────
 function downloadExcelWithFormulas() {
     if (typeof XLSX === 'undefined') { alert(currentLang==='de' ? 'Die Excel-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden und erneut versuchen.' : 'The Excel library could not be loaded. Please reload the page and try again.'); return; }
     const cfg = buildExcelExportConfig();
-    const wb = XLSX.utils.book_new();
-    const monthTitle = new Date(currentYear, currentMonth-1, 1).toLocaleString(currentLang==='de'?'de-DE':'en-US', { month:'long', year:'numeric' });
-    const planHeader = [currentLang==='de' ? 'Datum' : 'Date', currentLang==='de' ? 'Wochentag' : 'Weekday', currentLang==='de' ? 'Feiertag?' : 'Holiday?', 'LSS?'];
+    const wb  = XLSX.utils.book_new();
+    const de  = currentLang === 'de';
+    const monthTitle = new Date(currentYear, currentMonth-1, 1).toLocaleString(de?'de-DE':'en-US', { month:'long', year:'numeric' });
+
+    // ── Helper: CSS hex colour → RRGGBB for SheetJS styles ──
+    function cssToRgb(hex) {
+        if (!hex) return null;
+        hex = hex.replace('#','');
+        if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+        return hex.toUpperCase();
+    }
+
+    // ── Helper: build a cell style ──
+    function cellStyle(bgHex, opts = {}) {
+        const s = {};
+        if (bgHex) s.fill = { patternType:'solid', fgColor:{ rgb: cssToRgb(bgHex) } };
+        s.font      = { name:'Calibri', sz:10, bold:!!opts.bold, color: opts.fontColor ? { rgb: cssToRgb(opts.fontColor) } : undefined };
+        s.alignment = { horizontal: opts.align || 'center', vertical:'center', wrapText:!!opts.wrap };
+        if (opts.border) s.border = {
+            top:    { style:'thin', color:{ rgb:'CCCCCC' } },
+            bottom: { style:'thin', color:{ rgb:'CCCCCC' } },
+            left:   { style:'thin', color:{ rgb:'CCCCCC' } },
+            right:  { style:'thin', color:{ rgb:'CCCCCC' } }
+        };
+        return s;
+    }
+
+    // ── Colours matching getColor() ──
+    const WEEKEND_BG  = 'F0F0F0';
+    const HOLIDAY_BG  = 'E8DAEF';
+    const HEADER_BG   = 'EEEEEE';
+    const SUMMARY_BG  = 'EBF5FB';
+    const COMMENT_BG  = 'FDFEFE';
+    const PENDING_BG  = 'FFFFFF'; // white — matches table
+
+    // ── Build Plan sheet ──
+    const planHeader = [de?'Datum':'Date', de?'Wochentag':'Weekday', de?'Feiertag?':'Holiday?', 'LSS?'];
     workers.forEach(w => planHeader.push(`${w.name} (${w.contract}h)`));
     cfg.summary.forEach(s => planHeader.push(s.label));
     const planRows = [planHeader];
+
     for (let d = 0; d < daysInMonth; d++) {
         const dateObj = new Date(currentYear, currentMonth-1, d+1);
         const row = [dateObj, dayNames[dateObj.getDay()], isHoliday(d) ? 'Y' : '', lssDays.includes(d) ? 'Y' : ''];
-        workers.forEach(w => row.push(w.shifts[d] || '-'));
+        workers.forEach(w => {
+            const shift = w.shifts[d] || '-';
+            // Show pending vacation cleanly: strip -PENDING suffix, add ⏳
+            const displayShift = isPendingVacationShift(shift)
+                ? stripPendingVacation(shift) + ' ⏳'
+                : shift;
+            row.push(displayShift);
+        });
         cfg.summary.forEach(s => row.push(s.key === 'comments' ? (dailyComments[d] || '') : null));
         planRows.push(row);
     }
+
     const planWs = XLSX.utils.aoa_to_sheet(planRows);
-    planWs['!cols'] = [{wch:12},{wch:10},{wch:10},{wch:8}, ...workers.map(() => ({wch:16})), ...cfg.summary.map(s => ({wch: s.key === 'comments' ? 26 : 12}))];
-    planWs['!autofilter'] = { ref: `A1:${excelCol(planHeader.length-1)}${planRows.length}` };
+    planWs['!cols'] = [
+        {wch:12},{wch:10},{wch:10},{wch:6},
+        ...workers.map(() => ({wch:14})),
+        ...cfg.summary.map(s => ({wch: s.key==='comments' ? 28 : 10}))
+    ];
+    planWs['!rows'] = Array(planRows.length).fill({hpt:18});
+    planWs['!autofilter'] = { ref:`A1:${excelCol(planHeader.length-1)}${planRows.length}` };
+
+    // ── Apply styles ──
+    const hdrStyle    = cellStyle(HEADER_BG, { bold:true, border:true });
+    const sumHdrStyle = cellStyle(HEADER_BG, { bold:true, border:true, fontColor:'#1A5276' });
+
+    // Header row
+    for (let c = 0; c < planHeader.length; c++) {
+        const addr = excelCell(0, c);
+        if (!planWs[addr]) planWs[addr] = { t:'s', v:planHeader[c] };
+        planWs[addr].s = c >= cfg.summaryStartCol ? sumHdrStyle : hdrStyle;
+    }
+
+    // Data rows
+    for (let d = 0; d < daysInMonth; d++) {
+        const rowIdx   = d + 1;
+        const dateObj  = new Date(currentYear, currentMonth-1, d+1);
+        const dow      = dateObj.getDay();
+        const isWE     = dow === 0 || dow === 6;
+        const isHol    = isHoliday(d);
+        const rowBg    = isHol ? '#'+HOLIDAY_BG : (isWE ? '#'+WEEKEND_BG : null);
+
+        // Date cell — format as dd.mm.yyyy
+        const dateCellAddr = excelCell(rowIdx, 0);
+        planWs[dateCellAddr].t = 'd';
+        planWs[dateCellAddr].z = 'dd.mm.yyyy';
+        planWs[dateCellAddr].s = cellStyle(rowBg || (isWE?'#'+WEEKEND_BG:'F9FAFB'), { bold:isHol, border:true, align:'left' });
+
+        // Weekday / Holiday / LSS cells
+        for (let c = 1; c <= 3; c++) {
+            const a = excelCell(rowIdx, c);
+            if (!planWs[a]) planWs[a] = { t:'s', v:'' };
+            planWs[a].s = cellStyle(rowBg || null, { border:true });
+        }
+
+        // Worker shift cells — background = shift colour
+        workers.forEach((w, wIdx) => {
+            const shift     = w.shifts[d] || '-';
+            const shiftBg   = getColor(shift); // returns CSS hex like '#ffe599'
+            const isPending = isPendingVacationShift(shift);
+            const cellBg    = isPending ? '#'+PENDING_BG : shiftBg;
+            const addr      = excelCell(rowIdx, cfg.workerStartCol + wIdx);
+            if (!planWs[addr]) planWs[addr] = { t:'s', v:'-' };
+            planWs[addr].s = cellStyle(cellBg, {
+                border:    true,
+                fontColor: isPending ? '#888888' : null,
+                // italic style for pending — shown via lighter colour
+            });
+        });
+
+        // Summary cells
+        cfg.summary.forEach((s, idx) => {
+            const addr = excelCell(rowIdx, cfg.summaryStartCol + idx);
+            if (!planWs[addr]) planWs[addr] = { t:'s', v:'' };
+            const bg = s.key === 'comments' ? COMMENT_BG : SUMMARY_BG;
+            planWs[addr].s = cellStyle('#'+bg, { border:true, align: s.key==='comments'?'left':'center' });
+        });
+    }
+
+    // ── Helper sheet (hidden — formula logic) ──
     const helperKeys = ['c8E','c8M','c8L', ...(use13H?['c13H']:[]), ...(use6H?['c6H']:[]), 'cImE','cImL','work','vac','sick','fb','pf','df','krank'];
-    const helperHeader = [currentLang==='de' ? 'Datum' : 'Date', 'DayIndex'];
+    const helperHeader = [de?'Datum':'Date', 'DayIndex'];
     helperKeys.forEach(key => workers.forEach(w => helperHeader.push(`${key}_${w.name}`)));
     const helperRows = [helperHeader];
     for (let d = 0; d < daysInMonth; d++) helperRows.push([new Date(currentYear, currentMonth-1, d+1), d+1, ...Array(helperHeader.length-2).fill(null)]);
     const helperWs = XLSX.utils.aoa_to_sheet(helperRows);
+
     for (let d = 0; d < daysInMonth; d++) {
         const rowIdx = d + 1;
-        planWs[excelCell(rowIdx, 0)].t = 'd'; planWs[excelCell(rowIdx, 0)].z = 'dd.mm.yyyy';
-        helperWs[excelCell(rowIdx, 0)].t = 'd'; helperWs[excelCell(rowIdx, 0)].z = 'dd.mm.yyyy';
+        helperWs[excelCell(rowIdx, 0)].t = 'd';
+        helperWs[excelCell(rowIdx, 0)].z = 'dd.mm.yyyy';
         helperKeys.forEach((key, keyIdx) => workers.forEach((w, wIdx) => {
-            const helperCol = 2 + keyIdx * workers.length + wIdx;
-            const planCellRef = `Plan!${excelCol(cfg.workerStartCol + wIdx)}${rowIdx + 1}`;
-            helperWs[excelCell(rowIdx, helperCol)] = { t:'n', f: excelHelperFormula(planCellRef, key) };
+            const helperCol    = 2 + keyIdx * workers.length + wIdx;
+            // Note: helper sheet references Plan sheet. The Plan sheet worker col
+            // shows display text (e.g. "VAC ⏳") so formulas must also handle "VAC ⏳".
+            // We reference the Plan cell directly — the helper formulas check the raw value.
+            // For pending, the display is "VAC ⏳" — formulas check for base type:
+            const planCellRef  = `Plan!${excelCol(cfg.workerStartCol + wIdx)}${rowIdx + 1}`;
+            helperWs[excelCell(rowIdx, helperCol)] = { t:'n', f: excelHelperFormulaPending(planCellRef, key) };
         }));
     }
-    const helperBlockStart = {}; helperKeys.forEach((key, idx) => helperBlockStart[key] = 2 + idx * workers.length);
+
+    const helperBlockStart = {};
+    helperKeys.forEach((key, idx) => helperBlockStart[key] = 2 + idx * workers.length);
+
     for (let d = 0; d < daysInMonth; d++) {
         const rowIdx = d + 1;
         cfg.summary.forEach((s, idx) => {
-            const planCol = cfg.summaryStartCol + idx;
+            const planCol  = cfg.summaryStartCol + idx;
             const planAddr = excelCell(rowIdx, planCol);
-            if (s.key === 'comments') { planWs[planAddr] = { t:'s', v: dailyComments[d] || '' }; return; }
+            if (s.key === 'comments') { planWs[planAddr] = { t:'s', v: dailyComments[d]||'', s: planWs[planAddr]?.s }; return; }
             if (s.key === 'absence') {
-                const vacCol = excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key==='vac'));
-                const fbCol = excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key==='fb'));
-                const pfCol = excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key==='pf'));
-                const dfCol = excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key==='df'));
-                const krankCol = excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key==='krank'));
-                planWs[planAddr] = { t:'n', f:`SUM(${vacCol}${rowIdx+1},${fbCol}${rowIdx+1},${pfCol}${rowIdx+1},${dfCol}${rowIdx+1},${krankCol}${rowIdx+1})` }; return; }
-            const startCol = helperBlockStart[s.key], endCol = startCol + workers.length - 1;
-            planWs[planAddr] = { t:'n', f:`SUM(Helpers!${excelRange(rowIdx, startCol, endCol)})` };
+                const col = k => excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key===k));
+                const r   = rowIdx + 1;
+                planWs[planAddr] = { t:'n', f:`SUM(${col('vac')}${r},${col('fb')}${r},${col('pf')}${r},${col('df')}${r},${col('krank')}${r})`, s: planWs[planAddr]?.s };
+                return;
+            }
+            const startCol = helperBlockStart[s.key];
+            const endCol   = startCol + workers.length - 1;
+            planWs[planAddr] = { t:'n', f:`SUM(Helpers!${excelRange(rowIdx, startCol, endCol)})`, s: planWs[planAddr]?.s };
         });
     }
-    const legendRows = [[currentLang==='de' ? 'Schichtplan – Export mit Formeln' : 'Shift Planner – Formula Export'], [monthTitle], [''], [currentLang==='de' ? 'Hinweise' : 'Notes'], [currentLang==='de' ? '• Plan: Hauptblatt zum Bearbeiten. Wenn Sie Dienstcodes ändern, berechnen sich Summen automatisch neu.' : '• Plan: Main sheet for editing. If you change shift codes, totals recalculate automatically.'], [currentLang==='de' ? '• Helpers: verstecktes Blatt für die Formel-Logik (auch CUS/Custom Hours).' : '• Helpers: hidden sheet used for the formula logic (including CUS/custom hours).'], [currentLang==='de' ? '• CUS zählt zu 8E, wenn der Start vor/nicht später als 12:00 ist, und zu 8L, wenn das Ende ab 14:00 ist.' : '• CUS counts as 8E if the start is before / not later than 12:00, and as 8L if the end is at or after 14:00.'], [currentLang==='de' ? '• Absence Total = Urlaub + FB + PF + DF + Krank.' : '• Absence Total = Vacation + FB + PF + DF + Krank.']];
+
+    // ── Legend sheet ──
+    const legendRows = [
+        [de?'Schichtplan – Export mit Formeln':'Shift Planner – Formula Export'],
+        [monthTitle], [''],
+        [de?'Hinweise':'Notes'],
+        [de?'• Plan: Hauptblatt. Wenn Dienstcodes geändert werden, berechnen sich Summen automatisch neu.':'• Plan: Main sheet. Changing shift codes recalculates all totals automatically.'],
+        [de?'• Helpers: verstecktes Blatt für Formel-Logik.':'• Helpers: hidden sheet for formula logic.'],
+        [de?'• ⏳ = Urlaub beantragt (noch nicht genehmigt).':'• ⏳ = Vacation requested (pending approval).'],
+        [de?'• CUS zählt zu 8E wenn Start ≤12:00, zu 8L wenn Ende ≥14:00.':'• CUS counts as 8E if start ≤12:00, as 8L if end ≥14:00.'],
+        [de?'• Abwesenheit ges. = Urlaub + FB + PF + DF + Krank.':'• Absence Total = Vacation + FB + PF + DF + Krank.'],
+        [''],
+        [de?'Farbschlüssel':'Colour Key'],
+        ['8E', '#CFE2F3'], ['8L', '#F4CCCC'], ['8M', '#F9CB9C'], ['13H', '#FFE599'],
+        ['6H', '#D9EAD3'], ['VAC (approved)', '#B6D7A8'], ['VAC ⏳ (pending)', '#FFFFFF'],
+        ['SICK', '#F5B7B1'], ['OFF/DF', '#E0E0E0'],
+    ];
     const legendWs = XLSX.utils.aoa_to_sheet(legendRows);
-    XLSX.utils.book_append_sheet(wb, planWs, 'Plan');
-    XLSX.utils.book_append_sheet(wb, helperWs, 'Helpers');
-    XLSX.utils.book_append_sheet(wb, legendWs, 'Legend');
-    wb.Workbook = wb.Workbook || {}; wb.Workbook.Sheets = [{ name:'Plan', Hidden:0 }, { name:'Helpers', Hidden:1 }, { name:'Legend', Hidden:0 }];
-    XLSX.writeFile(wb, `ShiftPlanner_${currentYear}-${String(currentMonth).padStart(2,'0')}.xlsx`, { bookType:'xlsx', compression:true });
+
+    XLSX.utils.book_append_sheet(wb, planWs,    'Plan');
+    XLSX.utils.book_append_sheet(wb, helperWs,  'Helpers');
+    XLSX.utils.book_append_sheet(wb, legendWs,  'Legend');
+    wb.Workbook = wb.Workbook || {};
+    wb.Workbook.Sheets = [{ name:'Plan', Hidden:0 }, { name:'Helpers', Hidden:1 }, { name:'Legend', Hidden:0 }];
+
+    try {
+        const wbOut = XLSX.write(wb, { bookType:'xlsx', type:'array', cellStyles:true });
+        const blob  = new Blob([wbOut], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url   = URL.createObjectURL(blob);
+        const a     = document.createElement('a');
+        a.href      = url;
+        a.download  = `ShiftPlanner_${currentYear}-${String(currentMonth).padStart(2,'0')}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+    } catch(e) {
+        alert('❌ Excel export failed: ' + e.message + '\n\nTry using the JSON Backup instead (💾 Backup JSON).');
+    }
 }
 
 function downloadAsHTML() {
@@ -4163,8 +4428,9 @@ async function spPull(silent = false) {
         allMonthsData = parsed;
         localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
 
-        // ── Reset comment baseline so next push merges correctly ──
+        // ── Reset baselines so next push merges from the fresh remote state ──
         _baseComments = null;
+        _baseShifts   = {}; // changeMonth() → loadMonthData() will rebuild from the new data
 
         const now = new Date().toLocaleString();
         localStorage.setItem('shiftPlannerSPLastSync', now);
@@ -4181,36 +4447,142 @@ async function spPull(silent = false) {
 }
 
 // Push local data → GitHub
+// ── Viewers get a cell-level merge (so two vacation requests on different days both survive)
+// ── Editors/Admins get SHA conflict detection with a "pull first" message
 async function spPush(silent = false) {
     if (!spConfig.siteUrl || !spConfig.folderPath || !spConfig.fileName) {
         if (!silent) spShowModalStatus('⚠️ Please configure GitHub settings first.', '#fff3cd', '#856404');
         return;
     }
     if (!silent) spShowModalStatus('⬆️ Pushing to GitHub...', '#f6f8fa', '#24292f');
+
     try {
         saveData(); // ensure latest state is in allMonthsData
+
+        // ════════════════════════════════════════════════════════
+        //  VIEWER PATH — cell-level merge for vacation requests
+        // ════════════════════════════════════════════════════════
+        if (currentRole === 'viewer') {
+            // Step 1: Read the latest state from GitHub (also refreshes the SHA cache)
+            let remoteAll = {};
+            try {
+                const text = await ghReadFile('shiftplanner_data.json');
+                if (text) remoteAll = JSON.parse(text);
+            } catch(e) { /* file may not exist yet */ }
+
+            // Step 2: Cell-level merge for current month's shifts
+            const baseMonth = (_baseShifts && _baseShifts[currentMonthKey]) || {};
+            const remoteMonth = (remoteAll[currentMonthKey] && remoteAll[currentMonthKey].workers)
+                ? remoteAll[currentMonthKey]
+                : null;
+
+            if (remoteMonth) {
+                // Merge each worker's shifts: apply only what the viewer changed
+                const mergedWorkers = JSON.parse(JSON.stringify(remoteMonth.workers)); // deep copy of remote
+
+                workers.forEach(localW => {
+                    const remoteW = mergedWorkers.find(rw => rw.name === localW.name);
+                    if (!remoteW) return; // worker not in remote — skip
+
+                    const baseShifts   = baseMonth[localW.name] || [];
+                    const remoteShifts = remoteW.shifts || [];
+                    const localShifts  = localW.shifts  || [];
+
+                    for (let d = 0; d < localShifts.length; d++) {
+                        const localVal  = localShifts[d]  || '-';
+                        const remoteVal = remoteShifts[d] || '-';
+                        const baseVal   = baseShifts[d]   || '-';
+
+                        const viewerChanged = localVal !== baseVal;
+                        const remoteChanged = remoteVal !== baseVal;
+
+                        if (!viewerChanged) {
+                            // Viewer didn't touch this cell — keep remote value (admin may have approved/edited)
+                            // (already in mergedWorkers from the deep copy)
+                        } else if (!remoteChanged) {
+                            // Only viewer changed — apply viewer's vacation request
+                            remoteW.shifts[d] = localVal;
+                        } else if (localVal === remoteVal) {
+                            // Both changed to same value — no conflict
+                        } else {
+                            // Both changed differently — admin action wins (remote stays)
+                            // This covers: viewer requests VAC, admin already approved/rejected
+                            // Remote is the authoritative approved state → keep it
+                        }
+                    }
+                });
+
+                // Replace workers in the data being pushed
+                remoteAll[currentMonthKey] = {
+                    ...allMonthsData[currentMonthKey], // local settings (targets, maxVac etc.)
+                    ...remoteMonth,                    // remote workers as authoritative base
+                    workers: mergedWorkers,            // merged shifts
+                    dailyComments: allMonthsData[currentMonthKey]?.dailyComments || remoteMonth.dailyComments
+                };
+            } else {
+                // No remote data yet — just push local (first push)
+                remoteAll[currentMonthKey] = allMonthsData[currentMonthKey];
+            }
+
+            // Also carry over any other months from local that aren't in remote
+            Object.keys(allMonthsData).forEach(key => {
+                if (!remoteAll[key]) remoteAll[key] = allMonthsData[key];
+            });
+
+            // Step 3: Write the merged result
+            const payload = JSON.stringify(remoteAll, null, 2);
+            await ghWriteFile('shiftplanner_data.json', payload, `Vacation request · ${currentMonthKey} · ${new Date().toISOString()}`);
+
+            // Step 4: Update shift baseline to the merged state
+            if (!_baseShifts) _baseShifts = {};
+            _baseShifts[currentMonthKey] = {};
+            const mergedForBaseline = (remoteAll[currentMonthKey] && remoteAll[currentMonthKey].workers) || [];
+            mergedForBaseline.forEach(w => {
+                _baseShifts[currentMonthKey][w.name] = [...(w.shifts || [])];
+            });
+
+            const now = new Date().toLocaleString();
+            localStorage.setItem('shiftPlannerSPLastSync', now);
+            if (!silent) spShowModalStatus(`✅ Vacation request saved (${now})`, '#e6ffe6', '#107c10');
+            spSetStatus(`🐙 Pushed · ${now}`, '#e6ffe6', '#107c10');
+            return;
+        }
+
+        // ════════════════════════════════════════════════════════
+        //  EDITOR / ADMIN PATH — full push with SHA conflict guard
+        // ════════════════════════════════════════════════════════
         const payload = JSON.stringify(allMonthsData, null, 2);
         await ghWriteFile('shiftplanner_data.json', payload, `Shift Planner update · ${new Date().toISOString()}`);
 
+        // Update shift baseline to what we just pushed
+        if (!_baseShifts) _baseShifts = {};
+        _baseShifts[currentMonthKey] = {};
+        workers.forEach(w => { _baseShifts[currentMonthKey][w.name] = [...w.shifts]; });
+
         const now = new Date().toLocaleString();
         localStorage.setItem('shiftPlannerSPLastSync', now);
-
-        const msg = `✅ Pushed at ${now}`;
-        if (!silent) spShowModalStatus(msg, '#e6ffe6', '#107c10');
+        if (!silent) spShowModalStatus(`✅ Pushed at ${now}`, '#e6ffe6', '#107c10');
         spSetStatus(`🐙 Pushed · ${now}`, '#e6ffe6', '#107c10');
+
     } catch(e) {
         if (e.isConflict) {
             // ── Conflict: someone else pushed while we were working ──
-            const msg = `⚠️ Conflict detected!\n\nSomeone else saved the schedule while you were working.\n\nWhat to do:\n1. Close this dialog\n2. Click ⬇️ Pull from GitHub to load their latest version\n3. Re-apply your changes\n4. Push again\n\nYour local changes were NOT lost — they are still visible in your browser.`;
-            if (!silent) {
-                spShowModalStatus('⚠️ Conflict — see alert for instructions', '#fff3cd', '#856404');
-                alert(msg);
+            if (currentRole === 'viewer') {
+                // Viewer conflict — extremely rare (two writes at exact same ms) — auto-retry
+                if (!silent) spShowModalStatus(`⚠️ Saving conflict — retrying…`, '#fff3cd', '#856404');
+                setTimeout(() => spPush(silent), 1500);
+            } else {
+                // Editor/Admin conflict — they need to pull and re-apply
+                const msg = `⚠️ Conflict detected!\n\nSomeone else saved the schedule while you were working.\n\nWhat to do:\n1. Close this dialog\n2. Click ⬇️ Pull from GitHub to load their latest version\n3. Re-apply your changes\n4. Push again\n\nYour local changes were NOT lost — they are still visible in your browser.`;
+                if (!silent) {
+                    spShowModalStatus('⚠️ Conflict — see alert for instructions', '#fff3cd', '#856404');
+                    alert(msg);
+                }
+                spSetStatus(`⚠️ Push conflict — Pull first, then push again`, '#fff3cd', '#856404');
             }
-            spSetStatus(`⚠️ Push conflict — Pull first then push again`, '#fff3cd', '#856404');
         } else {
-            const msg = `❌ Push failed: ${e.message}`;
-            if (!silent) spShowModalStatus(msg, '#ffe6e6', '#c0392b');
-            if (!silent) spSetStatus(`⚠️ GitHub push failed`, '#fff3cd', '#856404');
+            if (!silent) spShowModalStatus(`❌ Push failed: ${e.message}`, '#ffe6e6', '#c0392b');
+            spSetStatus(`⚠️ GitHub push failed`, '#fff3cd', '#856404');
         }
     }
 }
@@ -4258,6 +4630,11 @@ function cmtReady() {
 // ── Baseline comments snapshot — saved when comments are loaded from GitHub ──
 // Used to detect what changed locally vs what changed remotely (cell-level merge)
 let _baseComments = null;
+
+// ── Baseline shifts snapshot — saved when shift data is loaded from GitHub ──
+// Used by viewer vacation-request merge to detect which cells the viewer changed.
+// Structure: { [monthKey]: { [workerName]: [...shifts] } }
+let _baseShifts = {};
 
 // Pull comments for current month from GitHub
 async function cmtPull(silent = false) {
@@ -4354,7 +4731,6 @@ async function cmtPush(silent = false) {
                         : Array(daysInMonth).fill('');
 
         const merged = [...remote]; // start from remote as our base
-        let conflictDay = -1, conflictLocal = '', conflictRemote = '';
 
         for (let d = 0; d < daysInMonth; d++) {
             const localVal  = dailyComments[d]  || '';
@@ -4371,38 +4747,21 @@ async function cmtPush(silent = false) {
                 // Remote didn't change — apply our change
                 merged[d] = localVal;
             } else if (localVal === remoteVal) {
-                // Both changed to the same thing — no real conflict
+                // Both changed to the same value — no conflict
                 merged[d] = localVal;
             } else {
-                // ── SAME-CELL CONFLICT ── both changed, different values
-                // Handle the first conflict found; save state for dialog
-                conflictDay    = d;
-                conflictLocal  = localVal;
-                conflictRemote = remoteVal;
-                merged[d]      = remoteVal; // temporary — dialog will decide
-                break;
+                // ── SAME-CELL CONFLICT — always append, never ask ──
+                // Both users wrote different things on the same day.
+                // Merge them with " / " so nothing is ever lost.
+                merged[d] = [remoteVal, localVal].filter(Boolean).join(' / ');
+                // Also update local state so the input reflects the merged result
+                dailyComments[d] = merged[d];
+                const inp = document.querySelector(`.comment-input[data-day="${d}"]`);
+                if (inp && document.activeElement !== inp) inp.value = merged[d];
             }
         }
 
         existing[currentMonthKey] = merged;
-
-        if (conflictDay >= 0) {
-            // ── Show conflict resolution dialog ──
-            _conflictPending = {
-                dayIndex:   conflictDay,
-                localVal:   conflictLocal,
-                remoteVal:  conflictRemote,
-                mergedData: existing,
-                token:      cmtToken()
-            };
-            const dayNum = conflictDay + 1;
-            document.getElementById('conflictDayLabel').textContent = `Day ${dayNum}`;
-            document.getElementById('conflictRemoteText').textContent = conflictRemote || '(empty)';
-            document.getElementById('conflictLocalText').textContent  = conflictLocal  || '(empty)';
-            document.getElementById('conflictModal').style.display = 'block';
-            cmtShowStatus(`⚠️ Conflict on Day ${dayNum} — please resolve in the dialog`, '#fff3cd', '#856404');
-            return; // wait for user to resolve
-        }
 
         // ── Step 3: Write merged result ──
         await ghWriteFileWith(
