@@ -704,6 +704,38 @@
     </div>
 </div>
 
+<!-- ═══ CONFLICT RESOLUTION MODAL ═══ -->
+<div id="conflictModal" class="modal" style="z-index:2000;">
+    <div class="modal-content" style="max-width:500px; border-top:4px solid #e67e22;">
+        <h2 style="color:#e67e22; margin-top:0;">⚠️ Comment Conflict Detected</h2>
+        <p style="font-size:13px; color:#555; margin-bottom:10px;">
+            Someone else also saved a comment on <strong id="conflictDayLabel">this day</strong> while you were typing.
+        </p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+            <div style="background:#e8f4fc; border:1px solid #aed6f1; border-radius:6px; padding:10px;">
+                <div style="font-size:11px; font-weight:bold; color:#0969da; margin-bottom:4px;">🌐 Their version (on GitHub)</div>
+                <div id="conflictRemoteText" style="font-size:13px; color:#333; word-break:break-word; min-height:30px;"></div>
+            </div>
+            <div style="background:#eaffea; border:1px solid #a9dfbf; border-radius:6px; padding:10px;">
+                <div style="font-size:11px; font-weight:bold; color:#1a7f37; margin-bottom:4px;">✏️ Your version</div>
+                <div id="conflictLocalText" style="font-size:13px; color:#333; word-break:break-word; min-height:30px;"></div>
+            </div>
+        </div>
+        <p style="font-size:12px; color:#666; margin-bottom:12px;">What do you want to do?</p>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <button onclick="resolveConflict('append')" style="background:#e67e22; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px; text-align:left;">
+                ➕ Append both — <small style="opacity:0.85;">Save both comments joined together</small>
+            </button>
+            <button onclick="resolveConflict('mine')" style="background:#27ae60; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px; text-align:left;">
+                ✏️ Keep mine — <small style="opacity:0.85;">Overwrite with your version</small>
+            </button>
+            <button onclick="resolveConflict('theirs')" style="background:#7f8c8d; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px; text-align:left;">
+                🌐 Keep theirs — <small style="opacity:0.85;">Discard your change, keep their version</small>
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- AI Modal -->
 <div id="aiModal" class="modal">
     <div class="modal-content">
@@ -3949,9 +3981,30 @@ function ghHeaders() {
     };
 }
 
+// SHA cache — stores the last-known SHA for each file so writes can detect conflicts
+if (!window._shaCache) window._shaCache = {};
+
 // Read a file from GitHub → returns decoded text or null if not found
 async function ghReadFile(file) {
-    // Try unauthenticated raw URL first (works for public repos - no PAT needed)
+    // Always fetch via API first so we capture the SHA for conflict detection
+    if (spConfig.fileName) {
+        try {
+            const r = await fetch(ghApiUrl(file), { headers: ghHeaders() });
+            if (r.ok) {
+                const data = await r.json();
+                // ── Cache SHA for conflict detection ──
+                window._shaCache[file] = data.sha;
+                const text = decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
+                return decryptData(text);
+            }
+            if (r.status === 404) return null;
+            // non-404 error → fall through to raw URL attempt
+        } catch(e) {
+            if (e.message && (e.message.includes('encrypted') || e.message.includes('password'))) throw e;
+            /* fall through to raw URL */
+        }
+    }
+    // Fallback: unauthenticated raw URL (public repos, no PAT) — no SHA available
     const owner = spConfig.siteUrl, repo = spConfig.folderPath;
     if (owner && repo) {
         try {
@@ -3959,21 +4012,13 @@ async function ghReadFile(file) {
             const rr = await fetch(rawUrl);
             if (rr.ok) {
                 const text = await rr.text();
-                return decryptData(text); // decrypt if encrypted
+                return decryptData(text);
             }
         } catch(e) {
             if (e.message && (e.message.includes('encrypted') || e.message.includes('password'))) throw e;
-            /* fall through to API */
         }
     }
-    // Fall back to authenticated API (private repos or when raw fails)
-    if (!spConfig.fileName) return null;
-    const r = await fetch(ghApiUrl(file), { headers: ghHeaders() });
-    if (r.status === 404) return null;
-    if (!r.ok) throw new Error('GitHub API ' + r.status + ': ' + await r.text());
-    const data = await r.json();
-    const text = decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
-    return decryptData(text); // decrypt if encrypted
+    return null;
 }
 
 // Write a file to GitHub (create or update)
@@ -3981,12 +4026,10 @@ async function ghWriteFile(file, content, commitMsg) {
     // Encrypt before pushing if data password is set
     const payload = encryptData(content);
 
-    // First get the current SHA (needed for updates)
-    let sha = undefined;
-    try {
-        const r = await fetch(ghApiUrl(file), { headers: ghHeaders() });
-        if (r.ok) { const d = await r.json(); sha = d.sha; }
-    } catch(e) { /* file may not exist yet */ }
+    // ── Use the SHA we cached when we last READ this file ──
+    // If someone else pushed between our last read and now, GitHub will
+    // return 409/422 because our SHA no longer matches → we catch it below.
+    const sha = window._shaCache && window._shaCache[file];
 
     const body = {
         message: commitMsg || `Shift Planner update · ${new Date().toISOString()}`,
@@ -3999,8 +4042,21 @@ async function ghWriteFile(file, content, commitMsg) {
         headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
     });
+
+    // ── Conflict: someone else pushed since we last pulled ──
+    if (r.status === 409 || r.status === 422) {
+        const err = new Error('CONFLICT');
+        err.isConflict = true;
+        throw err;
+    }
     if (!r.ok) throw new Error(`GitHub write ${r.status}: ${await r.text()}`);
-    return await r.json();
+    const result = await r.json();
+    // Update SHA cache with the new SHA so next push is safe
+    if (result.content && result.content.sha) {
+        if (!window._shaCache) window._shaCache = {};
+        window._shaCache[file] = result.content.sha;
+    }
+    return result;
 }
 
 function openSPModal() {
@@ -4107,6 +4163,9 @@ async function spPull(silent = false) {
         allMonthsData = parsed;
         localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
 
+        // ── Reset comment baseline so next push merges correctly ──
+        _baseComments = null;
+
         const now = new Date().toLocaleString();
         localStorage.setItem('shiftPlannerSPLastSync', now);
         changeMonth(true);
@@ -4140,9 +4199,19 @@ async function spPush(silent = false) {
         if (!silent) spShowModalStatus(msg, '#e6ffe6', '#107c10');
         spSetStatus(`🐙 Pushed · ${now}`, '#e6ffe6', '#107c10');
     } catch(e) {
-        const msg = `❌ Push failed: ${e.message}`;
-        if (!silent) spShowModalStatus(msg, '#ffe6e6', '#c0392b');
-        if (!silent) spSetStatus(`⚠️ GitHub push failed`, '#fff3cd', '#856404');
+        if (e.isConflict) {
+            // ── Conflict: someone else pushed while we were working ──
+            const msg = `⚠️ Conflict detected!\n\nSomeone else saved the schedule while you were working.\n\nWhat to do:\n1. Close this dialog\n2. Click ⬇️ Pull from GitHub to load their latest version\n3. Re-apply your changes\n4. Push again\n\nYour local changes were NOT lost — they are still visible in your browser.`;
+            if (!silent) {
+                spShowModalStatus('⚠️ Conflict — see alert for instructions', '#fff3cd', '#856404');
+                alert(msg);
+            }
+            spSetStatus(`⚠️ Push conflict — Pull first then push again`, '#fff3cd', '#856404');
+        } else {
+            const msg = `❌ Push failed: ${e.message}`;
+            if (!silent) spShowModalStatus(msg, '#ffe6e6', '#c0392b');
+            if (!silent) spSetStatus(`⚠️ GitHub push failed`, '#fff3cd', '#856404');
+        }
     }
 }
 
@@ -4186,6 +4255,10 @@ function cmtReady() {
     return !!(cmtToken() && spConfig.siteUrl && spConfig.folderPath);
 }
 
+// ── Baseline comments snapshot — saved when comments are loaded from GitHub ──
+// Used to detect what changed locally vs what changed remotely (cell-level merge)
+let _baseComments = null;
+
 // Pull comments for current month from GitHub
 async function cmtPull(silent = false) {
     if (!cmtReady()) {
@@ -4201,7 +4274,8 @@ async function cmtPull(silent = false) {
         // Update live dailyComments for current month if present
         if (remote[currentMonthKey] && Array.isArray(remote[currentMonthKey])) {
             dailyComments = remote[currentMonthKey];
-            // Patch DOM inputs without full re-render (skip the focused one)
+            // ── Save baseline so cmtPush can detect what changed ──
+            _baseComments = [...dailyComments];
             dailyComments.forEach((txt, d) => {
                 const inp = document.querySelector(`.comment-input[data-day="${d}"]`);
                 if (inp && document.activeElement !== inp) inp.value = txt || '';
@@ -4218,31 +4292,139 @@ async function cmtPull(silent = false) {
     }
 }
 
-// Push current month's comments to GitHub (merges with other months)
+// ── Conflict resolution state ──
+let _conflictPending = null; // { dayIndex, localVal, remoteVal, mergedData, token }
+
+function resolveConflict(choice) {
+    if (!_conflictPending) return;
+    const { dayIndex, localVal, remoteVal, mergedData, token } = _conflictPending;
+    _conflictPending = null;
+    document.getElementById('conflictModal').style.display = 'none';
+
+    if (choice === 'append') {
+        mergedData[currentMonthKey][dayIndex] = [remoteVal, localVal].filter(Boolean).join(' / ');
+    } else if (choice === 'mine') {
+        mergedData[currentMonthKey][dayIndex] = localVal;
+    } else { // theirs
+        mergedData[currentMonthKey][dayIndex] = remoteVal;
+        // Update local state to match
+        dailyComments[dayIndex] = remoteVal;
+        const inp = document.querySelector(`.comment-input[data-day="${dayIndex}"]`);
+        if (inp) inp.value = remoteVal || '';
+    }
+
+    // Update baseline with resolved value
+    if (_baseComments) _baseComments[dayIndex] = mergedData[currentMonthKey][dayIndex];
+
+    // Now write the resolved data
+    ghWriteFileWith(
+        'shiftplanner_comments.json',
+        JSON.stringify(mergedData, null, 2),
+        token,
+        `Comments update · ${currentMonthKey} · ${new Date().toISOString()}`
+    ).then(() => {
+        cmtShowStatus(`✅ Conflict resolved & saved (${new Date().toLocaleTimeString()})`, '#e6ffe6', '#107c10');
+    }).catch(e => {
+        cmtShowStatus(`❌ Save failed after resolving: ${e.message}`, '#ffe6e6', '#c0392b');
+    });
+}
+
+// Push current month's comments to GitHub (cell-level merge — safe for concurrent edits)
 async function cmtPush(silent = false) {
     if (!cmtReady()) {
         if (!silent) cmtShowStatus('⚠️ Configure GitHub settings and save a Shared Comments Token first.', '#fff3cd', '#856404');
         return;
     }
     try {
-        // Load existing comments file first so we don't erase other months
+        // ── Step 1: Read the LATEST version from GitHub ──
         let existing = {};
         try {
             const text = await ghReadFileWith('shiftplanner_comments.json', cmtToken());
             if (text) existing = JSON.parse(text);
         } catch(e) { /* file may not exist yet */ }
 
-        existing[currentMonthKey] = dailyComments;
+        // ── Step 2: Cell-level merge ──
+        // We have three versions for each day:
+        //   base    = what comments looked like when we last loaded from GitHub
+        //   local   = what the user has now (may have changed some cells)
+        //   remote  = what's on GitHub right now (may have changed other cells)
+        const base   = _baseComments || [];
+        const remote = (existing[currentMonthKey] && Array.isArray(existing[currentMonthKey]))
+                        ? existing[currentMonthKey]
+                        : Array(daysInMonth).fill('');
 
+        const merged = [...remote]; // start from remote as our base
+        let conflictDay = -1, conflictLocal = '', conflictRemote = '';
+
+        for (let d = 0; d < daysInMonth; d++) {
+            const localVal  = dailyComments[d]  || '';
+            const remoteVal = remote[d]          || '';
+            const baseVal   = base[d]            || '';
+
+            const localChanged  = localVal  !== baseVal;
+            const remoteChanged = remoteVal !== baseVal;
+
+            if (!localChanged) {
+                // We didn't touch this cell — keep remote value
+                merged[d] = remoteVal;
+            } else if (!remoteChanged) {
+                // Remote didn't change — apply our change
+                merged[d] = localVal;
+            } else if (localVal === remoteVal) {
+                // Both changed to the same thing — no real conflict
+                merged[d] = localVal;
+            } else {
+                // ── SAME-CELL CONFLICT ── both changed, different values
+                // Handle the first conflict found; save state for dialog
+                conflictDay    = d;
+                conflictLocal  = localVal;
+                conflictRemote = remoteVal;
+                merged[d]      = remoteVal; // temporary — dialog will decide
+                break;
+            }
+        }
+
+        existing[currentMonthKey] = merged;
+
+        if (conflictDay >= 0) {
+            // ── Show conflict resolution dialog ──
+            _conflictPending = {
+                dayIndex:   conflictDay,
+                localVal:   conflictLocal,
+                remoteVal:  conflictRemote,
+                mergedData: existing,
+                token:      cmtToken()
+            };
+            const dayNum = conflictDay + 1;
+            document.getElementById('conflictDayLabel').textContent = `Day ${dayNum}`;
+            document.getElementById('conflictRemoteText').textContent = conflictRemote || '(empty)';
+            document.getElementById('conflictLocalText').textContent  = conflictLocal  || '(empty)';
+            document.getElementById('conflictModal').style.display = 'block';
+            cmtShowStatus(`⚠️ Conflict on Day ${dayNum} — please resolve in the dialog`, '#fff3cd', '#856404');
+            return; // wait for user to resolve
+        }
+
+        // ── Step 3: Write merged result ──
         await ghWriteFileWith(
             'shiftplanner_comments.json',
             JSON.stringify(existing, null, 2),
             cmtToken(),
             `Comments update · ${currentMonthKey} · ${new Date().toISOString()}`
         );
+
+        // Update baseline to the merged result
+        _baseComments = [...merged];
+
         if (!silent) cmtShowStatus(`✅ Comments saved (${new Date().toLocaleTimeString()})`, '#e6ffe6', '#107c10');
     } catch(e) {
-        if (!silent) cmtShowStatus(`❌ Push failed: ${e.message}`, '#ffe6e6', '#c0392b');
+        if (e.isConflict) {
+            // SHA conflict — very rare race (two writes at the exact same millisecond)
+            if (!silent) cmtShowStatus(`⚠️ Someone saved at the exact same moment. Retrying…`, '#fff3cd', '#856404');
+            // Retry once after a short delay (the retry will pick up the new SHA)
+            setTimeout(() => cmtPush(silent), 1200);
+        } else {
+            if (!silent) cmtShowStatus(`❌ Push failed: ${e.message}`, '#ffe6e6', '#c0392b');
+        }
     }
 }
 
@@ -4290,20 +4472,34 @@ async function ghReadFileWith(file, token) {
     if (r.status === 404) return null;
     if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
     const data = await r.json();
+    // ── Cache SHA for conflict detection ──
+    if (!window._shaCache) window._shaCache = {};
+    window._shaCache[file] = data.sha;
     return decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
 }
 
 async function ghWriteFileWith(file, content, token, commitMsg) {
     const url = `https://api.github.com/repos/${spConfig.siteUrl}/${spConfig.folderPath}/contents/${file}`;
     const hdrs = { 'Accept':'application/vnd.github+json', 'Authorization':`Bearer ${token}`, 'X-GitHub-Api-Version':'2022-11-28', 'Content-Type':'application/json' };
-    // Get current SHA
-    let sha;
-    try { const r = await fetch(url, { headers: hdrs }); if (r.ok) { const d = await r.json(); sha = d.sha; } } catch(e) {}
+    // ── Use cached SHA — do NOT re-fetch (that would bypass conflict detection) ──
+    const sha = window._shaCache && window._shaCache[file];
     const body = { message: commitMsg || `Update · ${new Date().toISOString()}`, content: btoa(unescape(encodeURIComponent(content))) };
     if (sha) body.sha = sha;
     const r = await fetch(url, { method:'PUT', headers: hdrs, body: JSON.stringify(body) });
+    // ── Conflict: file was updated by someone else since our last read ──
+    if (r.status === 409 || r.status === 422) {
+        const err = new Error('CONFLICT');
+        err.isConflict = true;
+        throw err;
+    }
     if (!r.ok) throw new Error(`GitHub write ${r.status}: ${await r.text()}`);
-    return await r.json();
+    const result = await r.json();
+    // Update SHA cache
+    if (result.content && result.content.sha) {
+        if (!window._shaCache) window._shaCache = {};
+        window._shaCache[file] = result.content.sha;
+    }
+    return result;
 }
 
 // Clear all app localStorage keys (for testing / troubleshooting)
