@@ -3383,9 +3383,17 @@ function downloadExcelWithFormulas() {
     }
 
     // ── Helper: build a cell style ──
+    // IMPORTANT: Excel solid fills require BOTH fgColor AND bgColor:{indexed:64}.
+    // Without bgColor the fill renders as white/transparent in Excel regardless of fgColor.
     function cellStyle(bgHex, opts = {}) {
         const s = {};
-        if (bgHex) s.fill = { patternType:'solid', fgColor:{ rgb: cssToRgb(bgHex) } };
+        if (bgHex) {
+            s.fill = {
+                patternType: 'solid',
+                fgColor:     { rgb: cssToRgb(bgHex) },
+                bgColor:     { indexed: 64 }   // ← required by OOXML for solid fills
+            };
+        }
         s.font      = { name:'Calibri', sz:10, bold:!!opts.bold, color: opts.fontColor ? { rgb: cssToRgb(opts.fontColor) } : undefined };
         s.alignment = { horizontal: opts.align || 'center', vertical:'center', wrapText:!!opts.wrap };
         if (opts.border) s.border = {
@@ -3468,19 +3476,20 @@ function downloadExcelWithFormulas() {
             planWs[a].s = cellStyle(rowBg || null, { border:true });
         }
 
-        // Worker shift cells — background = shift colour
+        // Worker shift cells — background = shift colour, exactly matching getColor()
         workers.forEach((w, wIdx) => {
             const shift     = w.shifts[d] || '-';
-            const shiftBg   = getColor(shift); // returns CSS hex like '#ffe599'
             const isPending = isPendingVacationShift(shift);
-            const cellBg    = isPending ? '#'+PENDING_BG : shiftBg;
+            // For pending: white bg (matches table). For all others: getColor() result.
+            const cellBg    = isPending ? '#FFFFFF' : getColor(shift);
             const addr      = excelCell(rowIdx, cfg.workerStartCol + wIdx);
             if (!planWs[addr]) planWs[addr] = { t:'s', v:'-' };
-            planWs[addr].s = cellStyle(cellBg, {
-                border:    true,
-                fontColor: isPending ? '#888888' : null,
-                // italic style for pending — shown via lighter colour
-            });
+            planWs[addr].s = {
+                fill:      cellBg ? { patternType:'solid', fgColor:{ rgb: cssToRgb(cellBg) }, bgColor:{ indexed:64 } } : undefined,
+                font:      { name:'Calibri', sz:10, italic: isPending, color: isPending ? { rgb:'999999' } : undefined },
+                alignment: { horizontal:'center', vertical:'center' },
+                border:    { top:{ style:'thin', color:{ rgb:'CCCCCC' } }, bottom:{ style:'thin', color:{ rgb:'CCCCCC' } }, left:{ style:'thin', color:{ rgb:'CCCCCC' } }, right:{ style:'thin', color:{ rgb:'CCCCCC' } } }
+            };
         });
 
         // Summary cells
