@@ -3537,12 +3537,12 @@ function downloadExcelWithFormulas() {
     }
 
     // ── Legend sheet ──
+    // Column A: notes. Column D onward: shift code list (used as dropdown source).
     const legendRows = [
         [de?'Schichtplan – Export mit Formeln':'Shift Planner – Formula Export'],
         [monthTitle], [''],
         [de?'Hinweise':'Notes'],
-        [de?'• Plan: Hauptblatt. Wenn Dienstcodes geändert werden, berechnen sich Summen automatisch neu.':'• Plan: Main sheet. Changing shift codes recalculates all totals automatically.'],
-        [de?'• Helpers: verstecktes Blatt für Formel-Logik.':'• Helpers: hidden sheet for formula logic.'],
+        [de?'• Plan: Hauptblatt. Wenn Dienstcodes geändert werden, berechnen sich Summen automatisch neu.':'• Plan: Main sheet. Changing a shift code in any cell immediately recalculates all totals.'],
         [de?'• ⏳ = Urlaub beantragt (noch nicht genehmigt).':'• ⏳ = Vacation requested (pending approval).'],
         [de?'• CUS zählt zu 8E wenn Start ≤12:00, zu 8L wenn Ende ≥14:00.':'• CUS counts as 8E if start ≤12:00, as 8L if end ≥14:00.'],
         [de?'• Abwesenheit ges. = Urlaub + FB + PF + DF + Krank.':'• Absence Total = Vacation + FB + PF + DF + Krank.'],
@@ -3554,11 +3554,72 @@ function downloadExcelWithFormulas() {
     ];
     const legendWs = XLSX.utils.aoa_to_sheet(legendRows);
 
+    // ── Shift code list — written to column D of Legend sheet ──
+    // This is the dropdown source for all worker cells in the Plan sheet.
+    const shiftCodes = [
+        '-',
+        '8E', '8L', '8M',
+        ...(use13H ? ['13H'] : []),
+        ...(use6H  ? ['6H']  : []),
+        'ImE', 'ImL',
+        'OFF', 'VAC', 'SICK', 'FB', 'PF', 'DF', 'LSS', 'Offc', 'RB1', 'RB2',
+        'Urlaub IR', 'Urlaub-ZA', 'U-Immo',
+        // Room variants
+        '8E-IR2','8L-IR2','8M-IR2',
+        ...(use13H ? ['13H-IR2'] : []),
+        '8E-IR3','8L-IR3','8M-IR3',
+        ...(use13H ? ['13H-IR3'] : []),
+        '8E-IR4','8L-IR4','8M-IR4',
+        ...(use13H ? ['13H-IR4'] : []),
+        '8E-Immo','8L-Immo',
+    ];
+
+    // Write shift codes to column D of Legend sheet (D1:D<n>)
+    shiftCodes.forEach((code, i) => {
+        const addr = `D${i + 1}`;
+        legendWs[addr] = { t:'s', v: code };
+    });
+    // Expand !ref to include column D
+    legendWs['!ref'] = `A1:D${Math.max(legendRows.length, shiftCodes.length)}`;
+    legendWs['!cols'] = legendWs['!cols'] || [];
+    legendWs['!cols'][3] = { wch: 16 }; // column D width
+
+    // ── Data validation: dropdown in every worker shift cell ──
+    // Referencing Legend!$D$1:$D$<n> as the list source.
+    // showDropDown:false = SHOW the arrow (Excel naming is inverted).
+    // showErrorMessage:false = allow typing custom values (CUS shifts etc.)
+    const shiftListRef = `Legend!$D$1:$D$${shiftCodes.length}`;
+    const dataValidations = [];
+    for (let wIdx = 0; wIdx < workers.length; wIdx++) {
+        const col = excelCol(cfg.workerStartCol + wIdx);
+        dataValidations.push({
+            type:             'list',
+            sqref:            `${col}2:${col}${daysInMonth + 1}`,
+            formula1:         shiftListRef,
+            showDropDown:     false,   // false = show the arrow
+            showInputMessage: true,
+            promptTitle:      de ? 'Dienstcode' : 'Shift Code',
+            prompt:           de ? 'Wählen Sie einen Dienstcode aus der Liste oder geben Sie einen benutzerdefinierten Code ein (z.B. CUS-07:00-15:30).' : 'Select a shift code from the list or type a custom code (e.g. CUS-07:00-15:30).',
+            showErrorMessage: false,   // don't block custom values (CUS, etc.)
+        });
+    }
+    planWs['!dataValidation'] = dataValidations;
+
     XLSX.utils.book_append_sheet(wb, planWs,    'Plan');
     XLSX.utils.book_append_sheet(wb, helperWs,  'Helpers');
     XLSX.utils.book_append_sheet(wb, legendWs,  'Legend');
+
     wb.Workbook = wb.Workbook || {};
     wb.Workbook.Sheets = [{ name:'Plan', Hidden:0 }, { name:'Helpers', Hidden:1 }, { name:'Legend', Hidden:0 }];
+
+    // ── Force full recalculation when Excel opens the file ──
+    // Without this, Excel shows the cached values SheetJS baked in and
+    // doesn't recalculate until the user presses F9 or edits a cell.
+    wb.Workbook.CalcPr = {
+        calcMode:       'auto',
+        fullCalcOnLoad: true,
+        calcId:         0         // setting 0 signals Excel to treat formulas as dirty
+    };
 
     try {
         const wbOut = XLSX.write(wb, { bookType:'xlsx', type:'array', cellStyles:true });
