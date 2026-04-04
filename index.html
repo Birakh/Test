@@ -1249,7 +1249,7 @@ function cusOverlap(shift) {
 function getColor(shift) {
     const room = getRoomAssignment(shift); if (room && roomColorMap[room]) return roomColorMap[room]; if (isPendingVacationShift(shift)) return '#ffffff';
     const b = getBaseShift(shift);
-    if (b==='13H') return '#ffe599'; if (b==='8E') return '#cfe2f3'; if (b==='8L') return '#f4cccc'; if (b==='8M') return '#f9cb9c'; if (b==='6H') return '#d9ead3'; if (b==='ImE') return '#a2c4c9'; if (b==='ImL') return '#76a5af'; if (b==='OFF'||b==='DF') return '#e0e0e0'; if (b==='VAC'||b==='Urlaub IR'||b==='Urlaub-ZA'||b==='U-Immo') return vacationApprovedColor; if (b==='SICK') return '#f5b7b1'; if (b==='FB') return '#9fc5e8'; if (b==='PF') return '#ead1dc'; if (b==='LSS') return '#d9d9d9'; if (b==='Offc') return '#ffffff'; if (b==='CUS') return '#e8d5f5'; if (b==='RB1'||b==='RB2') return '#fce5cd'; return '#ffffff';
+    if (b==='13H') return '#ffe599'; if (b==='8E') return '#cfe2f3'; if (b==='8L') return '#f4cccc'; if (b==='8M') return '#f9cb9c'; if (b==='6H') return '#d9ead3'; if (b==='ImE') return '#a2c4c9'; if (b==='ImL') return '#76a5af'; if (b==='OFF'||b==='DF') return '#e0e0e0'; if (b==='VAC'||b==='Urlaub IR'||b==='Urlaub-ZA'||b==='U-Immo') return vacationApprovedColor; if (b==='SICK') return '#f5b7b1'; if (b==='FB') return '#9fc5e8'; if (b==='PF') return '#ead1dc'; if (b==='LSS') return '#d9d9d9'; if (b==='Offc') return '#fffde7'; if (b==='CUS') return '#e8d5f5'; if (b==='RB1'||b==='RB2') return '#fce5cd'; return '#ffffff';
 }
 
 function getContinuousWeek(year, month, dayIndex) {
@@ -3334,7 +3334,267 @@ function excelHelperFormulaPending(ref, key) {
     }
 }
 
-// Build the export configuration: column positions + summary column definitions
+// ─────────────────────────────────────────────────────────
+//  Excel style helpers (module-level — shared across all XLSX functions)
+// ─────────────────────────────────────────────────────────
+
+// CSS hex → 6-char RRGGBB string for xlsx-js-style
+function xlsCssToRgb(hex) {
+    if (!hex) return 'FFFFFF';
+    hex = hex.replace('#','');
+    if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+    return hex.toUpperCase();
+}
+
+// Solid fill object — bgColor indexed:64 is required by OOXML for fills to render in Excel
+function xlsFill(hexColor) {
+    if (!hexColor) return undefined;
+    return { patternType:'solid', fgColor:{ rgb: xlsCssToRgb(hexColor) }, bgColor:{ indexed:64 } };
+}
+
+// Build a complete cell style object
+function xlsCellStyle(bgHex, opts = {}) {
+    return {
+        fill:      bgHex ? xlsFill(bgHex) : undefined,
+        font:      { name:'Calibri', sz: opts.sz||10, bold:!!opts.bold, italic:!!opts.italic,
+                     color: opts.fontColor ? { rgb: xlsCssToRgb(opts.fontColor) } : undefined },
+        alignment: { horizontal: opts.align||'center', vertical:'center', wrapText:!!opts.wrap },
+        border: opts.border !== false ? {
+            top:   { style:'thin', color:{ rgb:'CCCCCC' } },
+            bottom:{ style:'thin', color:{ rgb:'CCCCCC' } },
+            left:  { style:'thin', color:{ rgb:'CCCCCC' } },
+            right: { style:'thin', color:{ rgb:'CCCCCC' } }
+        } : undefined
+    };
+}
+
+// Convenience: styled cell object { t, v, s }
+function xlsCell(value, bgHex, opts = {}) {
+    const t = (value instanceof Date) ? 'd' : (typeof value === 'number') ? 'n' : 's';
+    return { t, v: value ?? '', s: xlsCellStyle(bgHex, opts) };
+}
+
+// ─────────────────────────────────────────────────────────
+//  Build Analysis sheet data (same logic as runAIAnalysis but structured for Excel)
+// ─────────────────────────────────────────────────────────
+function buildAnalysisSheet(de) {
+    const ws = {};
+    let row = 0; // 0-based row index
+
+    const BLUE   = '#1A5276'; const RED    = '#C0392B'; const GREEN  = '#1A7F37';
+    const ORANGE = '#D35400'; const PURPLE = '#6C3483'; const GREY   = '#555555';
+    const BG_H   = '#2C3E50'; const BG_SEC = '#EBF5FB'; const BG_OK  = '#EAFAF1';
+    const BG_ERR = '#FDEDEC'; const BG_WRN = '#FEF9E7';
+    const maxConsec = parseInt(document.getElementById('maxConsecutive')?.value) || 5;
+
+    function addRow(cells, bg = null, opts = {}) {
+        cells.forEach((v, c) => {
+            const addr = `${excelCol(c)}${row + 1}`;
+            const cellBg = Array.isArray(bg) ? bg[c] : bg;
+            ws[addr] = xlsCell(v === undefined ? '' : v, cellBg,
+                { ...opts, align: c === 0 ? 'left' : (opts.align || 'left') });
+        });
+        row++;
+    }
+
+    function addTitle(text) {
+        addRow([text], BG_H, { bold:true, fontColor:'#FFFFFF', sz:12 });
+        // merge across 5 columns — add merge info after
+        ws['!merges'] = ws['!merges'] || [];
+        ws['!merges'].push({ s:{ r: row-1, c:0 }, e:{ r: row-1, c:4 } });
+    }
+
+    function addSection(emoji, title) {
+        addRow([]);
+        addRow([`${emoji}  ${title}`], BG_SEC, { bold:true, sz:11, fontColor: BLUE });
+        ws['!merges'].push({ s:{ r: row-1, c:0 }, e:{ r: row-1, c:4 } });
+    }
+
+    function addStatus(ok, text) {
+        addRow([ok ? '✔' : '✖', text], ok ? BG_OK : BG_ERR,
+            { fontColor: ok ? GREEN : RED, bold: !ok });
+        ws['!merges'].push({ s:{ r: row-1, c:1 }, e:{ r: row-1, c:4 } });
+    }
+
+    function addItem(label, value, color = GREY) {
+        addRow([label, value], null, { fontColor: color });
+        ws['!merges'].push({ s:{ r: row-1, c:1 }, e:{ r: row-1, c:4 } });
+    }
+
+    const monthTitle = new Date(currentYear, currentMonth-1, 1)
+        .toLocaleString(de?'de-DE':'en-US', { month:'long', year:'numeric' });
+
+    // ── Title ──
+    ws['!merges'] = [];
+    addTitle(de ? `Schichtplan-Analyse — ${monthTitle}` : `Schedule Analysis — ${monthTitle}`);
+    addRow([de ? `Erstellt: ${new Date().toLocaleString()}` : `Generated: ${new Date().toLocaleString()}`],
+        null, { fontColor: GREY, italic:true });
+    ws['!merges'].push({ s:{ r: row-1, c:0 }, e:{ r: row-1, c:4 } });
+
+    // ── 1. Worker Summary table ──
+    addSection('👥', de ? 'Mitarbeiter-Übersicht' : 'Worker Summary');
+    addRow([de?'Name':'Name', de?'Vertrag':'Contract', de?'Std.':'Hours', de?'Urlaub':'Vac', de?'Krank':'Sick'],
+        '#DDDDDD', { bold:true });
+
+    workers.forEach(w => {
+        const totalH = w.shifts.reduce((s,sh) => s + getShiftHours(sh), 0);
+        const vacN   = w.shifts.filter(s => isVacationBase(getBaseShift(s))).length;
+        const pendN  = w.shifts.filter(s => isPendingVacationShift(s)).length;
+        const sickN  = w.shifts.filter(s => getBaseShift(s)==='SICK').length;
+        const vacStr = pendN > 0 ? `${vacN} (+${pendN} ⏳)` : `${vacN}`;
+        addRow([w.name, `${w.contract}h`, totalH, vacStr, sickN]);
+    });
+
+    // ── 2. Fairness Check ──
+    addSection('⚖️', de ? 'Fairness (Vollzeit Gemischt)' : 'Fairness Check (Full-Time Mixed)');
+    const latesData = workers
+        .filter(w => w.contract==='40' && w.system==='New' && w.pref==='Any' && w.immo!=='Fixed')
+        .map(w => ({ name:w.name,
+            count: w.shifts.filter(s=>(use13H?['8L','8M','13H']:['8L','8M']).includes(getBaseShift(s))).length }))
+        .sort((a,b) => b.count-a.count);
+
+    if (latesData.length >= 2) {
+        addRow([de?'Mitarbeiter':'Worker', de?'Spätdienste':'Late Shifts'], '#DDDDDD', { bold:true });
+        latesData.forEach(ld => {
+            const isHi = ld === latesData[0], isLo = ld === latesData[latesData.length-1];
+            addRow([ld.name, ld.count], isHi ? BG_WRN : (isLo ? BG_OK : null),
+                { fontColor: isHi ? ORANGE : (isLo ? GREEN : GREY) });
+        });
+        const hi = latesData[0], lo = latesData[latesData.length-1];
+        const diff = hi.count - lo.count;
+        addStatus(diff <= 2,
+            diff > 2
+                ? (de ? `Unausgeglichen! ${hi.name} hat ${diff} mehr Spätdienste als ${lo.name}. Tausch empfohlen.`
+                      : `Imbalanced! ${hi.name} has ${diff} more late shifts than ${lo.name}. Swap recommended.`)
+                : (de ? 'Spätdienste sind fair verteilt.' : 'Late shifts are fairly balanced.')
+        );
+    } else {
+        addRow([de ? 'Keine Vollzeit-Mischarbeiter gefunden.' : 'No full-time mixed workers found.'],
+            null, { fontColor: GREY, italic:true });
+        ws['!merges'].push({ s:{ r: row-1, c:0 }, e:{ r: row-1, c:4 } });
+    }
+
+    // ── 3. Labor Law ──
+    addSection('🚨', de ? 'Arbeitszeitgesetz-Prüfung' : 'Labor Law Checks');
+    const consecViol = [], restViol = [];
+    workers.forEach(w => {
+        const pShifts = getPrevMonthLastDays(w.name, maxConsec+1);
+        let streak = 0;
+        pShifts.forEach(s => { if (workShifts.includes(getBaseShift(s))) streak++; else streak=0; });
+        w.shifts.forEach((s,d) => {
+            const bs = getBaseShift(s);
+            if (workShifts.includes(bs)) streak++; else streak=0;
+            if (streak > maxConsec) consecViol.push(`${w.name} — Day ${d+1}`);
+            const prevBs = d>0 ? getBaseShift(w.shifts[d-1]) : getBaseShift(pShifts[pShifts.length-1]);
+            if (['8L','8M'].includes(prevBs) && morningShifts.includes(bs))
+                restViol.push(`${w.name} — Day ${d===0?'(last month→)':d}→${d+1}`);
+        });
+    });
+    const uConsec = [...new Set(consecViol)], uRest = [...new Set(restViol)];
+    addStatus(uConsec.length === 0, de
+        ? (uConsec.length ? `Zu viele aufeinanderfolgende Tage (>${maxConsec}): ${uConsec.join(', ')}` : 'Keine Folge-Verstöße.')
+        : (uConsec.length ? `Consecutive day violations (>${maxConsec}): ${uConsec.join(', ')}` : 'No consecutive day violations.'));
+    addStatus(uRest.length === 0, de
+        ? (uRest.length ? `11h-Ruhezeit-Verstöße: ${uRest.join(', ')}` : 'Keine Ruhezeitverstöße.')
+        : (uRest.length ? `11h rest violations: ${uRest.join(', ')}` : 'No rest violations.'));
+
+    // ── 4. Staffing Gaps ──
+    addSection('📅', de ? 'Personalziel-Lücken' : 'Staffing Gaps');
+    const gaps = [], immoGaps = [];
+    for (let d = 0; d < daysInMonth; d++) {
+        const c8E=getDayCount(d,'8E'), c8M=getDayCount(d,'8M'), c8L=getDayCount(d,'8L'), c13=getDayCount(d,'13H');
+        const cImE=getDayCount(d,'ImE'), cImL=getDayCount(d,'ImL');
+        const tgt = dailyTargets[d];
+        if (c8E<tgt.t8E) gaps.push(`Day ${d+1}: 8E need ${tgt.t8E} have ${c8E}`);
+        if (c8M<tgt.t8M) gaps.push(`Day ${d+1}: 8M need ${tgt.t8M} have ${c8M}`);
+        if (c8L<tgt.t8L) gaps.push(`Day ${d+1}: 8L need ${tgt.t8L} have ${c8L}`);
+        if (use13H && c13<tgt.t13) gaps.push(`Day ${d+1}: 13H need ${tgt.t13} have ${c13}`);
+        if (cImE<(tgt.tImE||0)) immoGaps.push(`Day ${d+1}: ImE need ${tgt.tImE} have ${cImE}`);
+        if (cImL<(tgt.tImL||0)) immoGaps.push(`Day ${d+1}: ImL need ${tgt.tImL} have ${cImL}`);
+    }
+    if (gaps.length === 0 && immoGaps.length === 0) {
+        addStatus(true, de ? 'Alle Tages-Ziele erfüllt.' : 'All daily targets met.');
+    } else {
+        gaps.forEach(g => addItem('  ⚠', g, RED));
+        immoGaps.forEach(g => addItem('  ⚠', g, ORANGE));
+    }
+
+    // ── 5. Pending Vacation ──
+    addSection('⏳', de ? 'Offene Urlaubsanträge' : 'Pending Vacation Requests');
+    const pendingVac = [];
+    workers.forEach(w => {
+        w.shifts.forEach((s,d) => {
+            if (isPendingVacationShift(s))
+                pendingVac.push([w.name, `Day ${d+1}`, stripPendingVacation(s), de?'Ausstehend':'Pending']);
+        });
+    });
+    if (pendingVac.length === 0) {
+        addStatus(true, de ? 'Keine offenen Urlaubsanträge.' : 'No pending vacation requests.');
+    } else {
+        addRow([de?'Mitarbeiter':'Worker', de?'Tag':'Day', de?'Typ':'Type', de?'Status':'Status'],
+            '#DDDDDD', { bold:true });
+        pendingVac.forEach(([name, day, type, status]) => {
+            addRow([name, day, type, status], BG_WRN, { fontColor: PURPLE });
+        });
+    }
+
+    // ── 6. Shift Swap Suggestions ──
+    addSection('🔄', de ? 'Tausch-Vorschläge' : 'Shift Swap Suggestions');
+    const swaps = [];
+    if (latesData.length >= 2) {
+        const hi = latesData[0], lo = latesData[latesData.length-1];
+        if (hi.count - lo.count > 2) {
+            const hiW = workers.find(w=>w.name===hi.name), loW = workers.find(w=>w.name===lo.name);
+            if (hiW && loW) {
+                for (let d=0; d<daysInMonth; d++) {
+                    const hiBase = getBaseShift(hiW.shifts[d]), loBase = getBaseShift(loW.shifts[d]);
+                    if (!['8L','8M'].includes(hiBase)) continue;
+                    if (loBase !== '-' && loBase !== 'OFF') continue;
+                    const loPrev = d>0 ? getBaseShift(loW.shifts[d-1]) : '-';
+                    if (['8L','8M'].includes(loPrev)) continue;
+                    const dow = new Date(currentYear,currentMonth-1,d+1).getDay();
+                    if (dow===0||dow===6||isHoliday(d)) continue;
+                    swaps.push([de?'Fairness':'Fairness',
+                        `Day ${d+1}`, hi.name, lo.name,
+                        de?`${hiBase} → ${lo.name} geben`:`Move ${hiBase} to ${lo.name}`]);
+                    break;
+                }
+            }
+        }
+    }
+    uRest.forEach(vStr => {
+        const m = vStr.match(/^(.+) — Day .+→(\d+)/);
+        if (!m) return;
+        const wName = m[1], dayNum = parseInt(m[2])-1;
+        const vWorker = workers.find(w=>w.name===wName); if (!vWorker) return;
+        const problematicShift = getBaseShift(vWorker.shifts[dayNum]);
+        const candidate = workers.find(w => {
+            if (w.name===wName) return false;
+            if (getBaseShift(w.shifts[dayNum]) !== '-') return false;
+            const prev = dayNum>0 ? getBaseShift(w.shifts[dayNum-1]) : '-';
+            return !(['8L','8M'].includes(prev) && morningShifts.includes(problematicShift));
+        });
+        if (candidate) swaps.push([de?'Ruhezeit':'Rest fix',
+            `Day ${dayNum+1}`, wName, candidate.name,
+            de?`${problematicShift} an ${candidate.name} übertragen`:`Move ${problematicShift} to ${candidate.name}`]);
+    });
+
+    if (swaps.length === 0) {
+        addStatus(true, de ? 'Keine Tausch-Vorschläge notwendig.' : 'No swap suggestions needed.');
+    } else {
+        addRow([de?'Typ':'Type', de?'Tag':'Day', de?'Von':'From', de?'An':'To', de?'Aktion':'Action'],
+            '#DDDDDD', { bold:true });
+        swaps.forEach(([type, day, from, to, action]) => {
+            addRow([type, day, from, to, action], BG_WRN);
+        });
+    }
+
+    // ── Finalize ref and column widths ──
+    ws['!ref'] = `A1:E${row}`;
+    ws['!cols'] = [{ wch:22 }, { wch:28 }, { wch:16 }, { wch:16 }, { wch:40 }];
+    ws['!rows'] = Array(row).fill({ hpt:18 });
+    return ws;
+}
 function buildExcelExportConfig() {
     // Fixed columns: Date, Weekday, Holiday?, LSS?  → indices 0-3
     // Worker columns start at index 4
@@ -3368,50 +3628,23 @@ function buildExcelExportConfig() {
 //  Download as HTML (with embedded data for SharePoint)
 // ─────────────────────────────────────────────────────────
 function downloadExcelWithFormulas() {
-    if (typeof XLSX === 'undefined') { alert(currentLang==='de' ? 'Die Excel-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden und erneut versuchen.' : 'The Excel library could not be loaded. Please reload the page and try again.'); return; }
+    if (typeof XLSX === 'undefined') { alert(currentLang==='de' ? 'Die Excel-Bibliothek konnte nicht geladen werden.' : 'The Excel library could not be loaded. Please reload the page and try again.'); return; }
     const cfg = buildExcelExportConfig();
     const wb  = XLSX.utils.book_new();
     const de  = currentLang === 'de';
     const monthTitle = new Date(currentYear, currentMonth-1, 1).toLocaleString(de?'de-DE':'en-US', { month:'long', year:'numeric' });
 
-    // ── Helper: CSS hex colour → RRGGBB for SheetJS styles ──
-    function cssToRgb(hex) {
-        if (!hex) return null;
-        hex = hex.replace('#','');
-        if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
-        return hex.toUpperCase();
-    }
+    // ── Use module-level xlsCssToRgb / xlsFill / xlsCellStyle helpers ──
+    // (defined above — no need to redefine them here)
+    const cssToRgb  = xlsCssToRgb;
+    const cellStyle = xlsCellStyle;
 
-    // ── Helper: build a cell style ──
-    // IMPORTANT: Excel solid fills require BOTH fgColor AND bgColor:{indexed:64}.
-    // Without bgColor the fill renders as white/transparent in Excel regardless of fgColor.
-    function cellStyle(bgHex, opts = {}) {
-        const s = {};
-        if (bgHex) {
-            s.fill = {
-                patternType: 'solid',
-                fgColor:     { rgb: cssToRgb(bgHex) },
-                bgColor:     { indexed: 64 }   // ← required by OOXML for solid fills
-            };
-        }
-        s.font      = { name:'Calibri', sz:10, bold:!!opts.bold, color: opts.fontColor ? { rgb: cssToRgb(opts.fontColor) } : undefined };
-        s.alignment = { horizontal: opts.align || 'center', vertical:'center', wrapText:!!opts.wrap };
-        if (opts.border) s.border = {
-            top:    { style:'thin', color:{ rgb:'CCCCCC' } },
-            bottom: { style:'thin', color:{ rgb:'CCCCCC' } },
-            left:   { style:'thin', color:{ rgb:'CCCCCC' } },
-            right:  { style:'thin', color:{ rgb:'CCCCCC' } }
-        };
-        return s;
-    }
-
-    // ── Colours matching getColor() ──
-    const WEEKEND_BG  = 'F0F0F0';
-    const HOLIDAY_BG  = 'E8DAEF';
-    const HEADER_BG   = 'EEEEEE';
-    const SUMMARY_BG  = 'EBF5FB';
-    const COMMENT_BG  = 'FDFEFE';
-    const PENDING_BG  = 'FFFFFF'; // white — matches table
+    // ── Colours ──
+    const WEEKEND_BG = 'F0F0F0';
+    const HOLIDAY_BG = 'E8DAEF';
+    const HEADER_BG  = 'EEEEEE';
+    const SUMMARY_BG = 'EBF5FB';
+    const COMMENT_BG = 'FDFEFE';
 
     // ── Build Plan sheet ──
     const planHeader = [de?'Datum':'Date', de?'Wochentag':'Weekday', de?'Feiertag?':'Holiday?', 'LSS?'];
@@ -3618,8 +3851,17 @@ function downloadExcelWithFormulas() {
     XLSX.utils.book_append_sheet(wb, helperWs,  'Helpers');
     XLSX.utils.book_append_sheet(wb, legendWs,  'Legend');
 
+    // ── Analysis sheet — same logic as the in-app AI Analysis button ──
+    const analysisWs = buildAnalysisSheet(de);
+    XLSX.utils.book_append_sheet(wb, analysisWs, de ? 'Analyse' : 'Analysis');
+
     wb.Workbook = wb.Workbook || {};
-    wb.Workbook.Sheets = [{ name:'Plan', Hidden:0 }, { name:'Helpers', Hidden:1 }, { name:'Legend', Hidden:0 }];
+    wb.Workbook.Sheets = [
+        { name:'Plan',                           Hidden:0 },
+        { name:'Helpers',                        Hidden:1 },
+        { name:'Legend',                         Hidden:0 },
+        { name: de ? 'Analyse' : 'Analysis',     Hidden:0 },
+    ];
 
     // ── Force full recalculation when Excel opens the file ──
     // Without this, Excel shows the cached values SheetJS baked in and
