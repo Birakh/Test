@@ -427,10 +427,11 @@
                 <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:3px;">Mode</label>
                 <select id="workerSummerMode" onchange="toggleWorkerSummer()" style="width:100%; padding:4px; font-size:11px; border-radius:4px; border:1px solid #aaa; margin-bottom:6px;">
                     <option value="none">None</option>
-                    <option value="nurFruh">☀️ Nur Früh</option>
-                    <option value="nurSpat">🌙 Nur Spät</option>
-                    <option value="var1">🔄 Variante 1</option>
-                    <option value="var2">📅 Variante 2</option>
+                    <option value="nurFruh">☀️ Nur Früh — early only</option>
+                    <option value="nurSpat">🌙 Nur Spät — late only (8L+8M mix)</option>
+                    <option value="var1">🔄 Var 1 — Old: alternating weeks, late weeks mix 8L+8M</option>
+                    <option value="var2">📅 Var 2 — New: 4-week template (3E+2M / 2E+1M+2L / …)</option>
+                    <option value="var3">⛔ Var 3 — Strict: early week=8E only, late week=8L only</option>
                 </select>
                 <div id="workerSummerWeekRow" style="display:none; margin-bottom:6px;">
                     <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Entry Week</label>
@@ -644,10 +645,11 @@
                         <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:3px;">Rotation Mode</label>
                         <select id="editSummerMode" onchange="editToggleSummer()" style="width:100%; padding:5px; font-size:12px; border-radius:4px; border:1px solid #aaa;">
                             <option value="none">None — normal auto-fill logic</option>
-                            <option value="nurFruh">☀️ Nur Früh — early shifts only</option>
+                            <option value="nurFruh">☀️ Nur Früh — early shifts only (8E)</option>
                             <option value="nurSpat">🌙 Nur Spät — late shifts only (8L + 8M mix)</option>
-                            <option value="var1">🔄 Variante 1 — alternating weeks, late weeks include Mittel</option>
-                            <option value="var2">📅 Variante 2 — free mix, phase-offset by entry week</option>
+                            <option value="var1">🔄 Var 1 — Old system: alternating weeks, late weeks mix 8L+8M (A: 2L+3M / B: 3L+2M)</option>
+                            <option value="var2">📅 Var 2 — New system: 4-week template (40h: 3E+2M / 2E+1M+2L / 2E+1M+2L / 3E+1M+1L)</option>
+                            <option value="var3">⛔ Var 3 — Strict: full early week (8E only) / full late week (8L only, no 8M)</option>
                         </select>
                     </div>
                     <div id="editSummerWeekRow" style="display:none; margin-bottom:8px;">
@@ -791,7 +793,9 @@
                 <div>
                     <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Personal Access Token (PAT)</label>
                     <input id="spFileName" type="password" placeholder="ghp_xxxxxxxxxxxx"
+                        oninput="liveUpdatePAT(this.value)"
                         style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                    <small id="spFileNameStatus" style="color:#1a7f37; display:none;">✔ PAT updated</small>
                     <small style="color:#666;">
                         Create at <strong>GitHub → Settings → Developer settings → Personal access tokens → Fine-grained</strong><br>
                         Needs <em>Contents: Read &amp; Write</em> permission on this repo. Stored only in your browser's localStorage.
@@ -840,11 +844,11 @@
             </p>
             <div style="display:flex; gap:8px; align-items:center;">
                 <input id="spDataPwd" type="password" placeholder="Enter team data password"
+                    oninput="liveUpdateEncryption(this.value)"
                     style="flex:1; padding:7px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
-                <button onclick="setDataPassword()" style="background:#856404; color:white; border:none; padding:7px 14px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; white-space:nowrap;">💾 Save</button>
             </div>
-            <div id="spDataPwdStatus" style="display:none; margin-top:6px; font-size:11px; color:#1a7f37;"></div>
-            <small style="color:#888; display:block; margin-top:5px;">Saved in this browser only. Share the password verbally with your team — never via chat or email.</small>
+            <div id="spDataPwdStatus" style="display:none; margin-top:6px; font-size:11px;"></div>
+            <small style="color:#888; display:block; margin-top:5px;">Applied immediately as you type. Saved in this browser only. Share the password verbally with your team — never via chat or email.</small>
         </div>
 
         <!-- Comment Sync section -->
@@ -857,12 +861,13 @@
             <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:4px; padding:8px; margin-bottom:8px;">
                 <strong style="font-size:11px;">⚙️ Admin: Set shared comment token (once)</strong><br>
                 <small style="color:#555;">Paste a PAT with Contents: Read &amp; Write. All viewers will use this token automatically to post comments.</small>
-                <div style="display:flex; gap:6px; margin-top:6px;">
+                <div style="margin-top:6px;">
                     <input id="cmtTokenInput" type="password" placeholder="ghp_... or github_pat_..."
-                        style="flex:1; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
-                    <button onclick="setCommentToken()" style="background:#27ae60; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px; white-space:nowrap;">💾 Set</button>
+                        oninput="liveUpdateCommentToken(this.value)"
+                        style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                    <small id="cmtTokenInputStatus" style="color:#1a7f37; display:none;">✔ Comment token updated in memory</small>
                 </div>
-                <small style="color:#888; font-size:10px;">After setting: download HTML (⬇️ button) and commit to repo — then all users get it automatically.</small>
+                <small style="color:#888; font-size:10px;">Applied immediately as you type. After setting: download HTML (⬇️ button) and commit to repo — then all users get it automatically.</small>
             </div>
 
             <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:4px; padding:8px; margin-bottom:10px; font-size:11px;">
@@ -1911,7 +1916,12 @@ function updateShift(wIndex, dIndex, value) {
 function updateRequest(wIndex, dIndex, isChecked) { workers[wIndex].requests[dIndex]=isChecked; saveData(); renderTable(); }
 function updateComment(dIndex, text) { dailyComments[dIndex]=text; saveData(); scheduleCommentSync(); }
 
-function toggleHoliday(dIndex) {
+function toggleHoliday(dIndex, el) {
+    if (!requireEdit('Toggle Holiday')) {
+        // Revert checkbox immediately — browser already ticked it before onchange fired
+        if (el) el.checked = !el.checked;
+        return;
+    }
     if (isHoliday(dIndex)) {
         holidays = holidays.filter(h => (h.d !== undefined ? h.d : h) !== dIndex);
     } else {
@@ -1923,7 +1933,11 @@ function toggleHoliday(dIndex) {
 
 let lssModalDayIndex = null;
 
-function toggleLSS(dIndex) {
+function toggleLSS(dIndex, el) {
+    if (!requireEdit('Toggle LSS')) {
+        if (el) el.checked = !el.checked;
+        return;
+    }
     lssModalDayIndex = dIndex;
     const dow      = new Date(currentYear, currentMonth-1, dIndex+1).getDay();
     const isWE     = (dow===0||dow===6);
@@ -2411,14 +2425,15 @@ function renderTable() {
 
         // ── Date cell — workingCount is now fully populated ──
         const minAlert = (minStaff > 0 && !isWE && !isHol && workingCount < minStaff);
-        const holName   = getHolidayName(d);
-        const holNameHtml = holName ? `<br><em style="font-size:9px;color:#8e44ad;font-weight:normal;">${holName}</em>` : '';
+        const holName     = getHolidayName(d);
+        // Holiday name always shown when present — regardless of checkbox state
+        const holNameHtml = holName ? `<br><em style="font-size:9px;color:#8e44ad;font-weight:bold;">${holName}</em>` : '';
         const dateCellHtml =
             `<td class="sticky-col ${rowClass}${minAlert?' min-staff-alert':''}"` +
             ` title="${minAlert?'⚠ Only '+workingCount+' working (min '+minStaff+')':holName}">`+
             `${dayNames[dow]} ${d+1}.${minAlert?' ⚠'+workingCount:''}${holNameHtml}</td>`+
-            `<td class="sticky-col no-print ${rowClass}"><input type="checkbox" ${isHol?'checked':''} onchange="toggleHoliday(${d})"></td>`+
-            `<td class="sticky-col no-print ${rowClass}"><input type="checkbox" ${lssDays.includes(d)?'checked':''} onchange="toggleLSS(${d})"></td>`;
+            `<td class="sticky-col no-print ${rowClass}"><input type="checkbox" ${isHol?'checked':''} onchange="toggleHoliday(${d},this)"></td>`+
+            `<td class="sticky-col no-print ${rowClass}"><input type="checkbox" ${lssDays.includes(d)?'checked':''} onchange="toggleLSS(${d},this)"></td>`;
         // Replace the placeholder we inserted when the row opened
         bodyHTML = bodyHTML.replace(`__DATECELL_${d}__`, dateCellHtml);
 
@@ -2619,12 +2634,33 @@ function autoGenerate() {
             return count;
         };
 
-        // Workers with fewest lates so far go first for late assignment
-        const sortedMixed = [...mixedIndices].sort((a,b) => {
-            const latA = workers[a].shifts.filter(s => lateShiftTypes.includes(getBaseShift(s))).length;
-            const latB = workers[b].shifts.filter(s => lateShiftTypes.includes(getBaseShift(s))).length;
-            return (latA - latB) + (Math.random()*0.2 - 0.1);
-        });
+        // ── True fairness sort: group workers by ±1 late bucket, shuffle within each group ──
+        const lateCounts = mixedIndices.map(i => ({
+            i,
+            lates: workers[i].shifts.filter(s => lateShiftTypes.includes(getBaseShift(s))).length
+        }));
+        lateCounts.sort((a, b) => a.lates - b.lates);
+        // Group into buckets where all members are within 1 late of each other
+        const buckets = [];
+        let curBucket = [];
+        for (const entry of lateCounts) {
+            if (curBucket.length === 0 || entry.lates - curBucket[0].lates <= 1) {
+                curBucket.push(entry);
+            } else {
+                buckets.push(curBucket);
+                curBucket = [entry];
+            }
+        }
+        if (curBucket.length) buckets.push(curBucket);
+        // Fisher-Yates shuffle within each bucket
+        function fyShuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+        const sortedMixed = buckets.flatMap(b => fyShuffle(b).map(e => e.i));
 
         sortedMixed.forEach(wIndex => {
             const worker = workers[wIndex];
@@ -2651,54 +2687,107 @@ function autoGenerate() {
                     placeShiftsGreedy(worker, wkPool, startDay, endDay);
 
                 } else if (sumMode === 'nurSpat') {
-                    // Late only — mix 8L and 8M for IR2 vs IR3/IR4 fairness
-                    // Count existing 8L vs 8M to balance over the month
+                    // Late only — balance 8L vs 8M over the month
                     const cur8L = worker.shifts.filter(s => getBaseShift(s) === '8L').length;
                     const cur8M = worker.shifts.filter(s => getBaseShift(s) === '8M').length;
                     for (let i = 0; i < shiftsNeeded; i++) {
-                        // Push more 8M if worker has had more 8L, and vice versa
                         wkPool.push((cur8L + wkPool.filter(s=>s==='8L').length) <=
                                     (cur8M + wkPool.filter(s=>s==='8M').length) ? '8L' : '8M');
                     }
                     placeShiftsGreedy(worker, wkPool, startDay, endDay);
 
                 } else if (sumMode === 'var1') {
-                    // Alternating early/late weeks — but late weeks mix in 8M (Mittel) for fairness
-                    const globalWeek = getContinuousWeek(currentYear, currentMonth, startDay);
-                    const isEarlyWeek = (globalWeek + (wIndex % 2)) % 2 === 0;
+                    // ── Var1: Old system — alternating early/late weeks ──
+                    // Early weeks: all 8E.
+                    // Late weeks: ALTERNATE between two patterns so 8L and 8M are both fairly spread:
+                    //   Pattern A (first late week):  more middle  → 40h: 2L+3M | 32h: 1L+3M | 24h: 1L+2M
+                    //   Pattern B (second late week): more late    → 40h: 3L+2M | 32h: 3L+1M | 24h: 2L+1M
+                    // Pool is shuffled before placement so specific days are random.
+                    const globalWeek    = getContinuousWeek(currentYear, currentMonth, startDay);
+                    const isEarlyWeek   = (globalWeek + (wIndex % 2)) % 2 === 0;
+
                     if (isEarlyWeek) {
                         for (let i = 0; i < shiftsNeeded; i++) wkPool.push('8E');
                         placeShiftsGreedy(worker, wkPool, startDay, endDay);
                     } else {
-                        // Late week: ~50% 8L (22:30), ~50% 8M (20:00) for fairness
-                        for (let i = 0; i < shiftsNeeded; i++)
-                            wkPool.push(i % 2 === 0 ? '8L' : '8M');
-                        worker._weekLateQuota = shiftsNeeded;
-                        worker._weekLateCount = 0;
-                        placeShiftsGreedyFair(worker, wkPool, startDay, endDay);
-                        delete worker._weekLateQuota;
-                        delete worker._weekLateCount;
+                        // Which late-week pattern? Count how many full late weeks have passed this month.
+                        const lateWeeksPassed = Math.floor((globalWeek - (isEarlyWeek ? 0 : 0)) / 2);
+                        const isPatternA      = lateWeeksPassed % 2 === 0;
+
+                        // Patterns per contract size
+                        const LATE_PATTERNS = {
+                            40: {
+                                A: ['8L','8L','8M','8M','8M'],   // 2L + 3M
+                                B: ['8L','8L','8L','8M','8M']    // 3L + 2M
+                            },
+                            32: {
+                                A: ['8L','8M','8M','8M'],         // 1L + 3M
+                                B: ['8L','8L','8L','8M']          // 3L + 1M
+                            },
+                            24: {
+                                A: ['8L','8M','8M'],              // 1L + 2M
+                                B: ['8L','8L','8M']               // 2L + 1M
+                            }
+                        };
+                        const key     = contractHrs >= 40 ? 40 : contractHrs >= 32 ? 32 : 24;
+                        const pattern = LATE_PATTERNS[key][isPatternA ? 'A' : 'B'];
+                        // Trim if VAC/SICK already fill some slots
+                        const needed  = Math.min(pattern.length, shiftsNeeded);
+                        wkPool        = fyShuffle([...pattern]).slice(0, needed);
+                        placeShiftsGreedy(worker, wkPool, startDay, endDay);
                     }
 
                 } else if (sumMode === 'var2') {
-                    // Free mix but phase-offset by entry week — same as New system with offset
-                    const offset = worker.summerWeekOffset || 0;
+                    // ── Var2: 4-week rotating template ──
+                    // Exact weekly composition per contract, cycling with phase offset.
+                    // Within each week the pool is shuffled so day assignment is random.
+                    //
+                    // 40h (5 shifts/week):
+                    //   Wk1: 3E + 2M   Wk2: 2E + 1M + 2L   Wk3: 2E + 1M + 2L   Wk4: 3E + 1M + 1L
+                    // 32h (4 shifts/week):
+                    //   Wk1: 2E + 2M   Wk2: 2E + 1M + 1L   Wk3: 2E + 2L         Wk4: 2E + 1M + 1L
+                    // 24h (3 shifts/week):
+                    //   Wk1: 2E + 1M   Wk2: 1E + 1M + 1L   Wk3: 2E + 1L         Wk4: 1E + 1M + 1L
+                    const TEMPLATES = {
+                        40: [
+                            ['8E','8E','8E','8M','8M'],         // Wk1: 3E + 2M
+                            ['8E','8E','8M','8L','8L'],         // Wk2: 2E + 1M + 2L
+                            ['8E','8E','8M','8L','8L'],         // Wk3: 2E + 1M + 2L
+                            ['8E','8E','8E','8M','8L'],         // Wk4: 3E + 1M + 1L
+                        ],
+                        32: [
+                            ['8E','8E','8M','8M'],              // Wk1: 2E + 2M
+                            ['8E','8E','8M','8L'],              // Wk2: 2E + 1M + 1L
+                            ['8E','8E','8L','8L'],              // Wk3: 2E + 2L
+                            ['8E','8E','8M','8L'],              // Wk4: 2E + 1M + 1L
+                        ],
+                        24: [
+                            ['8E','8E','8M'],                   // Wk1: 2E + 1M
+                            ['8E','8M','8L'],                   // Wk2: 1E + 1M + 1L
+                            ['8E','8E','8L'],                   // Wk3: 2E + 1L
+                            ['8E','8M','8L'],                   // Wk4: 1E + 1M + 1L
+                        ],
+                    };
+                    const offset     = worker.summerWeekOffset || 0;
                     const globalWeek = getContinuousWeek(currentYear, currentMonth, startDay);
-                    const isHigh = ((globalWeek + offset + wIndex) % 2 !== 0);
-                    const targetW = isHigh
-                        ? (contractHrs===40?43:contractHrs===32?35:contractHrs===24?27:contractHrs)
-                        : (contractHrs===40?37:contractHrs===32?29:contractHrs===24?21:contractHrs);
-                    const mandatory = (use13H&&contractHrs>=24?13:0) + (use6H&&contractHrs>=24&&isHigh?6:0);
-                    const wkShifts2 = Math.max(0, Math.floor((targetW - prefilled - mandatory) / 8));
-                    if (use13H && contractHrs>=24) wkPool.push('13H');
-                    if (use6H  && contractHrs>=24 && isHigh) wkPool.push('6H');
-                    for (let i = 0; i < wkShifts2; i++) wkPool.push('8H-ANY');
-                    const lateQuota2 = Math.round(wkPool.length * 0.4);
-                    worker._weekLateQuota = lateQuota2;
-                    worker._weekLateCount = 0;
-                    placeShiftsGreedyFair(worker, wkPool, startDay, endDay);
-                    delete worker._weekLateQuota;
-                    delete worker._weekLateCount;
+                    const cyclePos   = (globalWeek + offset) % 4;
+                    const key        = contractHrs >= 40 ? 40 : contractHrs >= 32 ? 32 : 24;
+                    const template   = TEMPLATES[key][cyclePos];
+
+                    // Adjust for already-filled slots (VAC/SICK). Shuffle first so random types drop.
+                    const needed = Math.min(template.length, shiftsNeeded);
+                    wkPool       = fyShuffle([...template]).slice(0, needed);
+                    placeShiftsGreedy(worker, wkPool, startDay, endDay);
+
+                } else if (sumMode === 'var3') {
+                    // ── Var3: Strict alternating — early week = all 8E, late week = all 8L, NO 8M ──
+                    // For workers who specifically want pure early weeks and pure late weeks
+                    // with no middle shifts at all.
+                    const globalWeek  = getContinuousWeek(currentYear, currentMonth, startDay);
+                    const isEarlyWeek = (globalWeek + (wIndex % 2)) % 2 === 0;
+                    const shiftType   = isEarlyWeek ? '8E' : '8L';
+                    for (let i = 0; i < shiftsNeeded; i++) wkPool.push(shiftType);
+                    placeShiftsGreedy(worker, wkPool, startDay, endDay);
                 }
                 return; // skip normal logic below
             } // end if (inSummer)
@@ -2717,15 +2806,25 @@ function autoGenerate() {
                 if (use13H && contractHrs>=24) wkPool.push('13H');
                 if (use6H  && contractHrs>=24 && isHigh) wkPool.push('6H');
                 for (let i=0;i<wkShifts;i++) wkPool.push('8H-ANY');
-                // Calculate fair late quota for this week
-                // Target: ~lateRatio of all shifts in the week should be late
-                // lateRatio = 2/5 or 3/5 depending on whether we're on a "heavy late" or "light late" week
-                // We alternate per worker: even workers get heavy late on even w, light on odd w
+                // ── Dynamic late quota based on month-to-date balance ──
+                // Fixed 40% every week is predictable — same person, same days, same schedule.
+                // Instead: count how many lates the worker has so far this month vs expected,
+                // and vary the quota (1, 2, or 3) to correct imbalance, with random tiebreaking.
                 const totalShiftsThisWeek = wkPool.length;
-                const isHeavyLate = ((w + wIndex) % 2 === 0);
-                // For a 5-day week: heavy = 2 lates (2/5), light = 2 lates too, occasionally 3
-                // More precisely: keep it at floor(totalShifts * 0.4) or ceil(totalShifts * 0.4)
-                const lateQuota = Math.round(totalShiftsThisWeek * 0.4);
+                const shiftsFilledSoFar   = workers[wIndex].shifts.filter(s => s !== '-').length;
+                const latesSoFar          = workers[wIndex].shifts.filter(s => lateShiftTypes.includes(getBaseShift(s))).length;
+                const earlysSoFar         = shiftsFilledSoFar - latesSoFar;
+                // Target ratio: ~40% late over the whole month
+                const expectedLatesRatio  = 0.4;
+                const expectedLates       = Math.round(shiftsFilledSoFar * expectedLatesRatio);
+                const lateDeficit         = expectedLates - latesSoFar; // positive = behind on lates
+                // Determine quota: correct imbalance, clamp to sensible week range, add noise
+                let lateQuota;
+                if (lateDeficit >= 2)       lateQuota = Math.min(3, totalShiftsThisWeek);   // behind — give more lates
+                else if (lateDeficit <= -2)  lateQuota = Math.max(1, 0);                     // ahead — give fewer lates
+                else                        lateQuota = Math.round(totalShiftsThisWeek * 0.4); // on track — target 40%
+                // Add ±1 random variation so identical workers don't always get identical weeks
+                lateQuota = Math.max(0, Math.min(totalShiftsThisWeek, lateQuota + (Math.random() < 0.35 ? 1 : (Math.random() < 0.35 ? -1 : 0))));
                 worker._weekLateQuota = lateQuota;
                 worker._weekLateCount = 0;
                 placeShiftsGreedyFair(worker, wkPool, startDay, endDay);
@@ -2815,6 +2914,12 @@ function placeShiftsGreedy(worker, pool, startDay, endDay) {
                 score = 1000+Math.max(def8L,def8M);
             } else if (s==='8E') {
                 score = 1000+(tgt8E-c8E);
+            } else if (s==='8L') {
+                // Explicit 8L (from summer template) — prefer days where 8L target has deficit
+                score = 500 + Math.max(0, tgt8L - c8L);
+            } else if (s==='8M') {
+                // Explicit 8M (from summer template) — prefer days where 8M target has deficit
+                score = 500 + Math.max(0, tgt8M - c8M);
             } else if (s==='6H') {
                 if (!use6H) continue;
                 if (getDayCount(d,'6H')>=dailyTargets[d].t6) continue;
@@ -2839,7 +2944,21 @@ function placeShiftsGreedy(worker, pool, startDay, endDay) {
         }
 
         validOptions.sort((a,b) => b.score-a.score);
-        if (validOptions.length>0) worker.shifts[validOptions[0].day] = validOptions[0].shift;
+        if (validOptions.length>0) {
+            // ── Pick randomly from top-3 candidates, not always the single best ──
+            // Picking index 0 every time causes same days to fill first (Monday bias etc.).
+            // Weighted random among top-3: first gets weight 3, second 2, third 1.
+            const topN = validOptions.slice(0, Math.min(3, validOptions.length));
+            const weights = [3, 2, 1].slice(0, topN.length);
+            const totalW = weights.reduce((a,b)=>a+b, 0);
+            let rand = Math.random() * totalW;
+            let chosen = topN[0];
+            for (let ti = 0; ti < topN.length; ti++) {
+                rand -= weights[ti];
+                if (rand <= 0) { chosen = topN[ti]; break; }
+            }
+            worker.shifts[chosen.day] = chosen.shift;
+        }
     }
 }
 
@@ -2924,7 +3043,16 @@ function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
 
         validOptions.sort((a,b) => b.score-a.score);
         if (validOptions.length>0) {
-            const chosen = validOptions[0];
+            // ── Pick randomly from top-3 scoring days ──
+            const topN = validOptions.slice(0, Math.min(3, validOptions.length));
+            const weights = [3, 2, 1].slice(0, topN.length);
+            const totalW = weights.reduce((a,b)=>a+b, 0);
+            let rand = Math.random() * totalW;
+            let chosen = topN[0];
+            for (let ti = 0; ti < topN.length; ti++) {
+                rand -= weights[ti];
+                if (rand <= 0) { chosen = topN[ti]; break; }
+            }
             worker.shifts[chosen.day] = chosen.shift;
             if (lateShiftTypes.includes(getBaseShift(chosen.shift))) lateRemaining = Math.max(0, lateRemaining-1);
         }
@@ -3433,16 +3561,22 @@ function buildAnalysisSheet(de) {
 
     // ── 1. Worker Summary table ──
     addSection('👥', de ? 'Mitarbeiter-Übersicht' : 'Worker Summary');
-    addRow([de?'Name':'Name', de?'Vertrag':'Contract', de?'Std.':'Hours', de?'Urlaub':'Vac', de?'Krank':'Sick'],
+    addRow([de?'Name':'Name', de?'Vertrag':'Contract', de?'Std.':'Hours', de?'Spät%':'Late%', de?'Fair?':'Fair?', de?'Urlaub':'Vac', de?'Krank':'Sick'],
         '#DDDDDD', { bold:true });
 
     workers.forEach(w => {
-        const totalH = w.shifts.reduce((s,sh) => s + getShiftHours(sh), 0);
-        const vacN   = w.shifts.filter(s => isVacationBase(getBaseShift(s))).length;
-        const pendN  = w.shifts.filter(s => isPendingVacationShift(s)).length;
-        const sickN  = w.shifts.filter(s => getBaseShift(s)==='SICK').length;
-        const vacStr = pendN > 0 ? `${vacN} (+${pendN} ⏳)` : `${vacN}`;
-        addRow([w.name, `${w.contract}h`, totalH, vacStr, sickN]);
+        const totalH      = w.shifts.reduce((s,sh) => s + getShiftHours(sh), 0);
+        const totalShifts = w.shifts.filter(s => s !== '-').length;
+        const lateCount   = w.shifts.filter(s => ['8L','8M'].includes(getBaseShift(s))).length;
+        const latePct     = totalShifts > 0 ? Math.round((lateCount / totalShifts) * 100) : 0;
+        const isFair      = latePct >= 30 && latePct <= 50;
+        const vacN        = w.shifts.filter(s => isVacationBase(getBaseShift(s))).length;
+        const pendN       = w.shifts.filter(s => isPendingVacationShift(s)).length;
+        const sickN       = w.shifts.filter(s => getBaseShift(s)==='SICK').length;
+        const vacStr      = pendN > 0 ? `${vacN} (+${pendN} ⏳)` : `${vacN}`;
+        addRow([w.name, `${w.contract}h`, totalH, `${latePct}%`, isFair ? '✔ Fair' : '⚠ Check', vacStr, sickN],
+            isFair ? null : BG_WRN,
+            { fontColor: isFair ? GREEN : ORANGE });
     });
 
     // ── 2. Fairness Check ──
@@ -3648,7 +3782,13 @@ function downloadExcelWithFormulas() {
 
     // ── Build Plan sheet ──
     const planHeader = [de?'Datum':'Date', de?'Wochentag':'Weekday', de?'Feiertag?':'Holiday?', 'LSS?'];
-    workers.forEach(w => planHeader.push(`${w.name} (${w.contract}h)`));
+    workers.forEach(w => {
+        const totalShifts = w.shifts.filter(s => s !== '-' && !isPendingVacationShift(s)).length;
+        const lateShifts  = w.shifts.filter(s => ['8L','8M'].includes(getBaseShift(s))).length;
+        const latePct     = totalShifts > 0 ? Math.round((lateShifts / totalShifts) * 100) : 0;
+        const isFair      = latePct >= 30 && latePct <= 50;
+        planHeader.push(`${w.name} (${w.contract}h)${isFair ? ' ✔' : ' ⚠'}`);
+    });
     cfg.summary.forEach(s => planHeader.push(s.label));
     const planRows = [planHeader];
 
@@ -4124,78 +4264,93 @@ function getHelpContent(lang) {
   const de = lang === 'de';
   return `
   <h3>${de?'Schritt 1: Monat einrichten':'Step 1: Set Up the Month'}</h3>
-  ${de?'Wählen Sie den Planungsmonat. Wochenenden und <strong>österreichische Feiertage</strong> werden automatisch erkannt. Passen Sie die <strong>Tagesgenauen Zielwerte</strong> für 8E, 8M, 8L, 13H und 6H an.':'Select your planning month. Weekends and <strong>Austrian National Holidays</strong> are detected automatically. Adjust the <strong>Master Targets</strong> to set exact daily counts for 8E, 8M, 8L, 13H, and 6H.'}
+  ${de?'Wählen Sie den Planungsmonat. Wochenenden und <strong>österreichische Feiertage</strong> werden automatisch erkannt und der Feiertagsname ist immer in der Datumszelle sichtbar. Die <strong>Feiertags-Checkbox</strong> erlaubt Admins/Editoren, Feiertage manuell hinzuzufügen oder zu entfernen.':'Select your planning month. Weekends and <strong>Austrian National Holidays</strong> are detected automatically — the holiday name is always shown in the date cell. The <strong>holiday checkbox</strong> lets Admins/Editors manually add or remove a holiday.'}
   <div style="margin:8px 0;padding:8px 10px;background:#fff8e1;border:1px solid #ffe082;border-radius:4px;font-size:12px;">
     <strong>${de?'⚙️ 13H und 6H aktivieren/deaktivieren:':'⚙️ Enable / Disable 13H and 6H shifts:'}</strong><br>
-    ${de?'Verwenden Sie die Kontrollkästchen im Setup-Bereich. Wenn deaktiviert: Spalte verschwindet, Auto-Befüllung überspringt diesen Dienst.':'Use the checkboxes in the Setup panel. When off: the column disappears from the table and Auto-Fill never assigns that shift type.'}
+    ${de?'Kontrollkästchen im Setup-Bereich. Wenn deaktiviert: Spalte verschwindet, Auto-Befüllung überspringt diesen Dienst.':'Checkboxes in the Setup panel. When off: the column disappears and Auto-Fill never assigns that shift type.'}
   </div>
   <div style="margin:8px 0;padding:8px 10px;background:#f0faf0;border:1px solid #a5d6a7;border-radius:4px;font-size:12px;">
-    <strong>${de?'⚖️ 8L vs 8M Gerechtigkeit (IR2 vs IR3/IR4):':'⚖️ 8L vs 8M fairness (IR2 vs IR3/IR4):'}</strong><br>
-    ${de?'<strong>8L (14:00–22:30)</strong> = Zimmer IR2 — härterer Spätdienst bis 22:30.<br><strong>8M (11:30–20:00)</strong> = Zimmer IR3/IR4 — Spätdienst bis 20:00.<br>Jeder Mitarbeiter bekommt pro Woche ~2–3 Spätdienste (8L oder 8M) und ~2–3 Frühdienste. Die Fußzeile zeigt die Aufteilung als <code>XL / YM</code>.':'<strong>8L (14:00–22:30)</strong> = IR2 room — harder late shift ending at 22:30.<br><strong>8M (11:30–20:00)</strong> = IR3/IR4 rooms — somewhat easier late shift ending at 20:00.<br>Each worker gets ~2–3 late shifts (8L or 8M) and ~2–3 early shifts per week. The footer shows the split as <code>XL / YM</code>.'}
+    <strong>${de?'🔒 LSS-Tag &amp; Feiertag — Nur Editor/Admin:':'🔒 LSS Day &amp; Holiday — Editor/Admin only:'}</strong><br>
+    ${de?'Die LSS-Checkbox und die Feiertags-Checkbox können nur von eingeloggten Editoren oder Admins geändert werden. Viewer sehen sie, können sie aber nicht anklicken.':'The LSS checkbox and holiday checkbox can only be changed by logged-in Editors or Admins. Viewers see them but cannot click them.'}
   </div>
 
   <h3>${de?'Schritt 2: Mitarbeiter hinzufügen & bearbeiten':'Step 2: Add & Edit Workers'}</h3>
   <strong>${de?'System — Neu vs. Alt:':'System — New vs Old:'}</strong>
   <ul>
-    <li><strong>${de?'Neu':'New'}</strong> — ${de?'Flexibles wöchentliches Stundenziel, wechselnde Hoch-/Niedrigwochen. Mischt 8E, 8L, 8M, 13H und 6H. Pro Woche ~2–3 Spät- und ~2–3 Frühdienste.':'Flexible weekly hour target, alternating high/low weeks. Mixes 8E, 8L, 8M, 13H and 6H. ~2–3 lates and ~2–3 earlies per week.'}</li>
-    <li><strong>${de?'Alt':'Old'}</strong> — ${de?'Strenge Rotation: eine volle Woche Frühdienste (8E), die nächste Woche Spätdienste (8L/8M), usw.':'Strict rotation: one full week of Early shifts (8E), the next full week Late (8L/8M), repeating.'}</li>
+    <li><strong>${de?'Neu':'New'}</strong> — ${de?'Flexibles wöchentliches Stundenziel, wechselnde Hoch-/Niedrigwochen. Mischt 8E, 8L, 8M, 13H und 6H. Fairness-Kontingent korrigiert sich monatlich selbst (~40% Spätdienste über den Monat).':'Flexible weekly hour target, alternating high/low weeks. Mixes 8E, 8L, 8M, 13H and 6H. Fair late-shift quota self-corrects monthly (~40% lates over the month).'}</li>
+    <li><strong>${de?'Alt':'Old'}</strong> — ${de?'Strenge Rotation: volle Woche Frühdienst (8E), dann volle Woche Spätdienst (8L+8M), wechselweise.':'Strict rotation: one full week Early (8E), next full week Late (8L+8M), alternating.'}</li>
     <li><strong>⚠️ ${de?'System hat keinen Effekt auf Immo-Mitarbeiter.':'System has no effect on Immo workers.'}</strong></li>
   </ul>
   <strong>${de?'Dienstpräferenz:':'Shift Preference:'}</strong>
   <ul>
-    <li><strong>${de?'Gemischte Dienste':'Mixed Shifts'}</strong> — ${de?'Auto-Befüllung weist 8E, 8L, 8M, 13H und 6H frei zu, um Tagesziele zu erreichen.':'Auto-Fill assigns 8E, 8L, 8M, 13H and 6H freely to hit daily targets.'}</li>
+    <li><strong>${de?'Gemischte Dienste':'Mixed Shifts'}</strong> — ${de?'Auto-Befüllung weist 8E, 8L, 8M (und 13H/6H) frei zu.':'Auto-Fill assigns 8E, 8L, 8M (and 13H/6H) freely.'}</li>
     <li><strong>${de?'Nur Frühdienst':'Early Only'}</strong> — ${de?'Nur 8E-Dienste.':'Only 8E shifts.'}</li>
     <li><strong>${de?'Nur Spätdienst':'Late Only'}</strong> — ${de?'Nur 8L/8M-Dienste.':'Only 8L/8M shifts.'}</li>
   </ul>
-  <strong>${de?'Immo-Rolle:':'Immo Role:'}</strong>
-  <ul>
-    <li><strong>${de?'Standard':'Standard'}</strong> — ${de?'Regulärer Stationsmitarbeiter.':'Regular ward worker.'}</li>
-    <li><strong>${de?'Festes Immo':'Fixed Immo'}</strong> — ${de?'Nur Immo-Dienste (ImE/ImL, Mo–Fr).':'Works in Immo only (ImE/ImL, Mon–Fri).'}</li>
-    <li><strong>${de?'Immo-Einspringer':'Immo Jump-in'}</strong> — ${de?'Regulärer Mitarbeiter, der bei Bedarf Immo abdeckt.':'Regular worker who covers Immo manually when needed.'}</li>
-  </ul>
   ${de?'Um Einstellungen zu ändern: <strong>✏️-Symbol</strong> in der Spaltenüberschrift klicken.':'To change worker settings: click the <strong>✏️ button</strong> in the column header.'}
 
-  <h3>${de?'Schritt 3: Manuelle Daten eingeben':'Step 3: Enter Manual Data'}</h3>
-  ${de?'Tragen Sie Urlaub, Krankenstand und feste Dienste ein, bevor Sie die Auto-Befüllung starten.':'Enter VAC, SICK and fixed shifts before running Auto-Fill.'}
+  <h3>${de?'Schritt 3: Sommerdienstplan ☀️':'Step 3: Summer Schedule ☀️'}</h3>
+  ${de?'Pro Mitarbeiter im ✏️-Dialog einstellbar. Gilt nur in den gewählten Monaten (Standard: Mai–August).':'Set per worker in the ✏️ edit dialog. Active only in selected months (default: May–August).'}
+  <ul>
+    <li><strong>${de?'Nur Früh':'Nur Früh'}</strong> — ${de?'Immer 8E.':'Always 8E.'}</li>
+    <li><strong>${de?'Nur Spät':'Nur Spät'}</strong> — ${de?'8L+8M ausgewogen.':'8L+8M balanced.'}</li>
+    <li><strong>Var 1</strong> — ${de?'Alt-System: Woche früh / Woche spät. Spätwochen wechseln zwischen Muster A (mehr 8M) und Muster B (mehr 8L).':'Old system: early week / late week alternating. Late weeks alternate between Pattern A (more 8M) and Pattern B (more 8L).'}
+      <br><small style="color:#555;">${de?'40h: A=2L+3M / B=3L+2M &nbsp;|&nbsp; 32h: A=1L+3M / B=3L+1M &nbsp;|&nbsp; 24h: A=1L+2M / B=2L+1M':'40h: A=2L+3M / B=3L+2M &nbsp;|&nbsp; 32h: A=1L+3M / B=3L+1M &nbsp;|&nbsp; 24h: A=1L+2M / B=2L+1M'}</small></li>
+    <li><strong>Var 2</strong> — ${de?'Neu-System: Feste 4-Wochen-Vorlage, Tage innerhalb der Woche werden zufällig verteilt. Einstiegswoche (0–3) verschiebt die Zyklusposition.':'New system: fixed 4-week template, days within each week are randomised. Entry week (0–3) shifts the cycle position.'}
+      <br><small style="color:#555;">${de?'40h: Wo1=3E+2M / Wo2=2E+1M+2L / Wo3=2E+1M+2L / Wo4=3E+1M+1L':'40h: Wk1=3E+2M / Wk2=2E+1M+2L / Wk3=2E+1M+2L / Wk4=3E+1M+1L'}</small>
+      <br><small style="color:#555;">${de?'32h: Wo1=2E+2M / Wo2=2E+1M+1L / Wo3=2E+2L / Wo4=2E+1M+1L':'32h: Wk1=2E+2M / Wk2=2E+1M+1L / Wk3=2E+2L / Wk4=2E+1M+1L'}</small>
+      <br><small style="color:#555;">${de?'24h: Wo1=2E+1M / Wo2=1E+1M+1L / Wo3=2E+1L / Wo4=1E+1M+1L':'24h: Wk1=2E+1M / Wk2=1E+1M+1L / Wk3=2E+1L / Wk4=1E+1M+1L'}</small></li>
+    <li><strong>Var 3</strong> — ${de?'Streng abwechselnd: Woche früh = nur 8E, Woche spät = nur 8L (kein 8M).':'Strict alternating: early week = 8E only, late week = 8L only (no 8M).'}</li>
+  </ul>
 
-  <h3>${de?'Schritt 4: Intelligente Auto-Befüllung ✨':'Step 4: Run Smart Auto-Fill ✨'}</h3>
-  ${de?'Berücksichtigt Ruhezeiten, verhindert Verstöße bei aufeinanderfolgenden Tagen und füllt Dienste gemäß Tageszielen auf.<br><strong>13H/6H:</strong> Werden nur zugewiesen wenn die entsprechenden Kontrollkästchen aktiviert sind.<br><strong>Fairness:</strong> Jede Woche erhält jeder "Neu"-System-Mitarbeiter ein Spätdienst-Kontingent (~40% der Wochendienste), damit niemand dauerhaft mehr Spätdienste hat.':'Balances rest times, prevents consecutive-day violations, and fills shifts to hit daily targets.<br><strong>13H/6H:</strong> Only assigned when the corresponding checkboxes are ticked.<br><strong>Fairness:</strong> Each week every "New" system worker is given a late-shift quota (~40% of their weekly shifts), so no one ends up with a disproportionate number of late shifts.'}
+  <h3>${de?'Schritt 4: Manuelle Daten eingeben':'Step 4: Enter Manual Data'}</h3>
+  ${de?'Urlaub, Krankenstand und feste Dienste vor der Auto-Befüllung eintragen.':'Enter VAC, SICK and fixed shifts before running Auto-Fill.'}
 
-  <h3>${de?'Schritt 5: Ansicht aktualisieren 🔄':'Step 5: Refresh Board 🔄'}</h3>
+  <h3>${de?'Schritt 5: Intelligente Auto-Befüllung ✨':'Step 5: Run Smart Auto-Fill ✨'}</h3>
+  ${de?'Berücksichtigt Ruhezeiten, verhindert aufeinanderfolgende Tage und füllt Dienste gemäß Tageszielen auf.':'Balances rest times, prevents consecutive-day violations, and fills shifts to hit daily targets.'}
+  <div style="margin:6px 0;padding:7px 10px;background:#eafaf1;border:1px solid #a9dfbf;border-radius:4px;font-size:12px;">
+    <strong>${de?'⚖️ Fairness-System:':'⚖️ Fairness System:'}</strong><br>
+    ${de?'<strong>Bucket-Shuffle:</strong> Mitarbeiter mit ähnlicher Spätdienst-Bilanz (±1) werden zufällig sortiert — nicht immer dieselbe Reihenfolge.<br><strong>Top-3-Tagswahl:</strong> Nicht immer der beste Tag, sondern ein zufällig gewichteter aus den Top 3 — vermeidet Montag-Bias.<br><strong>Dynamisches Kontingent:</strong> Spätdienst-Quote korrigiert sich monatlich (Rückstand → mehr Spätdienste, Überschuss → weniger). Ziel: 30–50% Spätdienste pro Mitarbeiter.<br><strong>Fair?-Spalte:</strong> Im Excel-Export zeigt der Spaltenkopf ✔ wenn 30–50% Spätdienste, sonst ⚠.':'<strong>Bucket Shuffle:</strong> Workers with similar late counts (±1) are randomly ordered — not always the same person first.<br><strong>Top-3 Day Pick:</strong> Not always the highest-scoring day — randomly weighted among top 3 to avoid Monday-bias.<br><strong>Dynamic Quota:</strong> Late-shift quota self-corrects monthly (behind → more lates, ahead → fewer). Target: 30–50% lates per worker.<br><strong>Fair? column:</strong> In the Excel export, each worker column header shows ✔ if 30–50% lates, ⚠ otherwise.'}
+  </div>
+
+  <h3>${de?'Schritt 6: Ansicht aktualisieren 🔄':'Step 6: Refresh Board 🔄'}</h3>
   ${de?'Nach manuellen Änderungen <strong>Ansicht aktualisieren</strong> klicken.':'After any manual change click <strong>Refresh Board</strong>.'}
 
-  <h3>${de?'Schritt 6: Rückgängig & Wiederholen ↩↪':'Step 6: Undo & Redo ↩↪'}</h3>
-  ${de?'Jede Änderung ist rückgängig machbar (bis zu 20 Schritte). Strg+Z / Strg+Y.':'Every change is undoable (up to 20 steps). Ctrl+Z / Ctrl+Y.'}
+  <h3>${de?'Schritt 7: Rückgängig & Wiederholen ↩↪':'Step 7: Undo & Redo ↩↪'}</h3>
+  ${de?'Jede Änderung rückgängig machbar (bis zu 20 Schritte). Strg+Z / Strg+Y.':'Every change is undoable (up to 20 steps). Ctrl+Z / Ctrl+Y.'}
 
-  <h3>${de?'Schritt 7: Mindestpersonal-Alarm 🔴':'Step 7: Minimum Staff Alarm 🔴'}</h3>
+  <h3>${de?'Schritt 8: Mindestpersonal-Alarm 🔴':'Step 8: Minimum Staff Alarm 🔴'}</h3>
   ${de?'Mindestwert in der Legende einstellen. Datumszelle wird rot, wenn der Wert unterschritten wird.':'Set Min Working Staff in the Legend. The date cell turns red when the count drops below it.'}
 
-  <h3>${de?'Schritt 8: Auswahlmodus ⬜':'Step 8: Select Mode ⬜'}</h3>
-  ${de?'Mehrere Zellen markieren und einen Dienst auf alle auf einmal anwenden. Jetzt auch mit Zimmer-Varianten (8E-IR2, 8M-IR3, etc.) in der Auswahlliste.':'Select multiple cells and apply one shift to all at once. Room variants (8E-IR2, 8M-IR3, etc.) are now available in the selection bar dropdown.'}
+  <h3>${de?'Schritt 9: Auswahlmodus ⬜':'Step 9: Select Mode ⬜'}</h3>
+  ${de?'Mehrere Zellen markieren und einen Dienst auf alle auf einmal anwenden. Zimmer-Varianten (8E-IR2, 8M-IR3 usw.) in der Auswahlliste verfügbar.':'Select multiple cells and apply one shift to all at once. Room variants (8E-IR2, 8M-IR3 etc.) available in the selection bar.'}
 
-  <h3>${de?'Schritt 9: Statistikbereich 📊':'Step 9: Worker Stats Panel 📊'}</h3>
-  ${de?'Aktivieren Sie "Statistikbereich anzeigen" für Stunden, Früh/Spät-Aufteilung, Urlaub, Krankenstand und maximale aufeinanderfolgende Tage.':'Tick Show Worker Stats Panel for hours, early/late split, vacation, sick and max consecutive days.'}
+  <h3>${de?'Schritt 10: Statistikbereich 📊':'Step 10: Worker Stats Panel 📊'}</h3>
+  ${de?'"Statistikbereich anzeigen" aktivieren für Stunden, Früh/Spät-Aufteilung, Urlaub, Krankenstand und maximale aufeinanderfolgende Tage.':'Tick Show Worker Stats Panel for hours, early/late split, vacation, sick and max consecutive days.'}
 
-  <h3>${de?'Schritt 10: Monatsvergleich 📆':'Step 10: Month Comparison 📆'}</h3>
-  ${de?'Zwei gespeicherte Monate nebeneinander vergleichen. Zeigt Stundenänderungen, Früh/Spät-Verschiebungen und jeden Dienst der sich unterscheidet.':'Compare any two saved months side by side — hours, early/late changes, and every shifted day.'}
+  <h3>${de?'Schritt 11: Monatsvergleich 📆':'Step 11: Month Comparison 📆'}</h3>
+  ${de?'Zwei gespeicherte Monate nebeneinander vergleichen — Stunden, Früh/Spät-Verschiebungen und jeden geänderten Dienst.':'Compare any two saved months side by side — hours, early/late changes, and every shifted day.'}
 
-  <h3>${de?'Schritt 11: Zimmer zuweisen 🚪':'Step 11: Assign Rooms 🚪'}</h3>
+  <h3>${de?'Schritt 12: Zimmer zuweisen 🚪':'Step 12: Assign Rooms 🚪'}</h3>
   ${de?'Dienst wie <code>8E</code> auf <code>8E-IR2</code> ändern, um die Zimmerspalten automatisch zu befüllen.':'Change a shift like <code>8E</code> to <code>8E-IR2</code> to populate the Room columns automatically.'}
 
-  <h3>${de?'Schritt 12: KI-Prüfung & Tauschvorschläge 🤖':'Step 12: AI Check & Swap Suggestions 🤖'}</h3>
-  ${de?'Überprüft Gerechtigkeit, Arbeitszeitverstöße, Unterbesetzung und Immo-Lücken. Schlägt konkrete Tausche vor.':'Checks fairness, labour law violations, understaffing and Immo gaps. Proposes specific swaps.'}
+  <h3>${de?'Schritt 13: KI-Prüfung & Tauschvorschläge 🤖':'Step 13: AI Check & Swap Suggestions 🤖'}</h3>
+  ${de?'Überprüft Gerechtigkeit, Arbeitszeitverstöße, Unterbesetzung und Immo-Lücken. Schlägt konkrete Tausche vor. <strong>Auch im Excel-Export</strong> als "Analyse"-Blatt enthalten.':'Checks fairness, labour law violations, understaffing and Immo gaps. Proposes specific swaps. <strong>Also included in the Excel export</strong> as an "Analysis" sheet.'}
 
-  <h3>${de?'Schritt 13: LSS-Tag — Wer bekommt ihn? 📋':'Step 13: LSS Day — Choose Who Gets It 📋'}</h3>
-  ${de?'LSS-Kontrollkästchen öffnet ein Popup. Feste Immo-Mitarbeiter sind standardmäßig deaktiviert, damit ihre Immo-Dienste nicht überschrieben werden.':'LSS checkbox opens a popup. Fixed Immo workers are unchecked by default so their Immo shifts are never overwritten.'}
+  <h3>${de?'Schritt 14: LSS-Tag 📋 — Nur Editor/Admin':'Step 14: LSS Day 📋 — Editor/Admin only'}</h3>
+  ${de?'Die LSS-Checkbox öffnet ein Popup. Feste Immo-Mitarbeiter sind standardmäßig deaktiviert. <strong>Nur eingeloggte Editoren oder Admins</strong> können LSS-Tage ändern.':'The LSS checkbox opens a popup. Fixed Immo workers are unchecked by default. <strong>Only logged-in Editors or Admins</strong> can change LSS days.'}
 
-  <h3>${de?'Schritt 14: Benutzerdefinierte Dienstzeiten ⏰':'Step 14: Custom Shift Hours ⏰'}</h3>
-  ${de?'Jede Zelle hat einen kleinen <strong style="color:#6c3483;">⏰</strong>-Knopf. Damit können Sie individuelle Start- und Endzeiten festlegen. Wenn der Dienst sowohl vor Mittag beginnt als auch nach 14:00 endet, wird er in beiden Spalten (8E und 8L) gezählt und mit <strong>★</strong> markiert.':'Every cell has a tiny <strong style="color:#6c3483;">⏰</strong> button. Set a custom start and end time. If the shift spans before noon and after 14:00, it counts in both 8E and 8L buckets and is marked ★.'}
+  <h3>${de?'Schritt 15: Benutzerdefinierte Dienstzeiten ⏰':'Step 15: Custom Shift Hours ⏰'}</h3>
+  ${de?'Jede Zelle hat einen kleinen <strong style="color:#6c3483;">⏰</strong>-Knopf. Individuelle Start- und Endzeiten festlegen. Dienste die sowohl vor Mittag beginnen als auch nach 14:00 enden zählen in beiden Spalten (8E und 8L) und werden mit <strong>★</strong> markiert.':'Every cell has a tiny <strong style="color:#6c3483;">⏰</strong> button. Set a custom start and end time. If the shift spans before noon and after 14:00 it counts in both 8E and 8L buckets and is marked ★.'}
 
-  <h3>${de?'Schritt 15: Sicherung, Wiederherstellung & GitHub-Sync 💾':'Step 15: Backup, Restore & GitHub Sync 💾'}</h3>
-  ${de?'<strong>JSON-Sicherung</strong> speichert alle Daten. <strong>JSON wiederherstellen</strong> lädt sie neu.<br><strong>🐙 GitHub-Sync:</strong> Geben Sie Ihren GitHub-Besitzer, Repo-Namen und ein Personal Access Token (PAT) ein. Alle können denselben Dienstplan über GitHub Pages teilen. Pull = Daten abrufen, Push = Daten hochladen.':'<strong>Backup JSON</strong> saves all data. <strong>Restore JSON</strong> reloads it.<br><strong>🐙 GitHub Sync:</strong> Enter your GitHub owner, repo name, and a Personal Access Token (PAT with Contents read/write). Everyone accesses the same schedule via GitHub Pages. Pull = fetch shared data, Push = upload your data.'}
+  <h3>${de?'Schritt 16: GitHub-Sync & Einstellungen 💾🐙':'Step 16: GitHub Sync & Settings 💾🐙'}</h3>
+  ${de?'<strong>PAT</strong> und <strong>Verschlüsselungspasswort</strong> werden <em>sofort beim Tippen</em> gespeichert — kein Speichern-Button nötig.<br><strong>Geteiltes Kommentar-Token</strong> wird ebenfalls sofort in den Speicher übernommen.<br><strong>JSON-Sicherung</strong> speichert alle Daten. <strong>JSON wiederherstellen</strong> lädt sie neu.<br><strong>GitHub-Sync:</strong> Owner, Repo-Name und PAT eingeben. Pull = Daten holen, Push = Daten hochladen.':'<strong>PAT</strong> and <strong>encryption password</strong> are applied <em>immediately as you type</em> — no Save button needed.<br><strong>Shared comment token</strong> is also applied instantly to memory.<br><strong>Backup JSON</strong> saves all data. <strong>Restore JSON</strong> reloads it.<br><strong>GitHub Sync:</strong> Enter owner, repo, and PAT. Pull = fetch shared data, Push = upload your data.'}
+
+  <h3>${de?'Schritt 17: Excel-Export 📊':'Step 17: Excel Export 📊'}</h3>
+  ${de?'Enthält vier Blätter: <strong>Plan</strong> (Hauptblatt mit Farben, Dropdowns und Formeln), <strong>Helpers</strong> (Formel-Logik, versteckt), <strong>Legend</strong> (Farbschlüssel + Dropdown-Quelle), <strong>Analyse</strong> (Fairness, Gesetzesprüfung, Tauschvorschläge). Formeln werden beim Öffnen automatisch neu berechnet. Jeder Dienst-Spaltenkopf zeigt <strong>✔</strong> (fair, 30–50% Spätdienste) oder <strong>⚠</strong>.':'Contains four sheets: <strong>Plan</strong> (main sheet with colours, dropdowns and formulas), <strong>Helpers</strong> (formula engine, hidden), <strong>Legend</strong> (colour key + dropdown source), <strong>Analysis</strong> (fairness, law checks, swap suggestions). Formulas recalculate automatically on open. Each worker column header shows <strong>✔</strong> (fair, 30–50% lates) or <strong>⚠</strong>.'}
 
   <hr style="margin-top:20px;border:0;border-top:1px solid #eee;">
-  <p style="text-align:right;color:#888;font-style:italic;font-size:11px;">Created and Designed with ❤️ by Anis :) | v4 — EN/DE toggle, 6H toggle, Select Mode rooms, Fair weekly quota</p>`;
+  <p style="text-align:right;color:#888;font-style:italic;font-size:11px;">Created and Designed with ❤️ by Anis :) | v6 — Fair templates, live PAT/encryption, LSS/HOL auth, Analysis sheet, cell colours</p>`;
 }
 
 
@@ -4233,8 +4388,13 @@ function getFieldGuide(lang) {
 </div>
 
 <div style="margin-top:6px; padding:5px 7px; background:#eaf0fb; border-left:3px solid #34495e; border-radius:0 3px 3px 0; font-size:11px;">
-    <strong style="color:#34495e;">📋 ${de?'LSS-Tag-Popup':'LSS Day Popup'}</strong><br>
-    ${de?'Das LSS-Kontrollkästchen öffnet ein Popup. Wählen Sie genau, welche Mitarbeiter an diesem Tag LSS erhalten. Feste Immo-Mitarbeiter sind standardmäßig deaktiviert.':'The LSS checkbox opens a popup. Choose exactly which workers get LSS that day. Fixed Immo workers are unchecked by default.'}
+    <strong style="color:#34495e;">📋 ${de?'LSS-Tag-Popup (Nur Editor/Admin)':'LSS Day Popup (Editor/Admin only)'}</strong><br>
+    ${de?'Die LSS-Checkbox und die Feiertags-Checkbox können nur von eingeloggten Editoren oder Admins geändert werden. Das LSS-Popup zeigt alle Mitarbeiter mit Checkboxen — feste Immo-Mitarbeiter sind standardmäßig deaktiviert.':'The LSS checkbox and holiday checkbox can only be changed by logged-in Editors or Admins. The LSS popup shows all workers with checkboxes — fixed Immo workers are unchecked by default.'}
+</div>
+
+<div style="margin-top:6px; padding:5px 7px; background:#eafaf1; border-left:3px solid #27ae60; border-radius:0 3px 3px 0; font-size:11px;">
+    <strong style="color:#1a7f37;">⚖️ ${de?'Fairness-Indikator (Excel-Export)':'Fairness Indicator (Excel Export)'}</strong><br>
+    ${de?'Jeder Mitarbeiter-Spaltenkopf im Excel zeigt <strong>✔</strong> (fair: 30–50% Spätdienste) oder <strong>⚠</strong> (zu wenige oder zu viele Spätdienste). Das Analyse-Blatt zeigt die genaue Spät-Prozent pro Person.':'Each worker column header in Excel shows <strong>✔</strong> (fair: 30–50% late shifts) or <strong>⚠</strong> (too few or too many lates). The Analysis sheet shows the exact late % per person.'}
 </div>`;
 }
 
@@ -5196,6 +5356,46 @@ function setDataPassword() {
             : '⚠️ Data password cleared — files will be written unencrypted.';
         statusEl.style.color  = pwd ? '#1a7f37' : '#856404';
         statusEl.style.display = 'block';
+    }
+}
+
+// ── Live-update helpers — apply settings immediately as user types ──
+function liveUpdatePAT(value) {
+    const trimmed = value.trim();
+    spConfig.fileName = trimmed;
+    // Persist — same place saveSPConfig writes
+    const saved = JSON.parse(localStorage.getItem('shiftPlannerSPConfig') || '{}');
+    saved.fileName = trimmed;
+    localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(saved));
+    const status = document.getElementById('spFileNameStatus');
+    if (status) { status.style.display = trimmed ? 'inline' : 'none'; }
+}
+
+function liveUpdateEncryption(value) {
+    saveDataPassword(value); // already handles localStorage
+    const statusEl = document.getElementById('spDataPwdStatus');
+    if (statusEl) {
+        statusEl.textContent = value
+            ? '✔ Encryption password applied — all future pushes will be encrypted.'
+            : '⚠ Encryption cleared — files will be written unencrypted.';
+        statusEl.style.color  = value ? '#1a7f37' : '#856404';
+        statusEl.style.display = 'block';
+        clearTimeout(statusEl._t);
+        statusEl._t = setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+    }
+}
+
+function liveUpdateCommentToken(value) {
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    SHARED_COMMENT_TOKEN  = trimmed;
+    COMMENTS_SHARED_TOKEN = trimmed;
+    try { localStorage.setItem('shiftPlannerCmtToken', trimmed); } catch(e) {}
+    const status = document.getElementById('cmtTokenInputStatus');
+    if (status) {
+        status.style.display = 'inline';
+        clearTimeout(status._t);
+        status._t = setTimeout(() => { status.style.display = 'none'; }, 2500);
     }
 }
 
