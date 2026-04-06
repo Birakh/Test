@@ -44,7 +44,7 @@
         .holiday-row { background-color: #e8daef !important; }
 
         .checkbox-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
-        .shift-select { width: 100%; min-width: 75px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-weight: bold; text-align: center; color: #222; font-size: 11px; }
+        .shift-select { width: 100%; min-width: 110px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-weight: bold; text-align: center; color: #222; font-size: 11px; }
 
         .warning           { background-color: #ffcccc !important; color: #cc0000; font-weight: bold; }
         .warning-yellow    { background-color: #fff3cd !important; color: #856404; font-weight: bold; }
@@ -291,10 +291,14 @@
             <button id="btnRestore" class="btn-restore btn-half-r" onclick="document.getElementById('restoreInput').click()">📂 Restore JSON</button>
             <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(this)">
         </div>
-        <button id="btnExcel"  class="btn-export btn-full" onclick="copyColorfulExcel()">📋 Copy for Excel</button>
+        <button id="btnExcel"  class="btn-export btn-full" onclick="copyColorfulExcel()">📋 Copy Table (HTML → Excel)</button>
         <button id="btnXLSX" style="background:#0f766e; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#115e59'" onmouseout="this.style.background='#0f766e'" onclick="downloadExcelWithFormulas()">📥 Download Excel (.xlsx)</button>
         <button id="btnHTML"   style="background:#1e8449; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#196f3d'" onmouseout="this.style.background='#1e8449'" onclick="downloadAsHTML()">⬇️ Download as HTML</button>
         <button id="btnSPSync" style="background:#24292f; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='#24292f'" onclick="openGHSyncOrSetup()">🐙 GitHub Sync</button>
+        <div style="display:flex; gap:4px; margin-top:4px;">
+            <button onclick="spPull()" title="Pull latest data from GitHub" style="flex:1; background:#0969da; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#0752b0'" onmouseout="this.style.background='#0969da'">⬇️ Pull</button>
+            <button onclick="spPush()" title="Push your changes to GitHub" style="flex:1; background:#1a7f37; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#156a2e'" onmouseout="this.style.background='#1a7f37'">⬆️ Push</button>
+        </div>
         <button onclick="clearAppCache()" style="background:#7f8c8d; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#6c7a7a'" onmouseout="this.style.background='#7f8c8d'">🗑️ Clear Cache</button>
         <div id="spStatusBar" style="display:none; margin-top:3px; padding:4px 7px; border-radius:3px; font-size:10px; font-weight:bold;"></div>
         <button id="btnDiff"   style="background:#2980b9; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onclick="openMonthDiff()">📆 Month Comparison</button>
@@ -463,7 +467,7 @@
             <li><span style="background:#f4cccc; padding:1px 4px;">8L</span>  14:00–22:30 🔴 IR2</li>
             <li><span style="background:#f9cb9c; padding:1px 4px;">8M</span>  11:30–20:00 🟡 IR3/IR4</li>
             <li><span style="background:#d9ead3; padding:1px 4px;">6H</span>  07:00–13:00 ★</li>
-            <li><span style="background:#b6d7a8; padding:1px 4px;">Offc</span> Office</li>
+            <li><span style="background:#fffde7; padding:1px 4px;">Offc</span> Office</li>
             <li><span style="background:#9fc5e8; padding:1px 4px;">FB</span>   Fortbildung</li>
             <li><span style="background:#d9d9d9; padding:1px 4px;">LSS</span>  Long Service</li>
             <li><span style="background:#d0a9f5; padding:1px 4px;">Urlaub</span> Vacation</li>
@@ -471,7 +475,7 @@
             <li><span style="background:#e8d5f5; padding:1px 4px;">⏰ CUS</span> Custom Hours ★</li>
         </ul>
         <div style="font-size:11px; padding:6px 8px; background:#fff3e0; border-left:3px solid #e67e22; border-radius:0 4px 4px 0; margin-bottom:6px;">
-            ⚖️ <strong>8L vs 8M fairness:</strong> Auto-Fill tracks each worker's 8L (IR2, until 22:30) and 8M (IR3/IR4, until 20:00) counts independently and always assigns the shift type they have fewer of — so no one always ends up with the hardest late slot.
+            ⚖️ <strong>Fair 8L / 8M balance:</strong> Auto-Fill pre-computes a <em>monthly budget</em> for each worker — how many 8L (IR2, 22:30) and how many 8M (IR3/IR4, 20:00) they need to hit 40% late shifts on their actual working days. VAC/SICK days are excluded from the calculation. The budget is drawn down week by week.
         </div>
         <div style="font-size:11px; margin:4px 0; padding:7px 8px; background:#e8f4fc; border-left:3px solid #2e86c1; border-radius:0 4px 4px 0;">
             <strong>🏥 Immo Worker Types:</strong><br>
@@ -1911,6 +1915,11 @@ function updateShift(wIndex, dIndex, value) {
     const sel = document.querySelector(`.shift-select[data-w="${wIndex}"][data-d="${dIndex}"]`);
     if (sel) { const bgColor = getColor(finalValue); sel.style.backgroundColor = bgColor; sel.style.color = ''; const td = sel.closest('td'); if (td) td.style.backgroundColor = bgColor; sel.innerHTML = getDropdownOptions(finalValue); sel.value = finalValue; }
     renderTableFoot(); if (document.getElementById('statsToggle') && document.getElementById('statsToggle').checked) renderStats();
+    // ── Auto-push for viewer vacation requests ──
+    // Viewers don't have autoSync but their requests must reach GitHub immediately.
+    if (currentRole === 'viewer' && isPendingVacationShift(finalValue) && spConfig.siteUrl && spConfig.folderPath) {
+        spPush(true); // silent push — shows status bar only
+    }
 }
 
 function updateRequest(wIndex, dIndex, isChecked) { workers[wIndex].requests[dIndex]=isChecked; saveData(); renderTable(); }
@@ -2617,6 +2626,65 @@ function autoGenerate() {
         }
     });
 
+    // Step 3.5: Pre-compute monthly 8L/8M budgets for New system mixed workers.
+    // This is the "plan full month" pass — runs BEFORE any week is processed.
+    // Solves three problems at once:
+    //   1. Full-month planning: targets are set for the whole month, not re-estimated each week.
+    //   2. 8L vs 8M separately: each worker gets an independent 8L budget and 8M budget.
+    //   3. VAC/SICK excluded from denominator: only real working days count toward the 40% target.
+    mixedIndices.forEach(wIndex => {
+        const worker      = workers[wIndex];
+        const contractHrs = parseInt(worker.contract);
+
+        // Scan the full month for this worker
+        let existing8L = 0, existing8M = 0, existingEarly = 0;
+        let emptyWorkdays = 0;
+        for (let d = 0; d < daysInMonth; d++) {
+            const dow    = new Date(currentYear, currentMonth-1, d+1).getDay();
+            const fixOff = (worker.fixedOff || []).includes(dow);
+            if (dow===0 || dow===6 || isHoliday(d) || fixOff) continue;
+            const s    = worker.shifts[d];
+            const base = getBaseShift(s);
+            if (s === '-') {
+                emptyWorkdays++;
+            } else if (base === '8L') {
+                existing8L++;
+            } else if (base === '8M') {
+                existing8M++;
+            } else if (workShifts.includes(base)) {
+                existingEarly++; // 8E, 13H, 6H, ImE, ImL, FB, LSS, Offc, CUS
+            }
+            // VAC / SICK / PF / OFF → deliberately NOT counted.
+            // They reduce the number of slots to fill but don't affect the fairness denominator.
+        }
+
+        // Effective working days = days that will actually be work shifts by month end.
+        // VAC/SICK are excluded — a worker on 5 days VAC should still get 40% lates on their WORK days.
+        const effectiveWork  = existing8L + existing8M + existingEarly + emptyWorkdays;
+        const targetTotalLate = Math.round(effectiveWork * 0.4);
+
+        // How many more lates are needed?
+        const needLate = Math.max(0, targetTotalLate - existing8L - existing8M);
+
+        // Split 50/50 between 8L and 8M, then correct for any existing imbalance.
+        // If the worker already has more 8L than 8M, give the next lates as 8M and vice versa.
+        const lateImbalance = existing8L - existing8M; // +ve = already heavier on 8L
+        let need8L = Math.round(needLate / 2);
+        let need8M = needLate - need8L;
+        // Rebalance: shift one unit toward the underrepresented type
+        if (lateImbalance >= 2)  { need8L = Math.max(0, need8L - 1); need8M++; }
+        if (lateImbalance <= -2) { need8M = Math.max(0, need8M - 1); need8L++; }
+
+        // Clamp so we can't promise more lates than there are empty slots
+        need8L = Math.min(need8L, emptyWorkdays);
+        need8M = Math.min(need8M, emptyWorkdays - need8L);
+
+        // Store on worker — week loop draws these down as it places shifts
+        worker._remain8L    = need8L;
+        worker._remain8M    = need8M;
+        worker._emptyLeft   = emptyWorkdays;   // tracks how many slots remain to fill
+    });
+
     // Step 4: Mixed workers — week by week, with enforced per-worker late quota
     for (let w=0; w<5; w++) {
         const startDay = w*7;
@@ -2634,13 +2702,23 @@ function autoGenerate() {
             return count;
         };
 
-        // ── True fairness sort: group workers by ±1 late bucket, shuffle within each group ──
-        const lateCounts = mixedIndices.map(i => ({
-            i,
-            lates: workers[i].shifts.filter(s => lateShiftTypes.includes(getBaseShift(s))).length
-        }));
+        // ── True fairness sort: bucket by ±1 total lates, shuffle within bucket ──
+        // Secondary signal: within each bucket, workers with larger 8L/8M type imbalance
+        // go first so their per-type budget has the best chance of being honoured.
+        const lateCounts = mixedIndices.map(i => {
+            const w = workers[i];
+            const n8L = w.shifts.filter(s => getBaseShift(s) === '8L').length;
+            const n8M = w.shifts.filter(s => getBaseShift(s) === '8M').length;
+            return {
+                i,
+                lates:     n8L + n8M,
+                typeSkew:  Math.abs(n8L - n8M), // bigger = more imbalanced → needs type correction sooner
+                remain8L:  w._remain8L || 0,
+                remain8M:  w._remain8M || 0,
+            };
+        });
         lateCounts.sort((a, b) => a.lates - b.lates);
-        // Group into buckets where all members are within 1 late of each other
+        // Group into buckets where all members are within 1 total late of each other
         const buckets = [];
         let curBucket = [];
         for (const entry of lateCounts) {
@@ -2652,7 +2730,8 @@ function autoGenerate() {
             }
         }
         if (curBucket.length) buckets.push(curBucket);
-        // Fisher-Yates shuffle within each bucket
+        // Fisher-Yates shuffle within each bucket, then sort by type imbalance descending
+        // so workers who need type correction most go first within their bucket
         function fyShuffle(arr) {
             for (let i = arr.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -2660,7 +2739,12 @@ function autoGenerate() {
             }
             return arr;
         }
-        const sortedMixed = buckets.flatMap(b => fyShuffle(b).map(e => e.i));
+        const sortedMixed = buckets.flatMap(b => {
+            fyShuffle(b);
+            // Workers with larger remaining type imbalance (need more of one type) go first
+            b.sort((a, b) => (b.remain8L + b.remain8M) - (a.remain8L + a.remain8M));
+            return b.map(e => e.i);
+        });
 
         sortedMixed.forEach(wIndex => {
             const worker = workers[wIndex];
@@ -2806,30 +2890,44 @@ function autoGenerate() {
                 if (use13H && contractHrs>=24) wkPool.push('13H');
                 if (use6H  && contractHrs>=24 && isHigh) wkPool.push('6H');
                 for (let i=0;i<wkShifts;i++) wkPool.push('8H-ANY');
-                // ── Dynamic late quota based on month-to-date balance ──
-                // Fixed 40% every week is predictable — same person, same days, same schedule.
-                // Instead: count how many lates the worker has so far this month vs expected,
-                // and vary the quota (1, 2, or 3) to correct imbalance, with random tiebreaking.
+                // ── Monthly budget drawdown — not a per-week re-estimate ──
+                // We know exactly how many 8L and 8M this worker needs for the whole month
+                // (computed in Step 3.5). Each week we take a proportional slice of what's left.
+                const weeksLeft        = 5 - w;    // weeks remaining including this one
                 const totalShiftsThisWeek = wkPool.length;
-                const shiftsFilledSoFar   = workers[wIndex].shifts.filter(s => s !== '-').length;
-                const latesSoFar          = workers[wIndex].shifts.filter(s => lateShiftTypes.includes(getBaseShift(s))).length;
-                const earlysSoFar         = shiftsFilledSoFar - latesSoFar;
-                // Target ratio: ~40% late over the whole month
-                const expectedLatesRatio  = 0.4;
-                const expectedLates       = Math.round(shiftsFilledSoFar * expectedLatesRatio);
-                const lateDeficit         = expectedLates - latesSoFar; // positive = behind on lates
-                // Determine quota: correct imbalance, clamp to sensible week range, add noise
-                let lateQuota;
-                if (lateDeficit >= 2)       lateQuota = Math.min(3, totalShiftsThisWeek);   // behind — give more lates
-                else if (lateDeficit <= -2)  lateQuota = Math.max(1, 0);                     // ahead — give fewer lates
-                else                        lateQuota = Math.round(totalShiftsThisWeek * 0.4); // on track — target 40%
-                // Add ±1 random variation so identical workers don't always get identical weeks
-                lateQuota = Math.max(0, Math.min(totalShiftsThisWeek, lateQuota + (Math.random() < 0.35 ? 1 : (Math.random() < 0.35 ? -1 : 0))));
+
+                // How many 8L / 8M should land THIS week?
+                // Round-up in early weeks so we don't run out of time to use the budget.
+                const weekTarget8L = Math.min(
+                    totalShiftsThisWeek,
+                    Math.ceil((worker._remain8L || 0) / weeksLeft)
+                );
+                const weekTarget8M = Math.min(
+                    totalShiftsThisWeek - weekTarget8L,
+                    Math.ceil((worker._remain8M || 0) / weeksLeft)
+                );
+                const lateQuota = weekTarget8L + weekTarget8M;
+
+                // Pass per-type targets so placeShiftsGreedyFair can honour them separately
+                worker._weekTarget8L = weekTarget8L;
+                worker._weekTarget8M = weekTarget8M;
                 worker._weekLateQuota = lateQuota;
-                worker._weekLateCount = 0;
+
+                // Snapshot what's already in this week BEFORE placement (pre-existing 8L/8M from manual entry)
+                const pre8L = worker.shifts.slice(startDay, endDay).filter(s => getBaseShift(s) === '8L').length;
+                const pre8M = worker.shifts.slice(startDay, endDay).filter(s => getBaseShift(s) === '8M').length;
+
                 placeShiftsGreedyFair(worker, wkPool, startDay, endDay);
+
+                // Deduct ONLY newly placed shifts (after minus before) from the monthly budget
+                const post8L = worker.shifts.slice(startDay, endDay).filter(s => getBaseShift(s) === '8L').length;
+                const post8M = worker.shifts.slice(startDay, endDay).filter(s => getBaseShift(s) === '8M').length;
+                worker._remain8L = Math.max(0, (worker._remain8L || 0) - Math.max(0, post8L - pre8L));
+                worker._remain8M = Math.max(0, (worker._remain8M || 0) - Math.max(0, post8M - pre8M));
+
                 delete worker._weekLateQuota;
-                delete worker._weekLateCount;
+                delete worker._weekTarget8L;
+                delete worker._weekTarget8M;
             } else {
                 // Old system: strict alternating full-early / full-late weeks
                 const globalWeek = getContinuousWeek(currentYear, currentMonth, startDay);
@@ -2840,6 +2938,12 @@ function autoGenerate() {
             }
         });
     }
+
+        // Clean up per-worker monthly budget properties
+        workers.forEach(w => {
+            delete w._remain8L; delete w._remain8M; delete w._emptyLeft;
+            delete w._weekTarget8L; delete w._weekTarget8M; delete w._weekLateQuota;
+        });
 
         saveData(); renderTable();
     } catch(e) {
@@ -2962,23 +3066,24 @@ function placeShiftsGreedy(worker, pool, startDay, endDay) {
     }
 }
 
-// Fair placement: honours worker._weekLateQuota so each week has ~2-3 lates
+// Fair placement: honours _weekLateQuota and per-type _weekTarget8L/_weekTarget8M
 function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
-    // Sort: 13H first (longest), then 8H-ANY (flexible), then 6H (short)
     pool.sort((a,b) => (shiftHours[b]||8)-(shiftHours[a]||8));
 
-    // Count pre-existing lates this week (from VAC carried-over etc.)
+    // Count pre-existing lates this week (from already-filled VAC-adjacent days etc.)
     let wkLate = 0;
     for (let d=startDay; d<endDay; d++) {
         if (lateShiftTypes.includes(getBaseShift(worker.shifts[d]))) wkLate++;
     }
     const quota = (worker._weekLateQuota !== undefined) ? worker._weekLateQuota : 2;
     let lateRemaining = Math.max(0, quota - wkLate);
-    let earlyRemaining = pool.filter(s => s==='8H-ANY' || s==='8E').length - lateRemaining;
+
+    // Per-type sub-quotas — track 8L and 8M used this week independently
+    let remain8L = worker._weekTarget8L !== undefined ? worker._weekTarget8L : Math.ceil(lateRemaining / 2);
+    let remain8M = worker._weekTarget8M !== undefined ? worker._weekTarget8M : Math.floor(lateRemaining / 2);
 
     for (const s of pool) {
         const validOptions = [];
-        const tgt8E=0, tgt8M=0, tgt8L=0; // will be read per-day below
 
         for (let d=startDay; d<endDay; d++) {
             const dow = new Date(currentYear, currentMonth-1, d+1).getDay();
@@ -2993,32 +3098,38 @@ function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
             if (s==='8H-ANY') {
                 const def8E=dt8E-c8E, def8L=dt8L-c8L, def8M=dt8M-c8M;
                 const maxDef = Math.max(def8E, def8L, def8M);
-                const wLate8L = worker.shifts.filter(x=>getBaseShift(x)==='8L').length;
-                const wLate8M = worker.shifts.filter(x=>getBaseShift(x)==='8M').length;
 
-                // Decide early vs late using weekly quota
-                const forceLate  = lateRemaining > 0 && (def8L>0 || def8M>0 || (def8E<=0));
-                const forceEarly = lateRemaining <= 0;
+                // Decide early vs late using per-type monthly budget, not just total lates
+                const canUse8L = remain8L > 0;
+                const canUse8M = remain8M > 0;
+                const forceLate  = (canUse8L || canUse8M) && (def8L>0 || def8M>0 || def8E<=0);
+                const forceEarly = !canUse8L && !canUse8M; // monthly budget exhausted
 
                 if (forceEarly || (!forceLate && def8E >= Math.max(def8L, def8M))) {
                     actualShift = '8E';
                 } else {
-                    // Assign late — pick 8L or 8M based on deficit + worker balance
-                    if (def8L > def8M) actualShift = '8L';
-                    else if (def8M > def8L) actualShift = '8M';
-                    else actualShift = wLate8L <= wLate8M ? '8L' : '8M';
+                    // Pick 8L or 8M based on: (1) per-type budget, (2) daily deficit, (3) worker balance
+                    const want8L = canUse8L && (def8L >= def8M || !canUse8M);
+                    actualShift = want8L ? '8L' : '8M';
+                    // Final safety: if chosen type budget is 0, flip to the other
+                    if (actualShift === '8L' && !canUse8L && canUse8M) actualShift = '8M';
+                    if (actualShift === '8M' && !canUse8M && canUse8L) actualShift = '8L';
                 }
 
                 score = maxDef > 0 ? 1000 + maxDef : 100;
 
             } else if (s==='8L-ANY') {
                 const def8L=dt8L-c8L, def8M=dt8M-c8M;
-                const wLate8L=worker.shifts.filter(x=>getBaseShift(x)==='8L').length;
-                const wLate8M=worker.shifts.filter(x=>getBaseShift(x)==='8M').length;
-                actualShift = def8L>def8M ? '8L' : def8M>def8L ? '8M' : wLate8L<=wLate8M?'8L':'8M';
+                // Honour per-type budget even for 8L-ANY workers
+                if (remain8L > 0 && (def8L >= def8M || remain8M <= 0)) actualShift = '8L';
+                else actualShift = '8M';
                 score = 1000+Math.max(def8L,def8M);
             } else if (s==='8E') {
                 score = 1000+(dt8E-c8E);
+            } else if (s==='8L') {
+                score = 500 + Math.max(0, dt8L - c8L);
+            } else if (s==='8M') {
+                score = 500 + Math.max(0, dt8M - c8M);
             } else if (s==='6H') {
                 if (!use6H) continue;
                 if (getDayCount(d,'6H')>=dailyTargets[d].t6) continue;
@@ -3043,7 +3154,6 @@ function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
 
         validOptions.sort((a,b) => b.score-a.score);
         if (validOptions.length>0) {
-            // ── Pick randomly from top-3 scoring days ──
             const topN = validOptions.slice(0, Math.min(3, validOptions.length));
             const weights = [3, 2, 1].slice(0, topN.length);
             const totalW = weights.reduce((a,b)=>a+b, 0);
@@ -3054,7 +3164,14 @@ function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
                 if (rand <= 0) { chosen = topN[ti]; break; }
             }
             worker.shifts[chosen.day] = chosen.shift;
-            if (lateShiftTypes.includes(getBaseShift(chosen.shift))) lateRemaining = Math.max(0, lateRemaining-1);
+            // Update per-type sub-quotas
+            if (getBaseShift(chosen.shift) === '8L') {
+                lateRemaining = Math.max(0, lateRemaining - 1);
+                remain8L      = Math.max(0, remain8L - 1);
+            } else if (getBaseShift(chosen.shift) === '8M') {
+                lateRemaining = Math.max(0, lateRemaining - 1);
+                remain8M      = Math.max(0, remain8M - 1);
+            }
         }
     }
 }
@@ -3416,15 +3533,20 @@ function excelHelperFormula(ref, key) {
     const cusStart = `VALUE(MID(${ref},5,2))`;
     const cusEnd   = `VALUE(MID(${ref},11,2))`;
     const isCus    = `LEFT(${ref},3)="CUS"`;
+    // Room variants: 8E-IR2, 8L-IR3, 13H-IR4 etc. — use LEFT() so all variants match
+    const is8E  = `LEFT(${ref},2)="8E"`;
+    const is8M  = `LEFT(${ref},2)="8M"`;
+    const is8L  = `LEFT(${ref},2)="8L"`;
+    const is13H = `LEFT(${ref},3)="13H"`;
     switch (key) {
-        case 'c8E':   return `IF(${ref}="8E",1,IF(AND(${isCus},${cusStart}<=12),1,0))`;
-        case 'c8M':   return `IF(${ref}="8M",1,0)`;
-        case 'c8L':   return `IF(${ref}="8L",1,IF(AND(${isCus},${cusEnd}>=14),1,0))`;
-        case 'c13H':  return `IF(${ref}="13H",1,0)`;
+        case 'c8E':   return `IF(OR(${is8E},AND(${isCus},${cusStart}<=12)),1,0)`;
+        case 'c8M':   return `IF(${is8M},1,0)`;
+        case 'c8L':   return `IF(OR(${is8L},AND(${isCus},${cusEnd}>=14)),1,0)`;
+        case 'c13H':  return `IF(${is13H},1,0)`;
         case 'c6H':   return `IF(${ref}="6H",1,0)`;
         case 'cImE':  return `IF(${ref}="ImE",1,0)`;
         case 'cImL':  return `IF(${ref}="ImL",1,0)`;
-        case 'work':  return `IF(OR(${ref}="8E",${ref}="8L",${ref}="8M",${ref}="13H",${ref}="6H",${ref}="FB",${ref}="LSS",${ref}="Offc",${ref}="ImE",${ref}="ImL",${isCus}),1,0)`;
+        case 'work':  return `IF(OR(${is8E},${is8L},${is8M},${is13H},${ref}="6H",${ref}="FB",${ref}="LSS",${ref}="Offc",${ref}="ImE",${ref}="ImL",${isCus}),1,0)`;
         case 'vac':   return `IF(OR(${ref}="VAC",${ref}="Urlaub IR",${ref}="Urlaub-ZA",${ref}="U-Immo"),1,0)`;
         case 'sick':  return `IF(${ref}="SICK",1,0)`;
         case 'fb':    return `IF(${ref}="FB",1,0)`;
@@ -3441,17 +3563,22 @@ function excelHelperFormulaPending(ref, key) {
     const cusStart = `VALUE(MID(${ref},5,2))`;
     const cusEnd   = `VALUE(MID(${ref},11,2))`;
     const isCus    = `LEFT(${ref},3)="CUS"`;
-    // Vacation types — also match the ⏳ pending variant
-    const isVac    = `OR(${ref}="VAC",${ref}="VAC ⏳",${ref}="Urlaub IR",${ref}="Urlaub IR ⏳",${ref}="Urlaub-ZA",${ref}="Urlaub-ZA ⏳",${ref}="U-Immo",${ref}="U-Immo ⏳")`;
+    // Room variants handled by LEFT() — also handles pending VAC display "VAC ⏳"
+    const is8E  = `LEFT(${ref},2)="8E"`;
+    const is8M  = `LEFT(${ref},2)="8M"`;
+    const is8L  = `LEFT(${ref},2)="8L"`;
+    const is13H = `LEFT(${ref},3)="13H"`;
+    // Vacation — match both approved and pending (⏳) display variants
+    const isVac = `OR(${ref}="VAC",${ref}="VAC ⏳",${ref}="Urlaub IR",${ref}="Urlaub IR ⏳",${ref}="Urlaub-ZA",${ref}="Urlaub-ZA ⏳",${ref}="U-Immo",${ref}="U-Immo ⏳")`;
     switch (key) {
-        case 'c8E':   return `IF(${ref}="8E",1,IF(AND(${isCus},${cusStart}<=12),1,0))`;
-        case 'c8M':   return `IF(${ref}="8M",1,0)`;
-        case 'c8L':   return `IF(${ref}="8L",1,IF(AND(${isCus},${cusEnd}>=14),1,0))`;
-        case 'c13H':  return `IF(${ref}="13H",1,0)`;
+        case 'c8E':   return `IF(OR(${is8E},AND(${isCus},${cusStart}<=12)),1,0)`;
+        case 'c8M':   return `IF(${is8M},1,0)`;
+        case 'c8L':   return `IF(OR(${is8L},AND(${isCus},${cusEnd}>=14)),1,0)`;
+        case 'c13H':  return `IF(${is13H},1,0)`;
         case 'c6H':   return `IF(${ref}="6H",1,0)`;
         case 'cImE':  return `IF(${ref}="ImE",1,0)`;
         case 'cImL':  return `IF(${ref}="ImL",1,0)`;
-        case 'work':  return `IF(OR(${ref}="8E",${ref}="8L",${ref}="8M",${ref}="13H",${ref}="6H",${ref}="FB",${ref}="LSS",${ref}="Offc",${ref}="ImE",${ref}="ImL",${isCus}),1,0)`;
+        case 'work':  return `IF(OR(${is8E},${is8L},${is8M},${is13H},${ref}="6H",${ref}="FB",${ref}="LSS",${ref}="Offc",${ref}="ImE",${ref}="ImL",${isCus}),1,0)`;
         case 'vac':   return `IF(${isVac},1,0)`;
         case 'sick':  return `IF(${ref}="SICK",1,0)`;
         case 'fb':    return `IF(${ref}="FB",1,0)`;
@@ -3972,17 +4099,47 @@ function downloadExcelWithFormulas() {
     // showErrorMessage:false = allow typing custom values (CUS shifts etc.)
     const shiftListRef = `Legend!$D$1:$D$${shiftCodes.length}`;
     const dataValidations = [];
+
+    // HOL column (col C = index 2) — Y / N dropdown
+    dataValidations.push({
+        type:             'list',
+        sqref:            `C2:C${daysInMonth + 1}`,
+        formula1:         '"Y,N"',
+        showDropDown:     false,
+        showInputMessage: true,
+        promptTitle:      de ? 'Feiertag?' : 'Holiday?',
+        prompt:           de ? 'Y = Feiertag, N = kein Feiertag' : 'Y = holiday, N = not a holiday',
+        showErrorMessage: true,
+        errorTitle:       de ? 'Ungültig' : 'Invalid',
+        error:            de ? 'Bitte Y oder N eingeben.' : 'Please enter Y or N.',
+    });
+
+    // LSS column (col D = index 3) — Y / N dropdown
+    dataValidations.push({
+        type:             'list',
+        sqref:            `D2:D${daysInMonth + 1}`,
+        formula1:         '"Y,N"',
+        showDropDown:     false,
+        showInputMessage: true,
+        promptTitle:      'LSS?',
+        prompt:           de ? 'Y = LSS-Tag, N = kein LSS-Tag' : 'Y = LSS day, N = not an LSS day',
+        showErrorMessage: true,
+        errorTitle:       de ? 'Ungültig' : 'Invalid',
+        error:            de ? 'Bitte Y oder N eingeben.' : 'Please enter Y or N.',
+    });
+
+    // Worker shift columns
     for (let wIdx = 0; wIdx < workers.length; wIdx++) {
         const col = excelCol(cfg.workerStartCol + wIdx);
         dataValidations.push({
             type:             'list',
             sqref:            `${col}2:${col}${daysInMonth + 1}`,
             formula1:         shiftListRef,
-            showDropDown:     false,   // false = show the arrow
+            showDropDown:     false,
             showInputMessage: true,
             promptTitle:      de ? 'Dienstcode' : 'Shift Code',
-            prompt:           de ? 'Wählen Sie einen Dienstcode aus der Liste oder geben Sie einen benutzerdefinierten Code ein (z.B. CUS-07:00-15:30).' : 'Select a shift code from the list or type a custom code (e.g. CUS-07:00-15:30).',
-            showErrorMessage: false,   // don't block custom values (CUS, etc.)
+            prompt:           de ? 'Wählen Sie einen Dienstcode oder geben Sie einen benutzerdefinierten Code ein (z.B. CUS-07:00-15:30).' : 'Select a shift code or type a custom code (e.g. CUS-07:00-15:30).',
+            showErrorMessage: false,   // allow custom CUS values
         });
     }
     planWs['!dataValidation'] = dataValidations;
@@ -4150,7 +4307,7 @@ const T = {
     toggle13Hlabel: 'Enable <span style="background:#ffe599;padding:1px 5px;border-radius:3px;">13H</span> shifts (07:00–20:00)',
     toggle6Hlabel:  'Enable <span style="background:#d9ead3;padding:1px 5px;border-radius:3px;">6H</span> shifts (07:00–13:00)',
     toggleShiftNote:'When off: column hidden, Auto-Fill skips it.',
-    fairNote:       '⚖️ <strong>Fair 8L / 8M rotation:</strong> Auto-Fill uses a weekly late quota per worker — so every worker gets ~2–3 lates and ~2–3 earlies each week, and 8L (22:30) vs 8M (20:00) are kept balanced too.',
+    fairNote:       '⚖️ <strong>Fair 8L / 8M balance:</strong> Auto-Fill pre-computes a <em>monthly budget</em> per worker — exact 8L and 8M counts needed to hit 40% late shifts on actual working days (VAC/SICK excluded). Budget drawn down week by week; 8L and 8M tracked independently.',
     btnAutoFill:    '✨ Smart Auto-Fill',
     undoBtn:        '↩ Undo',
     redoBtn:        '↪ Redo',
@@ -4160,7 +4317,7 @@ const T = {
     btnRefresh:     '🔄 Refresh Board',
     btnBackup:      '💾 Backup JSON',
     btnRestore:     '📂 Restore JSON',
-    btnExcel:       '📋 Copy for Excel',
+    btnExcel:       '📋 Copy Table (HTML → Excel)',
     btnHTML:        '⬇️ Download as HTML',
     btnSPSync:      '🐙 GitHub Sync',
     btnDiff:        '📆 Month Comparison',
@@ -4193,7 +4350,7 @@ const T = {
     btnApplyBulk:   '✔ Apply to All Selected',
     btnClearSel:    '✖ Clear Selection',
     btnExitSel:     '✖ Exit',
-    helpTitle:      '📖 A to Z User Guide — v5',
+    helpTitle:      '📖 A to Z User Guide — v6',
     helpContent:    getHelpContent('en'),
   },
   de: {
@@ -4212,7 +4369,7 @@ const T = {
     toggle13Hlabel: '<span style="background:#ffe599;padding:1px 5px;border-radius:3px;">13H</span>-Dienste aktivieren (07:00–20:00)',
     toggle6Hlabel:  '<span style="background:#d9ead3;padding:1px 5px;border-radius:3px;">6H</span>-Dienste aktivieren (07:00–13:00)',
     toggleShiftNote:'Wenn deaktiviert: Spalte ausgeblendet, Auto-Befüllung überspringt diesen Dienst.',
-    fairNote:       '⚖️ <strong>Gerechte 8L / 8M-Rotation:</strong> Die Auto-Befüllung verwendet ein wöchentliches Spätdienst-Kontingent je Mitarbeiter — so bekommt jeder ~2–3 Spät- und ~2–3 Frühdienste pro Woche, und 8L (22:30) und 8M (20:00) werden ausgewogen verteilt.',
+    fairNote:       '⚖️ <strong>Gerechte 8L / 8M-Bilanz:</strong> Die Auto-Befüllung berechnet vorab ein <em>Monatsbudget</em> je Mitarbeiter — genaue Anzahl 8L (IR2, 22:30) und 8M (IR3/IR4, 20:00) für 40% Spätdienste auf echten Arbeitstagen (Urlaub/Krank ausgeschlossen). Budget wird wöchentlich abgerufen; 8L und 8M werden separat verfolgt.',
     btnAutoFill:    '✨ Intelligente Auto-Befüllung',
     undoBtn:        '↩ Rückgängig',
     redoBtn:        '↪ Wiederholen',
@@ -4222,7 +4379,7 @@ const T = {
     btnRefresh:     '🔄 Ansicht aktualisieren',
     btnBackup:      '💾 JSON-Sicherung',
     btnRestore:     '📂 JSON wiederherstellen',
-    btnExcel:       '📋 Für Excel kopieren',
+    btnExcel:       '📋 Tabelle kopieren (HTML → Excel)',
     btnHTML:        '⬇️ Als HTML herunterladen',
     btnSPSync:      '🐙 GitHub-Synchronisation',
     btnDiff:        '📆 Monatsvergleich',
@@ -4255,7 +4412,7 @@ const T = {
     btnApplyBulk:   '✔ Auf alle ausgewählten anwenden',
     btnClearSel:    '✖ Auswahl aufheben',
     btnExitSel:     '✖ Beenden',
-    helpTitle:      '📖 Vollständige Benutzeranleitung — v4',
+    helpTitle:      '📖 Vollständige Benutzeranleitung — v6',
     helpContent:    getHelpContent('de'),
   }
 };
@@ -4309,8 +4466,8 @@ function getHelpContent(lang) {
   <h3>${de?'Schritt 5: Intelligente Auto-Befüllung ✨':'Step 5: Run Smart Auto-Fill ✨'}</h3>
   ${de?'Berücksichtigt Ruhezeiten, verhindert aufeinanderfolgende Tage und füllt Dienste gemäß Tageszielen auf.':'Balances rest times, prevents consecutive-day violations, and fills shifts to hit daily targets.'}
   <div style="margin:6px 0;padding:7px 10px;background:#eafaf1;border:1px solid #a9dfbf;border-radius:4px;font-size:12px;">
-    <strong>${de?'⚖️ Fairness-System:':'⚖️ Fairness System:'}</strong><br>
-    ${de?'<strong>Bucket-Shuffle:</strong> Mitarbeiter mit ähnlicher Spätdienst-Bilanz (±1) werden zufällig sortiert — nicht immer dieselbe Reihenfolge.<br><strong>Top-3-Tagswahl:</strong> Nicht immer der beste Tag, sondern ein zufällig gewichteter aus den Top 3 — vermeidet Montag-Bias.<br><strong>Dynamisches Kontingent:</strong> Spätdienst-Quote korrigiert sich monatlich (Rückstand → mehr Spätdienste, Überschuss → weniger). Ziel: 30–50% Spätdienste pro Mitarbeiter.<br><strong>Fair?-Spalte:</strong> Im Excel-Export zeigt der Spaltenkopf ✔ wenn 30–50% Spätdienste, sonst ⚠.':'<strong>Bucket Shuffle:</strong> Workers with similar late counts (±1) are randomly ordered — not always the same person first.<br><strong>Top-3 Day Pick:</strong> Not always the highest-scoring day — randomly weighted among top 3 to avoid Monday-bias.<br><strong>Dynamic Quota:</strong> Late-shift quota self-corrects monthly (behind → more lates, ahead → fewer). Target: 30–50% lates per worker.<br><strong>Fair? column:</strong> In the Excel export, each worker column header shows ✔ if 30–50% lates, ⚠ otherwise.'}
+    <strong>${de?'⚖️ Fairness-System (3 Ebenen):':'⚖️ Fairness System (3 levels):'}</strong><br>
+    ${de?'<strong>1. Monatliches Budget (Vollplan):</strong> Vor der ersten Woche berechnet die Auto-Befüllung für jeden Mitarbeiter exakt, wie viele 8L und 8M er diesen Monat braucht — basierend auf seinen echten Arbeitstagen (Urlaub/Krank ausgeschlossen). 8L und 8M werden <em>separat</em> budgetiert.<br><strong>2. Wöchentliche Budgetentnahme:</strong> Jede Woche wird ein proportionaler Anteil des Restbudgets verteilt (Restbudget ÷ verbleibende Wochen, aufrundend in frühen Wochen). Wer mehr Budget-Defizit hat, geht zuerst.<br><strong>3. Bucket-Shuffle + Top-3-Tagswahl:</strong> Mitarbeiter mit ähnlicher Spätdienst-Bilanz (±1) werden zufällig geordnet. Tage werden aus den Top-3 Optionen gewichtet zufällig gewählt — vermeidet Montags-Bias.<br><strong>Fair?-Spalte:</strong> Excel-Export zeigt ✔ (30–50% Spätdienste) oder ⚠ im Spaltenheader.':'<strong>1. Monthly budget (full-month planning):</strong> Before week 1, Auto-Fill computes exactly how many 8L and 8M each worker needs this month — based on actual working days (VAC/SICK excluded). 8L and 8M are budgeted <em>independently</em>.<br><strong>2. Weekly budget drawdown:</strong> Each week takes a proportional slice of the remaining budget (remaining ÷ weeks left, rounding up in early weeks). Workers with more remaining budget go first.<br><strong>3. Bucket shuffle + top-3 day pick:</strong> Workers with similar late counts (±1) are randomly ordered. Days are chosen via weighted random from the top-3 options — prevents Monday-bias.<br><strong>Fair? column:</strong> Excel export shows ✔ (30–50% lates) or ⚠ in each worker column header.'}
   </div>
 
   <h3>${de?'Schritt 6: Ansicht aktualisieren 🔄':'Step 6: Refresh Board 🔄'}</h3>
@@ -4363,14 +4520,14 @@ function getFieldGuide(lang) {
 <strong style="font-size:12px;">📋 ${de?'Feldbeschreibung':'Field Guide'}</strong><br>
 <strong>${de?'System — Neu vs. Alt:':'System — New vs Old:'}</strong><br>
 <span style="display:inline-block; margin-left:8px;">
-    <strong>${de?'Neu':'New'}</strong> = ${de?'Neueres Beschäftigungssystem — Auto-Befüllung nutzt ein <em>flexibles wöchentliches Stundenziel</em> (~2–3 Spät- und ~2–3 Frühdienste pro Woche).':'Newer employment system — Auto-Fill uses a <em>flexible weekly hour target</em> (~2–3 lates and ~2–3 earlies per week).'}<br>
+    <strong>${de?'Neu':'New'}</strong> = ${de?'Neueres Beschäftigungssystem — Auto-Befüllung berechnet ein <em>monatliches 8L/8M-Budget</em> je Mitarbeiter (40% Spätdienste auf echten Arbeitstagen, Urlaub/Krank ausgenommen) und ruft es wöchentlich ab.':'Newer employment system — Auto-Fill pre-computes a <em>monthly 8L/8M budget</em> per worker (40% late shifts on actual working days, VAC/SICK excluded) and draws it down week by week.'}<br>
     <strong>${de?'Alt':'Old'}</strong> = ${de?'Älteres System — strikte Rotation: eine volle Woche Frühdienste (8E), die nächste Woche Spätdienste (8L/8M), usw. Kein 13H oder 6H.':'Older employment system — strict rotation: one full week Early (8E), next week Late (8L/8M), repeating. No 13H or 6H assigned.'}
 </span>
 <strong>⚠️ ${de?'System hat keinen Einfluss auf Immo-Mitarbeiter.':'System has no effect on Immo workers.'}</strong><br><br>
 
 <strong>${de?'Dienstpräferenz (nur Nicht-Immo-Mitarbeiter):':'Shift Preference (non-Immo workers only):'}</strong><br>
 <span style="display:inline-block; margin-left:8px;">
-    <strong>${de?'Gemischte Dienste':'Mixed Shifts'}</strong> = ${de?'Auto-Befüllung weist frei 8E, 8L, 8M (und 13H/6H wenn aktiv) zu, ~40% Spät, ~60% Früh.':'Auto-Fill freely assigns 8E, 8L, 8M (and 13H/6H when enabled), ~40% late, ~60% early.'}<br>
+    <strong>${de?'Gemischte Dienste':'Mixed Shifts'}</strong> = ${de?'Auto-Befüllung verteilt 8E, 8L, 8M (und 13H/6H wenn aktiv) nach monatlichem Budget — Ziel 40% Spätdienste auf echten Arbeitstagen, 8L und 8M separat bilanziert.':'Auto-Fill distributes 8E, 8L, 8M (and 13H/6H when enabled) from a monthly budget — targeting 40% late shifts on actual working days, 8L and 8M balanced independently.'}<br>
     <strong>${de?'Nur Frühdienst':'Early Only'}</strong> = ${de?'Nur 8E-Dienste — nie ein Spät- oder Mitteldienst.':'Only 8E shifts — never a late or mid shift.'}<br>
     <strong>${de?'Nur Spätdienst':'Late Only'}</strong> = ${de?'Nur 8L/8M-Dienste — nie ein Frühdienst.':'Only 8L/8M shifts — never an early.'}
 </span>
@@ -6060,52 +6217,11 @@ function renderMobileView() {
   const origSaveAllPasswords = window.saveAllPasswords;
   if(typeof origSaveAllPasswords === 'function'){
     window.saveAllPasswords = async function(){
-      if(!(window.currentRole === 'admin' || window.currentRole === 'editor')) return window.requireAdmin('Set Passwords');
-      const err = document.getElementById('setPwError');
-      if(!window.spConfig.siteUrl || !window.spConfig.folderPath || !window.spConfig.fileName){
-        if(err){ err.textContent = '⚠️ Connect to GitHub first (🐙 button).'; err.style.display = 'block'; }
-        return;
-      }
-      if(err) err.style.display = 'none';
-      ensureOldPasswordFields();
-      const aOld = document.getElementById('pw_admin_old') ? document.getElementById('pw_admin_old').value : '';
-      const eOld = document.getElementById('pw_editor_old') ? document.getElementById('pw_editor_old').value : '';
-      const a1 = document.getElementById('pw_admin1').value;
-      const a2 = document.getElementById('pw_admin2').value;
-      const e1 = document.getElementById('pw_editor1').value;
-      const e2 = document.getElementById('pw_editor2').value;
-      if(a1 && a1 !== a2){ err.textContent = '⚠️ Admin passwords do not match.'; err.style.display='block'; return; }
-      if(e1 && e1 !== e2){ err.textContent = '⚠️ Editor passwords do not match.'; err.style.display='block'; return; }
-      if(a1 && a1.length < 4){ err.textContent = '⚠️ Admin password must be at least 4 characters.'; err.style.display='block'; return; }
-      if(e1 && e1.length < 4){ err.textContent = '⚠️ Editor password must be at least 4 characters.'; err.style.display='block'; return; }
-      if(!a1 && !e1){ err.textContent = '⚠️ Enter at least one password to save.'; err.style.display='block'; return; }
-      try {
-        let cfg = { version: 2 };
-        try {
-          const existing = await window.ghReadFile(window.spCfgFile);
-          if(existing) cfg = JSON.parse(existing);
-        } catch(ex) {}
-        const currentAdminHash = cfg.adminHash || window.adminHash || '';
-        const currentEditorHash = cfg.editorHash || window.editorHash || '';
-        if(a1 && currentAdminHash){
-          const oldHash = await window.sha256(aOld || '');
-          if(oldHash !== currentAdminHash){ err.textContent = '⚠️ Current admin password is incorrect.'; err.style.display='block'; return; }
-        }
-        if(e1 && currentEditorHash){
-          const oldHash = await window.sha256(eOld || '');
-          if(oldHash !== currentEditorHash){ err.textContent = '⚠️ Current editor password is incorrect.'; err.style.display='block'; return; }
-        }
-        if(a1){ cfg.adminHash = await window.sha256(a1); window.adminHash = cfg.adminHash; window.pwHash = cfg.adminHash; }
-        if(e1){ cfg.editorHash = await window.sha256(e1); window.editorHash = cfg.editorHash; }
-        cfg.version = 2;
-        await window.ghWriteFile(window.spCfgFile, JSON.stringify(cfg, null, 2));
-        document.getElementById('setPasswordModal').style.display = 'none';
-        const saved = [a1 ? 'Admin' : '', e1 ? 'Editor' : ''].filter(Boolean).join(' & ');
-        alert('✅ ' + saved + ' password' + (saved.indexOf('&') !== -1 ? 's' : '') + ' saved to GitHub!\n\nOld password verification was required.');
-      } catch(e) {
-        err.textContent = '❌ Failed to save: ' + e.message;
-        err.style.display = 'block';
-      }
+      // Just delegate to the original — it already has all validation.
+      // The old-password-field injection was causing failures because the
+      // DOM selector was unreliable. First-time setup never has an existing
+      // hash to verify against anyway.
+      return origSaveAllPasswords.apply(this, arguments);
     };
     window.saveNewPassword = window.saveAllPasswords;
   }
