@@ -1022,6 +1022,16 @@
 <script>
 'use strict';
 
+// ── HTML-escape helper — prevents XSS when injecting user-supplied strings into innerHTML ──
+function esc(s) {
+    return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 let currentYear, currentMonth, daysInMonth, currentMonthKey;
 let allMonthsData = {};
 let workers      = [];
@@ -1195,9 +1205,14 @@ function updateUndoButtons() {
 
 function applySnapshot(snap) {
     const s = JSON.parse(snap);
-    // Restore shifts & comments; preserve worker metadata
-    s.workers.forEach((sw, i) => {
-        if (workers[i]) { workers[i].shifts = sw.shifts; workers[i].requests = sw.requests; }
+    // Fully restore workers array (handles add/delete since the snapshot was taken),
+    // then restore shifts, requests and comments from the snapshot.
+    workers = s.workers.map(sw => {
+        // Find matching live worker to preserve any metadata not in snapshot, else use snapshot as-is
+        const live = workers.find(w => w.name === sw.name);
+        return live
+            ? { ...live, shifts: [...sw.shifts], requests: [...sw.requests] }
+            : { ...sw, shifts: [...sw.shifts], requests: [...sw.requests] };
     });
     dailyComments = s.dailyComments;
 }
@@ -1588,7 +1603,10 @@ function saveMasterTargets() {
     const map = { mstWd8E:'wd8E', mstWd8M:'wd8M', mstWd8L:'wd8L', mstWd13:'wd13', mstWd6:'wd6',
                   mstWe8E:'we8E', mstWe8M:'we8M', mstWe8L:'we8L', mstWe13:'we13', mstWe6:'we6',
                   mstWdImE:'wdImE', mstWdImL:'wdImL' };
-    Object.keys(map).forEach(id => masterTargets[map[id]] = parseInt(document.getElementById(id).value) || 0);
+    Object.keys(map).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) masterTargets[map[id]] = parseInt(el.value) || 0;
+    });
 
     if (confirm('Update the whole month with these new Default Targets? (Manual overrides will be reset)')) {
         initTargets(); saveData(); renderTable();
@@ -1606,8 +1624,8 @@ function saveData() {
     };
     allMonthsData.__workerRoster = { workers: workerRoster };
     localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
-    // Auto-push to GitHub if configured
-    if (spConfig.autoSync && spConfig.siteUrl) spPush(true);
+    // Auto-push to GitHub if configured — guard prevents re-entrant call from inside spPush
+    if (spConfig.autoSync && spConfig.siteUrl && !window._spPushing) spPush(true);
 }
 
 function populateYearDropdown(centerYear = null) {
@@ -1969,7 +1987,7 @@ function toggleLSS(dIndex, el) {
         const badge      = isImmo ? ' <em style="font-size:10px; color:#d35400;">[Immo]</em>'
                          : hasFixOff ? ' <em style="font-size:10px; color:#888;">[DayOff]</em>' : '';
         html += `<label style="display:flex; align-items:center; gap:5px; font-size:12px; color:${labelColor}; padding:3px 0; cursor:pointer;">
-            <input type="checkbox" id="lssChk_${i}" ${checked}> ${w.name}${badge}
+            <input type="checkbox" id="lssChk_${i}" ${checked}> ${esc(w.name)}${badge}
         </label>`;
     });
     document.getElementById('lssWorkerList').innerHTML = html || '<em style="color:#aaa;">No workers added yet.</em>';
@@ -2151,8 +2169,8 @@ function renderStats() {
         const immoLbl = w.immo!=='None' ? ` [${w.immo}]` : '';
 
         rows += `<tr>
-            <td style="text-align:left; font-weight:bold;">${w.name}</td>
-            <td>${w.system} ${w.contract}h${immoLbl}</td>
+            <td style="text-align:left; font-weight:bold;">${esc(w.name)}</td>
+            <td>${esc(w.system)} ${esc(w.contract)}h${esc(immoLbl)}</td>
             <td class="${hCls}">${totalHours}h <small style="color:#999;">(~${exp}h exp.)</small></td>
             <td>${workDays}</td>
             <td>${ratio}</td>
@@ -2290,10 +2308,10 @@ function renderTable() {
             const dayLabel = ['Su','Mo','Tu','We','Th','Fr','Sa'][w.fixed6HDay] || 'Mo';
             c22note = `<br><span style="color:#27ae60; font-size:10px;">[${dayLabel}→6H]</span>`;
         }
-        headHTML += `<th>${w.name}
+        headHTML += `<th>${esc(w.name)}
             <button class="btn-delete-worker no-print" onclick="openEditModal(${i})" title="Edit worker" style="color:#0056b3;">✏️</button>
             <button class="btn-delete-worker no-print" onclick="deleteWorker(${i})" title="Delete worker">✖</button>
-            <br><small>${w.system} ${w.contract}h${immoLbl}${c22note}</small></th>`;
+            <br><small>${esc(w.system)} ${esc(w.contract)}h${immoLbl}${c22note}</small></th>`;
     });
 
     headHTML += `
@@ -2386,7 +2404,7 @@ function renderTable() {
             const cusInfo  = baseShift === 'CUS' ? cusOverlap(shift) : null;
             const cusStar  = cusInfo && cusInfo.star ? ' <span title="Spans Early & Late — counted in both" style="color:#6c3483; font-weight:bold;">★</span>' : '';
             const cusLabel = cusInfo ? `<div style="font-size:9px; color:#6c3483; font-weight:bold; margin-top:1px;">${cusInfo.label}${cusInfo.star?' ★':''}</div>` : '';
-            const nameChip = `<span class="name-chip" style="background-color:${bgColor};">${worker.name}${reqStar}</span>`;
+            const nameChip = `<span class="name-chip" style="background-color:${bgColor};">${esc(worker.name)}${reqStar}</span>`;
             if (shift.includes('IR2') || getRoomAssignment(shift)==='IR2') {
                 if (['8E','6H','13H'].includes(baseShift)) rooms.IR2.e.push(nameChip);
                 if (['8M'].includes(baseShift))            rooms.IR2.m.push(nameChip);
@@ -3178,7 +3196,7 @@ function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
 function openMonthDiff() {
     const sel = document.getElementById('diffWorkerSelect');
     sel.innerHTML = '<option value="">-- Select Worker --</option>';
-    workers.forEach((w,i) => sel.innerHTML += `<option value="${w.name}">${w.name}</option>`);
+    workers.forEach((w,i) => sel.innerHTML += `<option value="${esc(w.name)}">${esc(w.name)}</option>`);
 
     // Default month A = previous month, B = current
     const prev = new Date(currentYear, currentMonth-2, 1);
@@ -3431,8 +3449,8 @@ function runAIAnalysis() {
         });
         if (candidate) {
             swapSuggestions.push(
-                `<strong>Rest fix:</strong> Day ${dayNum+1} — move <em>${problematicShift}</em> from <strong>${wName}</strong> ` +
-                `to <strong>${candidate.name}</strong> (currently free that day). Fixes the rest violation.`
+                `<strong>Rest fix:</strong> Day ${dayNum+1} — move <em>${problematicShift}</em> from <strong>${esc(wName)}</strong> ` +
+                `to <strong>${esc(candidate.name)}</strong> (currently free that day). Fixes the rest violation.`
             );
         }
     });
@@ -3482,7 +3500,7 @@ function runAIAnalysis() {
 function openPersonalModal() {
     const sel = document.getElementById('personalWorkerSelect');
     sel.innerHTML = '<option value="">-- Select Worker --</option>';
-    workers.forEach((w,i) => sel.innerHTML += `<option value="${i}">${w.name}</option>`);
+    workers.forEach((w,i) => sel.innerHTML += `<option value="${i}">${esc(w.name)}</option>`);
     document.getElementById('personalTextArea').value = '';
     document.getElementById('personalModal').style.display = 'block';
 }
@@ -4206,9 +4224,11 @@ function downloadAsHTML() {
 <\/script>`;
 
     let html = document.documentElement.outerHTML;
-    // Bake current password hashes into downloaded HTML so new browsers are protected
-    if (adminHash)  html = html.replace(/let adminHash\s*=\s*null/, 'let adminHash = ' + JSON.stringify(adminHash));
-    if (editorHash) html = html.replace(/let editorHash\s*=\s*null/, 'let editorHash = ' + JSON.stringify(editorHash));
+    // Bake current password hashes into downloaded HTML so new browsers are protected.
+    // The regex matches both the initial `null` and any previously baked hash string,
+    // so re-downloading after a password change always embeds the latest hash.
+    if (adminHash)  html = html.replace(/let adminHash\s*=\s*(?:null|"[^"]*")/, 'let adminHash = ' + JSON.stringify(adminHash));
+    if (editorHash) html = html.replace(/let editorHash\s*=\s*(?:null|"[^"]*")/, 'let editorHash = ' + JSON.stringify(editorHash));
     // Insert seed script just before </head>
     html = html.replace('</head>', seedScript + '\n</head>');
 
@@ -4226,10 +4246,10 @@ function downloadAsHTML() {
 }
 
 
-function copyColorfulExcel() {
+async function copyColorfulExcel() {
     let html = "<table border='1' style='font-family:Arial,sans-serif; font-size:12px; border-collapse:collapse;'>";
     html += `<tr><th>Date</th><th>Holiday?</th><th>LSS?</th>`;
-    workers.forEach(w => html += `<th>${w.name} (${w.contract}h)</th>`);
+    workers.forEach(w => html += `<th>${esc(w.name)} (${esc(w.contract)}h)</th>`);
     html += `<th>8E</th><th>8M</th><th>8L</th>${use13H?'<th>13H</th>':''}${use6H?'<th>6H</th>':''}<th>ImE</th><th>ImL</th><th>Total</th><th>Sick (names)</th><th>Vacation (names)</th><th>Comments</th></tr>`;
 
     for (let d=0; d<daysInMonth; d++) {
@@ -4269,22 +4289,30 @@ function copyColorfulExcel() {
     const colSpan = 9 + (use13H?1:0) + (use6H?1:0);
     html += `<td colspan="${colSpan}"></td></tr></table>`;
 
-    const tmp = document.createElement('div');
-    tmp.style.cssText = 'position:absolute; left:-9999px;';
-    tmp.innerHTML = html;
-    document.body.appendChild(tmp);
-    const range = document.createRange();
-    range.selectNode(tmp);
-    window.getSelection().removeAllRanges();
-    window.getSelection().addRange(range);
+    const htmlBlob = new Blob([html], { type: 'text/html' });
+    const textBlob = new Blob([html], { type: 'text/plain' });
     try {
-        document.execCommand('copy');
-        alert('✅ Success! Open Excel, select top-left cell, press Ctrl+V.');
+        if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+            await navigator.clipboard.write([new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })]);
+            alert('✅ Success! Open Excel, select top-left cell, press Ctrl+V.');
+        } else {
+            // Fallback for browsers that don't support ClipboardItem
+            const tmp = document.createElement('div');
+            tmp.style.cssText = 'position:absolute; left:-9999px;';
+            tmp.innerHTML = html;
+            document.body.appendChild(tmp);
+            const range = document.createRange();
+            range.selectNode(tmp);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            document.body.removeChild(tmp);
+            alert('✅ Success! Open Excel, select top-left cell, press Ctrl+V.');
+        }
     } catch(err) {
         alert('Oops! Browser blocked the clipboard. Error: ' + err);
     }
-    window.getSelection().removeAllRanges();
-    document.body.removeChild(tmp);
 }
 
 // ─────────────────────────────────────────────────────────
@@ -5083,10 +5111,12 @@ async function spPush(silent = false) {
         if (!silent) spShowModalStatus('⚠️ Please configure GitHub settings first.', '#fff3cd', '#856404');
         return;
     }
+    if (window._spPushing) return; // prevent re-entrant call from saveData inside this function
+    window._spPushing = true;
     if (!silent) spShowModalStatus('⬆️ Pushing to GitHub...', '#f6f8fa', '#24292f');
 
     try {
-        saveData(); // ensure latest state is in allMonthsData
+        saveData(); // ensure latest state is in allMonthsData — safe because _spPushing is set
 
         // ════════════════════════════════════════════════════════
         //  VIEWER PATH — cell-level merge for vacation requests
@@ -5213,6 +5243,8 @@ async function spPush(silent = false) {
             if (!silent) spShowModalStatus(`❌ Push failed: ${e.message}`, '#ffe6e6', '#c0392b');
             spSetStatus(`⚠️ GitHub push failed`, '#fff3cd', '#856404');
         }
+    } finally {
+        window._spPushing = false;
     }
 }
 
