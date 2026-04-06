@@ -3889,6 +3889,19 @@ function buildExcelExportConfig() {
         ...(use6H  ? [{ label: '6H',      key: 'c6H'   }] : []),
         { label: 'ImE',                   key: 'cImE'  },
         { label: 'ImL',                   key: 'cImL'  },
+        // ── Who is in each room ──
+        { label: de ? '8E-IR2 (wer)' : '8E-IR2 (who)', key: 'ir2Early' },
+        { label: de ? '8M-IR2 (wer)' : '8M-IR2 (who)', key: 'ir2Mid'   },
+        { label: de ? '8L-IR2 (wer)' : '8L-IR2 (who)', key: 'ir2Late'  },
+        ...(use13H ? [{ label: de ? '13H-IR2 (wer)' : '13H-IR2 (who)', key: 'ir2_13h' }] : []),
+        { label: de ? '8E-IR3 (wer)' : '8E-IR3 (who)', key: 'ir3Early' },
+        { label: de ? '8M-IR3 (wer)' : '8M-IR3 (who)', key: 'ir3Mid'   },
+        { label: de ? '8L-IR3 (wer)' : '8L-IR3 (who)', key: 'ir3Late'  },
+        ...(use13H ? [{ label: de ? '13H-IR3 (wer)' : '13H-IR3 (who)', key: 'ir3_13h' }] : []),
+        { label: de ? '8E-IR4 (wer)' : '8E-IR4 (who)', key: 'ir4Early' },
+        { label: de ? '8M-IR4 (wer)' : '8M-IR4 (who)', key: 'ir4Mid'   },
+        { label: de ? '8L-IR4 (wer)' : '8L-IR4 (who)', key: 'ir4Late'  },
+        ...(use13H ? [{ label: de ? '13H-IR4 (wer)' : '13H-IR4 (who)', key: 'ir4_13h' }] : []),
         { label: de ? 'Arbeitend'       : 'Working',   key: 'work'    },
         { label: de ? 'Urlaub'          : 'Vacation',  key: 'vac'     },
         { label: de ? 'Krank (SICK)'    : 'Sick',      key: 'sick'    },
@@ -3906,7 +3919,188 @@ function buildExcelExportConfig() {
 // ─────────────────────────────────────────────────────────
 //  Download as HTML (with embedded data for SharePoint)
 // ─────────────────────────────────────────────────────────
-function downloadExcelWithFormulas() {
+// ─────────────────────────────────────────────────────────
+//  Data-validation ZIP injection helpers
+//  xlsx-js-style v1.2 does not write !dataValidation to the OOXML ZIP,
+//  so we post-process the raw XLSX bytes instead.
+// ─────────────────────────────────────────────────────────
+
+function _xlCrc32(data) {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+        let c = n;
+        for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+        t[n] = c;
+    }
+    let crc = 0xFFFFFFFF;
+    for (const b of data) crc = t[(crc ^ b) & 0xFF] ^ (crc >>> 8);
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+function _buildDvXML(de, daysInMonth, workers, cfg, shiftCodes) {
+    const n = daysInMonth + 1; // last data row (1-indexed header + daysInMonth rows)
+    function xa(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    const dvs = [];
+    // Holiday column C
+    dvs.push(`<dataValidation type="list" sqref="C2:C${n}" showDropDown="0" showInputMessage="1" promptTitle="${xa(de?'Feiertag?':'Holiday?')}" prompt="${xa(de?'Y = Feiertag, N = kein Feiertag':'Y = holiday, N = not a holiday')}" showErrorMessage="1" errorTitle="${xa(de?'Ungültig':'Invalid')}" error="${xa(de?'Bitte Y oder N eingeben.':'Please enter Y or N.')}"><formula1>&quot;Y,N&quot;</formula1></dataValidation>`);
+    // LSS column D
+    dvs.push(`<dataValidation type="list" sqref="D2:D${n}" showDropDown="0" showInputMessage="1" promptTitle="LSS?" prompt="${xa(de?'Y = LSS-Tag, N = kein LSS-Tag':'Y = LSS day, N = not an LSS day')}" showErrorMessage="1" errorTitle="${xa(de?'Ungültig':'Invalid')}" error="${xa(de?'Bitte Y oder N eingeben.':'Please enter Y or N.')}"><formula1>&quot;Y,N&quot;</formula1></dataValidation>`);
+    // Worker shift columns
+    const listRef = `Legend!$D$1:$D$${shiftCodes.length}`;
+    for (let wIdx = 0; wIdx < workers.length; wIdx++) {
+        const col = excelCol(cfg.workerStartCol + wIdx);
+        dvs.push(`<dataValidation type="list" sqref="${col}2:${col}${n}" showDropDown="0" showInputMessage="0" showErrorMessage="0"><formula1>${listRef}</formula1></dataValidation>`);
+    }
+    return `<dataValidations count="${dvs.length}">${dvs.join('')}</dataValidations>`;
+}
+
+async function _injectDvIntoXLSX(uint8, dvXML, sheetPath = 'xl/worksheets/sheet1.xml') {
+    // ── 1. Locate EOCD (scan backwards, max 64K comment) ──
+    let eocdOff = -1;
+    for (let i = uint8.length - 22; i >= Math.max(0, uint8.length - 65557); i--) {
+        if (uint8[i]===0x50 && uint8[i+1]===0x4B && uint8[i+2]===0x05 && uint8[i+3]===0x06) {
+            eocdOff = i; break;
+        }
+    }
+    if (eocdOff < 0) { console.warn('_injectDv: EOCD not found'); return uint8; }
+
+    // Helper: DataView anchored to uint8's buffer (byteOffset always 0 after new Uint8Array())
+    const dv = (off, sz) => new DataView(uint8.buffer, uint8.byteOffset + off, sz);
+    const eocdV    = dv(eocdOff, 22);
+    const cdOffset = eocdV.getUint32(16, true);   // start of central directory
+    const cdCount  = eocdV.getUint16(10, true);    // total number of entries
+
+    // ── 2. Parse central directory ──
+    const entries = [];
+    let cdPos = cdOffset;
+    for (let i = 0; i < cdCount; i++) {
+        if (cdPos + 46 > uint8.length) break;
+        const v = dv(cdPos, 46);
+        if (v.getUint32(0, true) !== 0x02014b50) break;
+        const method     = v.getUint16(10, true);
+        const crc        = v.getUint32(16, true);
+        const compSz     = v.getUint32(20, true);
+        const uncompSz   = v.getUint32(24, true);
+        const nameLen    = v.getUint16(28, true);
+        const extraLen   = v.getUint16(30, true);
+        const commentLen = v.getUint16(32, true);
+        const localOff   = v.getUint32(42, true);
+        const name       = new TextDecoder().decode(uint8.subarray(cdPos + 46, cdPos + 46 + nameLen));
+        const entSz      = 46 + nameLen + extraLen + commentLen;
+        entries.push({ cdOff: cdPos, method, crc, compSz, uncompSz, localOff, name, entSz });
+        cdPos += entSz;
+    }
+
+    // ── 3. Find target sheet ──
+    const target = entries.find(e => e.name === sheetPath);
+    if (!target) { console.warn('_injectDv: sheet not found', sheetPath); return uint8; }
+
+    // ── 4. Find data start via local header ──
+    const lhV       = dv(target.localOff, 30);
+    const lNameLen  = lhV.getUint16(26, true);
+    const lExtraLen = lhV.getUint16(28, true);
+    const dataStart = target.localOff + 30 + lNameLen + lExtraLen;
+    const fileData  = uint8.slice(dataStart, dataStart + target.compSz);
+
+    // ── 5. Decompress sheet XML ──
+    let xml;
+    if (target.method === 0) {
+        xml = new TextDecoder().decode(fileData);
+    } else if (target.method === 8) {
+        const ds = new DecompressionStream('deflate-raw');
+        const dw = ds.writable.getWriter(); dw.write(fileData); dw.close();
+        const chunks = []; const dr = ds.readable.getReader();
+        for (;;) { const { done, value } = await dr.read(); if (done) break; chunks.push(value); }
+        const tot = chunks.reduce((s, c) => s + c.length, 0);
+        const merged = new Uint8Array(tot); let o2 = 0;
+        for (const c of chunks) { merged.set(c, o2); o2 += c.length; }
+        xml = new TextDecoder().decode(merged);
+    } else { return uint8; }  // unsupported compression — return as-is
+
+    // ── 6. Inject before <pageMargins (correct OOXML order) or </worksheet> ──
+    if (!xml.includes('<dataValidations')) {
+        const mark = xml.includes('<pageMargins') ? '<pageMargins' : '</worksheet>';
+        xml = xml.replace(mark, dvXML + mark);
+    }
+
+    // ── 7. Recompress ──
+    const newBytes = new TextEncoder().encode(xml);
+    let newComp;
+    if (target.method === 0) {
+        newComp = newBytes;
+    } else {
+        const cs = new CompressionStream('deflate-raw');
+        const cw = cs.writable.getWriter(); cw.write(newBytes); cw.close();
+        const chunks = []; const cr = cs.readable.getReader();
+        for (;;) { const { done, value } = await cr.read(); if (done) break; chunks.push(value); }
+        const tot = chunks.reduce((s, c) => s + c.length, 0);
+        newComp = new Uint8Array(tot); let o2 = 0;
+        for (const c of chunks) { newComp.set(c, o2); o2 += c.length; }
+    }
+    const newCRC = _xlCrc32(newBytes);
+
+    // ── 8. Rebuild local-file section in CD order ──
+    const sorted = [...entries].sort((a, b) => a.localOff - b.localOff);
+    const outParts = [];
+    const newLocalOffs = {};  // old localOff → new localOff
+    let outOff = 0;
+
+    for (const entry of sorted) {
+        newLocalOffs[entry.localOff] = outOff;
+        // Local header size (read from actual local header, extra may differ from CD)
+        const lh2     = dv(entry.localOff, 30);
+        const lnl2    = lh2.getUint16(26, true);
+        const lel2    = lh2.getUint16(28, true);
+        const lHdrSz  = 30 + lnl2 + lel2;
+
+        if (entry === target) {
+            const hdr = uint8.slice(entry.localOff, entry.localOff + lHdrSz);
+            const hdrCopy = new Uint8Array(hdr);                    // mutable copy
+            const hv  = new DataView(hdrCopy.buffer);
+            hv.setUint32(14, newCRC,          true);  // CRC-32
+            hv.setUint32(18, newComp.length,  true);  // compressed size
+            hv.setUint32(22, newBytes.length, true);  // uncompressed size
+            outParts.push(hdrCopy, newComp);
+            outOff += hdrCopy.length + newComp.length;
+        } else {
+            // Copy local header + original compressed data as one slice
+            const chunk = uint8.slice(entry.localOff, entry.localOff + lHdrSz + entry.compSz);
+            outParts.push(chunk);
+            outOff += chunk.length;
+        }
+    }
+
+    // ── 9. Rebuild central directory with updated offsets/stats ──
+    const cdParts = [];
+    for (const entry of entries) {      // keep original CD ordering
+        const cdEnt = new Uint8Array(uint8.slice(entry.cdOff, entry.cdOff + entry.entSz));
+        const cv    = new DataView(cdEnt.buffer);
+        cv.setUint32(42, newLocalOffs[entry.localOff], true);
+        if (entry === target) {
+            cv.setUint32(16, newCRC,          true);
+            cv.setUint32(20, newComp.length,  true);
+            cv.setUint32(24, newBytes.length, true);
+        }
+        cdParts.push(cdEnt);
+    }
+
+    // ── 10. Updated EOCD ──
+    const newCDSize   = cdParts.reduce((s, e) => s + e.length, 0);
+    const newCDOffset = outOff;
+    const newEocd     = new Uint8Array(uint8.slice(eocdOff));
+    const nev         = new DataView(newEocd.buffer);
+    nev.setUint32(12, newCDSize,   true);
+    nev.setUint32(16, newCDOffset, true);
+
+    // ── 11. Assemble ──
+    const allParts = [...outParts, ...cdParts, newEocd];
+    const total    = allParts.reduce((s, p) => s + p.length, 0);
+    const result   = new Uint8Array(total); let rOff = 0;
+    for (const p of allParts) { result.set(p, rOff); rOff += p.length; }
+    return result;
+}
+
+async function downloadExcelWithFormulas() {
     if (typeof XLSX === 'undefined') { alert(currentLang==='de' ? 'Die Excel-Bibliothek konnte nicht geladen werden.' : 'The Excel library could not be loaded. Please reload the page and try again.'); return; }
     const cfg = buildExcelExportConfig();
     const wb  = XLSX.utils.book_new();
@@ -3948,7 +4142,25 @@ function downloadExcelWithFormulas() {
                 : shift;
             row.push(displayShift);
         });
-        cfg.summary.forEach(s => row.push(s.key === 'comments' ? (dailyComments[d] || '') : null));
+        // Map "who" keys to the exact shift code they track
+        const _whoMap = { ir2Early:'8E-IR2', ir2Mid:'8M-IR2', ir2Late:'8L-IR2', ir2_13h:'13H-IR2',
+                          ir3Early:'8E-IR3', ir3Mid:'8M-IR3', ir3Late:'8L-IR3', ir3_13h:'13H-IR3',
+                          ir4Early:'8E-IR4', ir4Mid:'8M-IR4', ir4Late:'8L-IR4', ir4_13h:'13H-IR4' };
+        cfg.summary.forEach(s => {
+            if (s.key === 'comments') { row.push(dailyComments[d] || ''); return; }
+            if (_whoMap[s.key]) {
+                const target = _whoMap[s.key];
+                const [shiftBase, room] = [target.split('-')[0], target.replace(/^[^-]+-/, '')];
+                const names = workers.filter(w => {
+                    const sh = w.shifts[d] || '-';
+                    if (sh === target) return true;
+                    return getBaseShift(sh) === shiftBase && getRoomAssignment(sh) === room;
+                }).map(w => w.name).join(', ');
+                row.push(names);
+                return;
+            }
+            row.push(null);
+        });
         planRows.push(row);
     }
 
@@ -3956,7 +4168,7 @@ function downloadExcelWithFormulas() {
     planWs['!cols'] = [
         {wch:12},{wch:10},{wch:10},{wch:6},
         ...workers.map(() => ({wch:14})),
-        ...cfg.summary.map(s => ({wch: s.key==='comments' ? 28 : 10}))
+        ...cfg.summary.map(s => ({wch: s.key==='comments' ? 28 : (s.key.startsWith('ir') ? 22 : 10)}))
     ];
     planWs['!rows'] = Array(planRows.length).fill({hpt:18});
     planWs['!autofilter'] = { ref:`A1:${excelCol(planHeader.length-1)}${planRows.length}` };
@@ -4051,6 +4263,12 @@ function downloadExcelWithFormulas() {
             const planCol  = cfg.summaryStartCol + idx;
             const planAddr = excelCell(rowIdx, planCol);
             if (s.key === 'comments') { planWs[planAddr] = { t:'s', v: dailyComments[d]||'', s: planWs[planAddr]?.s }; return; }
+            // "who" cells: text already baked in by aoa_to_sheet — just apply style, no formula
+            if (s.key.startsWith('ir') && s.key !== 'absence') {
+                if (!planWs[planAddr]) planWs[planAddr] = { t:'s', v:'' };
+                planWs[planAddr].s = cellStyle('#FFFDE7', { border:true, align:'left' });
+                return;
+            }
             if (s.key === 'absence') {
                 const col = k => excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key===k));
                 const r   = rowIdx + 1;
@@ -4111,56 +4329,8 @@ function downloadExcelWithFormulas() {
     legendWs['!cols'] = legendWs['!cols'] || [];
     legendWs['!cols'][3] = { wch: 16 }; // column D width
 
-    // ── Data validation: dropdown in every worker shift cell ──
-    // Referencing Legend!$D$1:$D$<n> as the list source.
-    // showDropDown:false = SHOW the arrow (Excel naming is inverted).
-    // showErrorMessage:false = allow typing custom values (CUS shifts etc.)
-    const shiftListRef = `Legend!$D$1:$D$${shiftCodes.length}`;
-    const dataValidations = [];
-
-    // HOL column (col C = index 2) — Y / N dropdown
-    dataValidations.push({
-        type:             'list',
-        sqref:            `C2:C${daysInMonth + 1}`,
-        formula1:         '"Y,N"',
-        showDropDown:     false,
-        showInputMessage: true,
-        promptTitle:      de ? 'Feiertag?' : 'Holiday?',
-        prompt:           de ? 'Y = Feiertag, N = kein Feiertag' : 'Y = holiday, N = not a holiday',
-        showErrorMessage: true,
-        errorTitle:       de ? 'Ungültig' : 'Invalid',
-        error:            de ? 'Bitte Y oder N eingeben.' : 'Please enter Y or N.',
-    });
-
-    // LSS column (col D = index 3) — Y / N dropdown
-    dataValidations.push({
-        type:             'list',
-        sqref:            `D2:D${daysInMonth + 1}`,
-        formula1:         '"Y,N"',
-        showDropDown:     false,
-        showInputMessage: true,
-        promptTitle:      'LSS?',
-        prompt:           de ? 'Y = LSS-Tag, N = kein LSS-Tag' : 'Y = LSS day, N = not an LSS day',
-        showErrorMessage: true,
-        errorTitle:       de ? 'Ungültig' : 'Invalid',
-        error:            de ? 'Bitte Y oder N eingeben.' : 'Please enter Y or N.',
-    });
-
-    // Worker shift columns
-    for (let wIdx = 0; wIdx < workers.length; wIdx++) {
-        const col = excelCol(cfg.workerStartCol + wIdx);
-        dataValidations.push({
-            type:             'list',
-            sqref:            `${col}2:${col}${daysInMonth + 1}`,
-            formula1:         shiftListRef,
-            showDropDown:     false,
-            showInputMessage: true,
-            promptTitle:      de ? 'Dienstcode' : 'Shift Code',
-            prompt:           de ? 'Wählen Sie einen Dienstcode oder geben Sie einen benutzerdefinierten Code ein (z.B. CUS-07:00-15:30).' : 'Select a shift code or type a custom code (e.g. CUS-07:00-15:30).',
-            showErrorMessage: false,   // allow custom CUS values
-        });
-    }
-    planWs['!dataValidation'] = dataValidations;
+    // ── Data validation: injected directly into the XLSX ZIP (reliable cross-library) ──
+    // Built here; injected into xl/worksheets/sheet1.xml after XLSX.write().
 
     XLSX.utils.book_append_sheet(wb, planWs,    'Plan');
     XLSX.utils.book_append_sheet(wb, helperWs,  'Helpers');
@@ -4189,7 +4359,10 @@ function downloadExcelWithFormulas() {
 
     try {
         const wbOut = XLSX.write(wb, { bookType:'xlsx', type:'array', cellStyles:true });
-        const blob  = new Blob([wbOut], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        // Inject data validation XML directly into the XLSX ZIP (reliable with all xlsx libraries)
+        const dvXML = _buildDvXML(de, daysInMonth, workers, cfg, shiftCodes);
+        const patched = await _injectDvIntoXLSX(new Uint8Array(wbOut), dvXML);
+        const blob  = new Blob([patched], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const url   = URL.createObjectURL(blob);
         const a     = document.createElement('a');
         a.href      = url;
