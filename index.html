@@ -44,7 +44,7 @@
         .holiday-row { background-color: #e8daef !important; }
 
         .checkbox-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
-        .shift-select { width: 100%; min-width: 110px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-weight: bold; text-align: center; color: #222; font-size: 11px; }
+        .shift-select { width: 100%; min-width: 140px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-weight: bold; text-align: center; color: #222; font-size: 11px; }
 
         .warning           { background-color: #ffcccc !important; color: #cc0000; font-weight: bold; }
         .warning-yellow    { background-color: #fff3cd !important; color: #856404; font-weight: bold; }
@@ -296,7 +296,7 @@
         <button id="btnHTML"   style="background:#1e8449; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#196f3d'" onmouseout="this.style.background='#1e8449'" onclick="downloadAsHTML()">⬇️ Download as HTML</button>
         <button id="btnSPSync" style="background:#24292f; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='#24292f'" onclick="openGHSyncOrSetup()">🐙 GitHub Sync</button>
         <div style="display:flex; gap:4px; margin-top:4px;">
-            <button onclick="spPull()" title="Pull latest data from GitHub" style="flex:1; background:#0969da; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#0752b0'" onmouseout="this.style.background='#0969da'">⬇️ Pull</button>
+            <button onclick="spPull('direct')" title="Pull latest data from GitHub — replaces local data immediately" style="flex:1; background:#0969da; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#0752b0'" onmouseout="this.style.background='#0969da'">⬇️ Pull</button>
             <button onclick="spPush()" title="Push your changes to GitHub" style="flex:1; background:#1a7f37; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#156a2e'" onmouseout="this.style.background='#1a7f37'">⬆️ Push</button>
         </div>
         <button onclick="clearAppCache()" style="background:#7f8c8d; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#6c7a7a'" onmouseout="this.style.background='#7f8c8d'">🗑️ Clear Cache</button>
@@ -1022,16 +1022,6 @@
 <script>
 'use strict';
 
-// ── HTML-escape helper — prevents XSS when injecting user-supplied strings into innerHTML ──
-function esc(s) {
-    return String(s == null ? '' : s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
 let currentYear, currentMonth, daysInMonth, currentMonthKey;
 let allMonthsData = {};
 let workers      = [];
@@ -1205,14 +1195,9 @@ function updateUndoButtons() {
 
 function applySnapshot(snap) {
     const s = JSON.parse(snap);
-    // Fully restore workers array (handles add/delete since the snapshot was taken),
-    // then restore shifts, requests and comments from the snapshot.
-    workers = s.workers.map(sw => {
-        // Find matching live worker to preserve any metadata not in snapshot, else use snapshot as-is
-        const live = workers.find(w => w.name === sw.name);
-        return live
-            ? { ...live, shifts: [...sw.shifts], requests: [...sw.requests] }
-            : { ...sw, shifts: [...sw.shifts], requests: [...sw.requests] };
+    // Restore shifts & comments; preserve worker metadata
+    s.workers.forEach((sw, i) => {
+        if (workers[i]) { workers[i].shifts = sw.shifts; workers[i].requests = sw.requests; }
     });
     dailyComments = s.dailyComments;
 }
@@ -1603,10 +1588,7 @@ function saveMasterTargets() {
     const map = { mstWd8E:'wd8E', mstWd8M:'wd8M', mstWd8L:'wd8L', mstWd13:'wd13', mstWd6:'wd6',
                   mstWe8E:'we8E', mstWe8M:'we8M', mstWe8L:'we8L', mstWe13:'we13', mstWe6:'we6',
                   mstWdImE:'wdImE', mstWdImL:'wdImL' };
-    Object.keys(map).forEach(id => {
-        const el = document.getElementById(id);
-        if (el) masterTargets[map[id]] = parseInt(el.value) || 0;
-    });
+    Object.keys(map).forEach(id => masterTargets[map[id]] = parseInt(document.getElementById(id).value) || 0);
 
     if (confirm('Update the whole month with these new Default Targets? (Manual overrides will be reset)')) {
         initTargets(); saveData(); renderTable();
@@ -1624,8 +1606,8 @@ function saveData() {
     };
     allMonthsData.__workerRoster = { workers: workerRoster };
     localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
-    // Auto-push to GitHub if configured — guard prevents re-entrant call from inside spPush
-    if (spConfig.autoSync && spConfig.siteUrl && !window._spPushing) spPush(true);
+    // Auto-push to GitHub if configured
+    if (spConfig.autoSync && spConfig.siteUrl) spPush(true);
 }
 
 function populateYearDropdown(centerYear = null) {
@@ -1934,9 +1916,19 @@ function updateShift(wIndex, dIndex, value) {
     if (sel) { const bgColor = getColor(finalValue); sel.style.backgroundColor = bgColor; sel.style.color = ''; const td = sel.closest('td'); if (td) td.style.backgroundColor = bgColor; sel.innerHTML = getDropdownOptions(finalValue); sel.value = finalValue; }
     renderTableFoot(); if (document.getElementById('statsToggle') && document.getElementById('statsToggle').checked) renderStats();
     // ── Auto-push for viewer vacation requests ──
-    // Viewers don't have autoSync but their requests must reach GitHub immediately.
-    if (currentRole === 'viewer' && isPendingVacationShift(finalValue) && spConfig.siteUrl && spConfig.folderPath) {
-        spPush(true); // silent push — shows status bar only
+    // Viewers don't always have a personal PAT — fall back to shared comment token.
+    if (currentRole === 'viewer' && spConfig.siteUrl && spConfig.folderPath) {
+        const wasVacRequest  = isPendingVacationShift(finalValue);
+        const wasVacCleared  = (isPendingVacationShift(oldValue) && finalValue === '-');
+        if (wasVacRequest || wasVacCleared) {
+            // Temporarily use shared token if no personal PAT
+            const savedFileName = spConfig.fileName;
+            if (!spConfig.fileName && (SHARED_COMMENT_TOKEN || COMMENTS_SHARED_TOKEN)) {
+                spConfig.fileName = SHARED_COMMENT_TOKEN || COMMENTS_SHARED_TOKEN;
+            }
+            spPush(false); // non-silent so status bar shows result
+            if (!savedFileName) spConfig.fileName = savedFileName; // restore
+        }
     }
 }
 
@@ -1987,7 +1979,7 @@ function toggleLSS(dIndex, el) {
         const badge      = isImmo ? ' <em style="font-size:10px; color:#d35400;">[Immo]</em>'
                          : hasFixOff ? ' <em style="font-size:10px; color:#888;">[DayOff]</em>' : '';
         html += `<label style="display:flex; align-items:center; gap:5px; font-size:12px; color:${labelColor}; padding:3px 0; cursor:pointer;">
-            <input type="checkbox" id="lssChk_${i}" ${checked}> ${esc(w.name)}${badge}
+            <input type="checkbox" id="lssChk_${i}" ${checked}> ${w.name}${badge}
         </label>`;
     });
     document.getElementById('lssWorkerList').innerHTML = html || '<em style="color:#aaa;">No workers added yet.</em>';
@@ -2169,8 +2161,8 @@ function renderStats() {
         const immoLbl = w.immo!=='None' ? ` [${w.immo}]` : '';
 
         rows += `<tr>
-            <td style="text-align:left; font-weight:bold;">${esc(w.name)}</td>
-            <td>${esc(w.system)} ${esc(w.contract)}h${esc(immoLbl)}</td>
+            <td style="text-align:left; font-weight:bold;">${w.name}</td>
+            <td>${w.system} ${w.contract}h${immoLbl}</td>
             <td class="${hCls}">${totalHours}h <small style="color:#999;">(~${exp}h exp.)</small></td>
             <td>${workDays}</td>
             <td>${ratio}</td>
@@ -2308,10 +2300,10 @@ function renderTable() {
             const dayLabel = ['Su','Mo','Tu','We','Th','Fr','Sa'][w.fixed6HDay] || 'Mo';
             c22note = `<br><span style="color:#27ae60; font-size:10px;">[${dayLabel}→6H]</span>`;
         }
-        headHTML += `<th>${esc(w.name)}
+        headHTML += `<th>${w.name}
             <button class="btn-delete-worker no-print" onclick="openEditModal(${i})" title="Edit worker" style="color:#0056b3;">✏️</button>
             <button class="btn-delete-worker no-print" onclick="deleteWorker(${i})" title="Delete worker">✖</button>
-            <br><small>${esc(w.system)} ${esc(w.contract)}h${immoLbl}${c22note}</small></th>`;
+            <br><small>${w.system} ${w.contract}h${immoLbl}${c22note}</small></th>`;
     });
 
     headHTML += `
@@ -2404,7 +2396,7 @@ function renderTable() {
             const cusInfo  = baseShift === 'CUS' ? cusOverlap(shift) : null;
             const cusStar  = cusInfo && cusInfo.star ? ' <span title="Spans Early & Late — counted in both" style="color:#6c3483; font-weight:bold;">★</span>' : '';
             const cusLabel = cusInfo ? `<div style="font-size:9px; color:#6c3483; font-weight:bold; margin-top:1px;">${cusInfo.label}${cusInfo.star?' ★':''}</div>` : '';
-            const nameChip = `<span class="name-chip" style="background-color:${bgColor};">${esc(worker.name)}${reqStar}</span>`;
+            const nameChip = `<span class="name-chip" style="background-color:${bgColor};">${worker.name}${reqStar}</span>`;
             if (shift.includes('IR2') || getRoomAssignment(shift)==='IR2') {
                 if (['8E','6H','13H'].includes(baseShift)) rooms.IR2.e.push(nameChip);
                 if (['8M'].includes(baseShift))            rooms.IR2.m.push(nameChip);
@@ -3196,7 +3188,7 @@ function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
 function openMonthDiff() {
     const sel = document.getElementById('diffWorkerSelect');
     sel.innerHTML = '<option value="">-- Select Worker --</option>';
-    workers.forEach((w,i) => sel.innerHTML += `<option value="${esc(w.name)}">${esc(w.name)}</option>`);
+    workers.forEach((w,i) => sel.innerHTML += `<option value="${w.name}">${w.name}</option>`);
 
     // Default month A = previous month, B = current
     const prev = new Date(currentYear, currentMonth-2, 1);
@@ -3449,8 +3441,8 @@ function runAIAnalysis() {
         });
         if (candidate) {
             swapSuggestions.push(
-                `<strong>Rest fix:</strong> Day ${dayNum+1} — move <em>${problematicShift}</em> from <strong>${esc(wName)}</strong> ` +
-                `to <strong>${esc(candidate.name)}</strong> (currently free that day). Fixes the rest violation.`
+                `<strong>Rest fix:</strong> Day ${dayNum+1} — move <em>${problematicShift}</em> from <strong>${wName}</strong> ` +
+                `to <strong>${candidate.name}</strong> (currently free that day). Fixes the rest violation.`
             );
         }
     });
@@ -3500,7 +3492,7 @@ function runAIAnalysis() {
 function openPersonalModal() {
     const sel = document.getElementById('personalWorkerSelect');
     sel.innerHTML = '<option value="">-- Select Worker --</option>';
-    workers.forEach((w,i) => sel.innerHTML += `<option value="${i}">${esc(w.name)}</option>`);
+    workers.forEach((w,i) => sel.innerHTML += `<option value="${i}">${w.name}</option>`);
     document.getElementById('personalTextArea').value = '';
     document.getElementById('personalModal').style.display = 'block';
 }
@@ -3889,19 +3881,6 @@ function buildExcelExportConfig() {
         ...(use6H  ? [{ label: '6H',      key: 'c6H'   }] : []),
         { label: 'ImE',                   key: 'cImE'  },
         { label: 'ImL',                   key: 'cImL'  },
-        // ── Who is in each room ──
-        { label: de ? '8E-IR2 (wer)' : '8E-IR2 (who)', key: 'ir2Early' },
-        { label: de ? '8M-IR2 (wer)' : '8M-IR2 (who)', key: 'ir2Mid'   },
-        { label: de ? '8L-IR2 (wer)' : '8L-IR2 (who)', key: 'ir2Late'  },
-        ...(use13H ? [{ label: de ? '13H-IR2 (wer)' : '13H-IR2 (who)', key: 'ir2_13h' }] : []),
-        { label: de ? '8E-IR3 (wer)' : '8E-IR3 (who)', key: 'ir3Early' },
-        { label: de ? '8M-IR3 (wer)' : '8M-IR3 (who)', key: 'ir3Mid'   },
-        { label: de ? '8L-IR3 (wer)' : '8L-IR3 (who)', key: 'ir3Late'  },
-        ...(use13H ? [{ label: de ? '13H-IR3 (wer)' : '13H-IR3 (who)', key: 'ir3_13h' }] : []),
-        { label: de ? '8E-IR4 (wer)' : '8E-IR4 (who)', key: 'ir4Early' },
-        { label: de ? '8M-IR4 (wer)' : '8M-IR4 (who)', key: 'ir4Mid'   },
-        { label: de ? '8L-IR4 (wer)' : '8L-IR4 (who)', key: 'ir4Late'  },
-        ...(use13H ? [{ label: de ? '13H-IR4 (wer)' : '13H-IR4 (who)', key: 'ir4_13h' }] : []),
         { label: de ? 'Arbeitend'       : 'Working',   key: 'work'    },
         { label: de ? 'Urlaub'          : 'Vacation',  key: 'vac'     },
         { label: de ? 'Krank (SICK)'    : 'Sick',      key: 'sick'    },
@@ -3919,188 +3898,7 @@ function buildExcelExportConfig() {
 // ─────────────────────────────────────────────────────────
 //  Download as HTML (with embedded data for SharePoint)
 // ─────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────
-//  Data-validation ZIP injection helpers
-//  xlsx-js-style v1.2 does not write !dataValidation to the OOXML ZIP,
-//  so we post-process the raw XLSX bytes instead.
-// ─────────────────────────────────────────────────────────
-
-function _xlCrc32(data) {
-    const t = new Uint32Array(256);
-    for (let n = 0; n < 256; n++) {
-        let c = n;
-        for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-        t[n] = c;
-    }
-    let crc = 0xFFFFFFFF;
-    for (const b of data) crc = t[(crc ^ b) & 0xFF] ^ (crc >>> 8);
-    return (crc ^ 0xFFFFFFFF) >>> 0;
-}
-
-function _buildDvXML(de, daysInMonth, workers, cfg, shiftCodes) {
-    const n = daysInMonth + 1; // last data row (1-indexed header + daysInMonth rows)
-    function xa(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-    const dvs = [];
-    // Holiday column C
-    dvs.push(`<dataValidation type="list" sqref="C2:C${n}" showDropDown="0" showInputMessage="1" promptTitle="${xa(de?'Feiertag?':'Holiday?')}" prompt="${xa(de?'Y = Feiertag, N = kein Feiertag':'Y = holiday, N = not a holiday')}" showErrorMessage="1" errorTitle="${xa(de?'Ungültig':'Invalid')}" error="${xa(de?'Bitte Y oder N eingeben.':'Please enter Y or N.')}"><formula1>&quot;Y,N&quot;</formula1></dataValidation>`);
-    // LSS column D
-    dvs.push(`<dataValidation type="list" sqref="D2:D${n}" showDropDown="0" showInputMessage="1" promptTitle="LSS?" prompt="${xa(de?'Y = LSS-Tag, N = kein LSS-Tag':'Y = LSS day, N = not an LSS day')}" showErrorMessage="1" errorTitle="${xa(de?'Ungültig':'Invalid')}" error="${xa(de?'Bitte Y oder N eingeben.':'Please enter Y or N.')}"><formula1>&quot;Y,N&quot;</formula1></dataValidation>`);
-    // Worker shift columns
-    const listRef = `Legend!$D$1:$D$${shiftCodes.length}`;
-    for (let wIdx = 0; wIdx < workers.length; wIdx++) {
-        const col = excelCol(cfg.workerStartCol + wIdx);
-        dvs.push(`<dataValidation type="list" sqref="${col}2:${col}${n}" showDropDown="0" showInputMessage="0" showErrorMessage="0"><formula1>${listRef}</formula1></dataValidation>`);
-    }
-    return `<dataValidations count="${dvs.length}">${dvs.join('')}</dataValidations>`;
-}
-
-async function _injectDvIntoXLSX(uint8, dvXML, sheetPath = 'xl/worksheets/sheet1.xml') {
-    // ── 1. Locate EOCD (scan backwards, max 64K comment) ──
-    let eocdOff = -1;
-    for (let i = uint8.length - 22; i >= Math.max(0, uint8.length - 65557); i--) {
-        if (uint8[i]===0x50 && uint8[i+1]===0x4B && uint8[i+2]===0x05 && uint8[i+3]===0x06) {
-            eocdOff = i; break;
-        }
-    }
-    if (eocdOff < 0) { console.warn('_injectDv: EOCD not found'); return uint8; }
-
-    // Helper: DataView anchored to uint8's buffer (byteOffset always 0 after new Uint8Array())
-    const dv = (off, sz) => new DataView(uint8.buffer, uint8.byteOffset + off, sz);
-    const eocdV    = dv(eocdOff, 22);
-    const cdOffset = eocdV.getUint32(16, true);   // start of central directory
-    const cdCount  = eocdV.getUint16(10, true);    // total number of entries
-
-    // ── 2. Parse central directory ──
-    const entries = [];
-    let cdPos = cdOffset;
-    for (let i = 0; i < cdCount; i++) {
-        if (cdPos + 46 > uint8.length) break;
-        const v = dv(cdPos, 46);
-        if (v.getUint32(0, true) !== 0x02014b50) break;
-        const method     = v.getUint16(10, true);
-        const crc        = v.getUint32(16, true);
-        const compSz     = v.getUint32(20, true);
-        const uncompSz   = v.getUint32(24, true);
-        const nameLen    = v.getUint16(28, true);
-        const extraLen   = v.getUint16(30, true);
-        const commentLen = v.getUint16(32, true);
-        const localOff   = v.getUint32(42, true);
-        const name       = new TextDecoder().decode(uint8.subarray(cdPos + 46, cdPos + 46 + nameLen));
-        const entSz      = 46 + nameLen + extraLen + commentLen;
-        entries.push({ cdOff: cdPos, method, crc, compSz, uncompSz, localOff, name, entSz });
-        cdPos += entSz;
-    }
-
-    // ── 3. Find target sheet ──
-    const target = entries.find(e => e.name === sheetPath);
-    if (!target) { console.warn('_injectDv: sheet not found', sheetPath); return uint8; }
-
-    // ── 4. Find data start via local header ──
-    const lhV       = dv(target.localOff, 30);
-    const lNameLen  = lhV.getUint16(26, true);
-    const lExtraLen = lhV.getUint16(28, true);
-    const dataStart = target.localOff + 30 + lNameLen + lExtraLen;
-    const fileData  = uint8.slice(dataStart, dataStart + target.compSz);
-
-    // ── 5. Decompress sheet XML ──
-    let xml;
-    if (target.method === 0) {
-        xml = new TextDecoder().decode(fileData);
-    } else if (target.method === 8) {
-        const ds = new DecompressionStream('deflate-raw');
-        const dw = ds.writable.getWriter(); dw.write(fileData); dw.close();
-        const chunks = []; const dr = ds.readable.getReader();
-        for (;;) { const { done, value } = await dr.read(); if (done) break; chunks.push(value); }
-        const tot = chunks.reduce((s, c) => s + c.length, 0);
-        const merged = new Uint8Array(tot); let o2 = 0;
-        for (const c of chunks) { merged.set(c, o2); o2 += c.length; }
-        xml = new TextDecoder().decode(merged);
-    } else { return uint8; }  // unsupported compression — return as-is
-
-    // ── 6. Inject before <pageMargins (correct OOXML order) or </worksheet> ──
-    if (!xml.includes('<dataValidations')) {
-        const mark = xml.includes('<pageMargins') ? '<pageMargins' : '</worksheet>';
-        xml = xml.replace(mark, dvXML + mark);
-    }
-
-    // ── 7. Recompress ──
-    const newBytes = new TextEncoder().encode(xml);
-    let newComp;
-    if (target.method === 0) {
-        newComp = newBytes;
-    } else {
-        const cs = new CompressionStream('deflate-raw');
-        const cw = cs.writable.getWriter(); cw.write(newBytes); cw.close();
-        const chunks = []; const cr = cs.readable.getReader();
-        for (;;) { const { done, value } = await cr.read(); if (done) break; chunks.push(value); }
-        const tot = chunks.reduce((s, c) => s + c.length, 0);
-        newComp = new Uint8Array(tot); let o2 = 0;
-        for (const c of chunks) { newComp.set(c, o2); o2 += c.length; }
-    }
-    const newCRC = _xlCrc32(newBytes);
-
-    // ── 8. Rebuild local-file section in CD order ──
-    const sorted = [...entries].sort((a, b) => a.localOff - b.localOff);
-    const outParts = [];
-    const newLocalOffs = {};  // old localOff → new localOff
-    let outOff = 0;
-
-    for (const entry of sorted) {
-        newLocalOffs[entry.localOff] = outOff;
-        // Local header size (read from actual local header, extra may differ from CD)
-        const lh2     = dv(entry.localOff, 30);
-        const lnl2    = lh2.getUint16(26, true);
-        const lel2    = lh2.getUint16(28, true);
-        const lHdrSz  = 30 + lnl2 + lel2;
-
-        if (entry === target) {
-            const hdr = uint8.slice(entry.localOff, entry.localOff + lHdrSz);
-            const hdrCopy = new Uint8Array(hdr);                    // mutable copy
-            const hv  = new DataView(hdrCopy.buffer);
-            hv.setUint32(14, newCRC,          true);  // CRC-32
-            hv.setUint32(18, newComp.length,  true);  // compressed size
-            hv.setUint32(22, newBytes.length, true);  // uncompressed size
-            outParts.push(hdrCopy, newComp);
-            outOff += hdrCopy.length + newComp.length;
-        } else {
-            // Copy local header + original compressed data as one slice
-            const chunk = uint8.slice(entry.localOff, entry.localOff + lHdrSz + entry.compSz);
-            outParts.push(chunk);
-            outOff += chunk.length;
-        }
-    }
-
-    // ── 9. Rebuild central directory with updated offsets/stats ──
-    const cdParts = [];
-    for (const entry of entries) {      // keep original CD ordering
-        const cdEnt = new Uint8Array(uint8.slice(entry.cdOff, entry.cdOff + entry.entSz));
-        const cv    = new DataView(cdEnt.buffer);
-        cv.setUint32(42, newLocalOffs[entry.localOff], true);
-        if (entry === target) {
-            cv.setUint32(16, newCRC,          true);
-            cv.setUint32(20, newComp.length,  true);
-            cv.setUint32(24, newBytes.length, true);
-        }
-        cdParts.push(cdEnt);
-    }
-
-    // ── 10. Updated EOCD ──
-    const newCDSize   = cdParts.reduce((s, e) => s + e.length, 0);
-    const newCDOffset = outOff;
-    const newEocd     = new Uint8Array(uint8.slice(eocdOff));
-    const nev         = new DataView(newEocd.buffer);
-    nev.setUint32(12, newCDSize,   true);
-    nev.setUint32(16, newCDOffset, true);
-
-    // ── 11. Assemble ──
-    const allParts = [...outParts, ...cdParts, newEocd];
-    const total    = allParts.reduce((s, p) => s + p.length, 0);
-    const result   = new Uint8Array(total); let rOff = 0;
-    for (const p of allParts) { result.set(p, rOff); rOff += p.length; }
-    return result;
-}
-
-async function downloadExcelWithFormulas() {
+function downloadExcelWithFormulas() {
     if (typeof XLSX === 'undefined') { alert(currentLang==='de' ? 'Die Excel-Bibliothek konnte nicht geladen werden.' : 'The Excel library could not be loaded. Please reload the page and try again.'); return; }
     const cfg = buildExcelExportConfig();
     const wb  = XLSX.utils.book_new();
@@ -4142,33 +3940,15 @@ async function downloadExcelWithFormulas() {
                 : shift;
             row.push(displayShift);
         });
-        // Map "who" keys to the exact shift code they track
-        const _whoMap = { ir2Early:'8E-IR2', ir2Mid:'8M-IR2', ir2Late:'8L-IR2', ir2_13h:'13H-IR2',
-                          ir3Early:'8E-IR3', ir3Mid:'8M-IR3', ir3Late:'8L-IR3', ir3_13h:'13H-IR3',
-                          ir4Early:'8E-IR4', ir4Mid:'8M-IR4', ir4Late:'8L-IR4', ir4_13h:'13H-IR4' };
-        cfg.summary.forEach(s => {
-            if (s.key === 'comments') { row.push(dailyComments[d] || ''); return; }
-            if (_whoMap[s.key]) {
-                const target = _whoMap[s.key];
-                const [shiftBase, room] = [target.split('-')[0], target.replace(/^[^-]+-/, '')];
-                const names = workers.filter(w => {
-                    const sh = w.shifts[d] || '-';
-                    if (sh === target) return true;
-                    return getBaseShift(sh) === shiftBase && getRoomAssignment(sh) === room;
-                }).map(w => w.name).join(', ');
-                row.push(names);
-                return;
-            }
-            row.push(null);
-        });
+        cfg.summary.forEach(s => row.push(s.key === 'comments' ? (dailyComments[d] || '') : null));
         planRows.push(row);
     }
 
     const planWs = XLSX.utils.aoa_to_sheet(planRows);
     planWs['!cols'] = [
         {wch:12},{wch:10},{wch:10},{wch:6},
-        ...workers.map(() => ({wch:14})),
-        ...cfg.summary.map(s => ({wch: s.key==='comments' ? 28 : (s.key.startsWith('ir') ? 22 : 10)}))
+        ...workers.map(() => ({wch:18})),
+        ...cfg.summary.map(s => ({wch: s.key==='comments' ? 28 : 10}))
     ];
     planWs['!rows'] = Array(planRows.length).fill({hpt:18});
     planWs['!autofilter'] = { ref:`A1:${excelCol(planHeader.length-1)}${planRows.length}` };
@@ -4263,12 +4043,6 @@ async function downloadExcelWithFormulas() {
             const planCol  = cfg.summaryStartCol + idx;
             const planAddr = excelCell(rowIdx, planCol);
             if (s.key === 'comments') { planWs[planAddr] = { t:'s', v: dailyComments[d]||'', s: planWs[planAddr]?.s }; return; }
-            // "who" cells: text already baked in by aoa_to_sheet — just apply style, no formula
-            if (s.key.startsWith('ir') && s.key !== 'absence') {
-                if (!planWs[planAddr]) planWs[planAddr] = { t:'s', v:'' };
-                planWs[planAddr].s = cellStyle('#FFFDE7', { border:true, align:'left' });
-                return;
-            }
             if (s.key === 'absence') {
                 const col = k => excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key===k));
                 const r   = rowIdx + 1;
@@ -4300,7 +4074,6 @@ async function downloadExcelWithFormulas() {
     const legendWs = XLSX.utils.aoa_to_sheet(legendRows);
 
     // ── Shift code list — written to column D of Legend sheet ──
-    // This is the dropdown source for all worker cells in the Plan sheet.
     const shiftCodes = [
         '-',
         '8E', '8L', '8M',
@@ -4309,7 +4082,6 @@ async function downloadExcelWithFormulas() {
         'ImE', 'ImL',
         'OFF', 'VAC', 'SICK', 'FB', 'PF', 'DF', 'LSS', 'Offc', 'RB1', 'RB2',
         'Urlaub IR', 'Urlaub-ZA', 'U-Immo',
-        // Room variants
         '8E-IR2','8L-IR2','8M-IR2',
         ...(use13H ? ['13H-IR2'] : []),
         '8E-IR3','8L-IR3','8M-IR3',
@@ -4319,18 +4091,68 @@ async function downloadExcelWithFormulas() {
         '8E-Immo','8L-Immo',
     ];
 
-    // Write shift codes to column D of Legend sheet (D1:D<n>)
-    shiftCodes.forEach((code, i) => {
-        const addr = `D${i + 1}`;
-        legendWs[addr] = { t:'s', v: code };
-    });
-    // Expand !ref to include column D
-    legendWs['!ref'] = `A1:D${Math.max(legendRows.length, shiftCodes.length)}`;
-    legendWs['!cols'] = legendWs['!cols'] || [];
-    legendWs['!cols'][3] = { wch: 16 }; // column D width
+    shiftCodes.forEach((code, i) => { legendWs[`D${i + 1}`] = { t:'s', v: code }; });
 
-    // ── Data validation: injected directly into the XLSX ZIP (reliable cross-library) ──
-    // Built here; injected into xl/worksheets/sheet1.xml after XLSX.write().
+    // ── Y/N list — written to column E of Legend sheet (used for HOL and LSS dropdowns) ──
+    // Inline formula1 strings get HTML-escaped by xlsx-js-style (quotes become &quot;)
+    // which Excel cannot interpret as a valid list. Using a sheet reference avoids this.
+    legendWs['E1'] = { t:'s', v:'Y' };
+    legendWs['E2'] = { t:'s', v:'N' };
+    const ynListRef = 'Legend!$E$1:$E$2';
+
+    const maxLegendRow = Math.max(legendRows.length, shiftCodes.length, 2);
+    legendWs['!ref'] = `A1:E${maxLegendRow}`;
+    legendWs['!cols'] = legendWs['!cols'] || [];
+    legendWs['!cols'][3] = { wch: 16 }; // col D — shift codes
+    legendWs['!cols'][4] = { wch:  4 }; // col E — Y/N (narrow, helper column)
+
+    // ── Data validation ──
+    const shiftListRef = `Legend!$D$1:$D$${shiftCodes.length}`;
+    const dataValidations = [];
+
+    // HOL column (C) — Y/N via sheet reference
+    dataValidations.push({
+        type:             'list',
+        sqref:            `C2:C${daysInMonth + 1}`,
+        formula1:         ynListRef,
+        showDropDown:     false,
+        showInputMessage: true,
+        promptTitle:      de ? 'Feiertag?' : 'Holiday?',
+        prompt:           de ? 'Y = Feiertag, N = kein Feiertag' : 'Y = holiday, N = not a holiday',
+        showErrorMessage: true,
+        errorTitle:       de ? 'Ungültig' : 'Invalid',
+        error:            de ? 'Bitte Y oder N eingeben.' : 'Please enter Y or N.',
+    });
+
+    // LSS column (D) — Y/N via sheet reference
+    dataValidations.push({
+        type:             'list',
+        sqref:            `D2:D${daysInMonth + 1}`,
+        formula1:         ynListRef,
+        showDropDown:     false,
+        showInputMessage: true,
+        promptTitle:      'LSS?',
+        prompt:           de ? 'Y = LSS-Tag, N = kein LSS-Tag' : 'Y = LSS day, N = not an LSS day',
+        showErrorMessage: true,
+        errorTitle:       de ? 'Ungültig' : 'Invalid',
+        error:            de ? 'Bitte Y oder N eingeben.' : 'Please enter Y or N.',
+    });
+
+    // Worker shift columns
+    for (let wIdx = 0; wIdx < workers.length; wIdx++) {
+        const col = excelCol(cfg.workerStartCol + wIdx);
+        dataValidations.push({
+            type:             'list',
+            sqref:            `${col}2:${col}${daysInMonth + 1}`,
+            formula1:         shiftListRef,
+            showDropDown:     false,
+            showInputMessage: true,
+            promptTitle:      de ? 'Dienstcode' : 'Shift Code',
+            prompt:           de ? 'Wählen Sie einen Dienstcode oder geben Sie einen benutzerdefinierten Code ein (z.B. CUS-07:00-15:30).' : 'Select a shift code or type a custom code (e.g. CUS-07:00-15:30).',
+            showErrorMessage: false,
+        });
+    }
+    planWs['!dataValidation'] = dataValidations;
 
     XLSX.utils.book_append_sheet(wb, planWs,    'Plan');
     XLSX.utils.book_append_sheet(wb, helperWs,  'Helpers');
@@ -4359,10 +4181,7 @@ async function downloadExcelWithFormulas() {
 
     try {
         const wbOut = XLSX.write(wb, { bookType:'xlsx', type:'array', cellStyles:true });
-        // Inject data validation XML directly into the XLSX ZIP (reliable with all xlsx libraries)
-        const dvXML = _buildDvXML(de, daysInMonth, workers, cfg, shiftCodes);
-        const patched = await _injectDvIntoXLSX(new Uint8Array(wbOut), dvXML);
-        const blob  = new Blob([patched], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const blob  = new Blob([wbOut], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         const url   = URL.createObjectURL(blob);
         const a     = document.createElement('a');
         a.href      = url;
@@ -4397,11 +4216,9 @@ function downloadAsHTML() {
 <\/script>`;
 
     let html = document.documentElement.outerHTML;
-    // Bake current password hashes into downloaded HTML so new browsers are protected.
-    // The regex matches both the initial `null` and any previously baked hash string,
-    // so re-downloading after a password change always embeds the latest hash.
-    if (adminHash)  html = html.replace(/let adminHash\s*=\s*(?:null|"[^"]*")/, 'let adminHash = ' + JSON.stringify(adminHash));
-    if (editorHash) html = html.replace(/let editorHash\s*=\s*(?:null|"[^"]*")/, 'let editorHash = ' + JSON.stringify(editorHash));
+    // Bake current password hashes into downloaded HTML so new browsers are protected
+    if (adminHash)  html = html.replace(/let adminHash\s*=\s*null/, 'let adminHash = ' + JSON.stringify(adminHash));
+    if (editorHash) html = html.replace(/let editorHash\s*=\s*null/, 'let editorHash = ' + JSON.stringify(editorHash));
     // Insert seed script just before </head>
     html = html.replace('</head>', seedScript + '\n</head>');
 
@@ -4419,10 +4236,10 @@ function downloadAsHTML() {
 }
 
 
-async function copyColorfulExcel() {
+function copyColorfulExcel() {
     let html = "<table border='1' style='font-family:Arial,sans-serif; font-size:12px; border-collapse:collapse;'>";
     html += `<tr><th>Date</th><th>Holiday?</th><th>LSS?</th>`;
-    workers.forEach(w => html += `<th>${esc(w.name)} (${esc(w.contract)}h)</th>`);
+    workers.forEach(w => html += `<th>${w.name} (${w.contract}h)</th>`);
     html += `<th>8E</th><th>8M</th><th>8L</th>${use13H?'<th>13H</th>':''}${use6H?'<th>6H</th>':''}<th>ImE</th><th>ImL</th><th>Total</th><th>Sick (names)</th><th>Vacation (names)</th><th>Comments</th></tr>`;
 
     for (let d=0; d<daysInMonth; d++) {
@@ -4462,30 +4279,22 @@ async function copyColorfulExcel() {
     const colSpan = 9 + (use13H?1:0) + (use6H?1:0);
     html += `<td colspan="${colSpan}"></td></tr></table>`;
 
-    const htmlBlob = new Blob([html], { type: 'text/html' });
-    const textBlob = new Blob([html], { type: 'text/plain' });
+    const tmp = document.createElement('div');
+    tmp.style.cssText = 'position:absolute; left:-9999px;';
+    tmp.innerHTML = html;
+    document.body.appendChild(tmp);
+    const range = document.createRange();
+    range.selectNode(tmp);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
     try {
-        if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-            await navigator.clipboard.write([new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': textBlob })]);
-            alert('✅ Success! Open Excel, select top-left cell, press Ctrl+V.');
-        } else {
-            // Fallback for browsers that don't support ClipboardItem
-            const tmp = document.createElement('div');
-            tmp.style.cssText = 'position:absolute; left:-9999px;';
-            tmp.innerHTML = html;
-            document.body.appendChild(tmp);
-            const range = document.createRange();
-            range.selectNode(tmp);
-            window.getSelection().removeAllRanges();
-            window.getSelection().addRange(range);
-            document.execCommand('copy');
-            window.getSelection().removeAllRanges();
-            document.body.removeChild(tmp);
-            alert('✅ Success! Open Excel, select top-left cell, press Ctrl+V.');
-        }
+        document.execCommand('copy');
+        alert('✅ Success! Open Excel, select top-left cell, press Ctrl+V.');
     } catch(err) {
         alert('Oops! Browser blocked the clipboard. Error: ' + err);
     }
+    window.getSelection().removeAllRanges();
+    document.body.removeChild(tmp);
 }
 
 // ─────────────────────────────────────────────────────────
@@ -4995,7 +4804,10 @@ function openSetPasswordModal() {
 }
 
 async function saveAllPasswords() {
-    if (!requireAdmin('Set Passwords')) return;
+    // Allow first-time setup even without being logged in as admin
+    // (if no admin hash exists yet, there is no admin to log in as)
+    const isFirstTimeSetup = !adminHash && !pwHash;
+    if (!isFirstTimeSetup && !requireAdmin('Set Passwords')) return;
     if (!spConfig.siteUrl || !spConfig.folderPath || !spConfig.fileName) {
         const err = document.getElementById('setPwError');
         err.textContent = '⚠️ Connect to GitHub first (🐙 button).';
@@ -5239,21 +5051,27 @@ async function spTestConnection() {
 }
 
 // Pull from GitHub → load into local session
+// silent=true: no modal status messages (auto-sync on load)
+// silent='direct': no confirm dialog and no modal status (main screen button — one click)
 async function spPull(silent = false) {
+    const isDirect = silent === 'direct';
     if (!spConfig.siteUrl || !spConfig.folderPath) {
         if (!silent) spShowModalStatus('⚠️ Please configure GitHub owner and repo first.', '#fff3cd', '#856404');
         return;
     }
-    if (!silent) spShowModalStatus('⬇️ Pulling from GitHub...', '#f6f8fa', '#24292f');
+    if (!isDirect && !silent) spShowModalStatus('⬇️ Pulling from GitHub...', '#f6f8fa', '#24292f');
+    if (isDirect) spSetStatus('⬇️ Pulling…', '#f6f8fa', '#24292f');
     try {
         const text = await ghReadFile('shiftplanner_data.json');
         if (text === null) {
             if (!silent) spShowModalStatus('ℹ️ No shared file found yet. Push your data first to create it.', '#fff3cd', '#856404');
+            if (isDirect) spSetStatus('ℹ️ No data on GitHub yet', '#fff3cd', '#856404');
             return;
         }
         const parsed = JSON.parse(text);
 
-        if (!silent && !confirm('⬇️ Pull from GitHub?\n\nThis will REPLACE your current local data with the shared version.\n\nAny unsaved local changes will be lost. Continue?')) return;
+        // Direct (main screen) — no confirm, just pull
+        if (!isDirect && !silent && !confirm('⬇️ Pull from GitHub?\n\nThis will REPLACE your current local data with the shared version.\n\nAny unsaved local changes will be lost. Continue?')) return;
 
         allMonthsData = parsed;
         localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
@@ -5267,7 +5085,7 @@ async function spPull(silent = false) {
         changeMonth(true);
 
         const msg = `✅ Pulled at ${now}`;
-        if (!silent) spShowModalStatus(msg, '#e6ffe6', '#107c10');
+        if (!isDirect && !silent) spShowModalStatus(msg, '#e6ffe6', '#107c10');
         spSetStatus(`🐙 Pulled · ${now}`, '#e6ffe6', '#107c10');
     } catch(e) {
         const msg = `❌ Pull failed: ${e.message}`;
@@ -5284,12 +5102,10 @@ async function spPush(silent = false) {
         if (!silent) spShowModalStatus('⚠️ Please configure GitHub settings first.', '#fff3cd', '#856404');
         return;
     }
-    if (window._spPushing) return; // prevent re-entrant call from saveData inside this function
-    window._spPushing = true;
     if (!silent) spShowModalStatus('⬆️ Pushing to GitHub...', '#f6f8fa', '#24292f');
 
     try {
-        saveData(); // ensure latest state is in allMonthsData — safe because _spPushing is set
+        saveData(); // ensure latest state is in allMonthsData
 
         // ════════════════════════════════════════════════════════
         //  VIEWER PATH — cell-level merge for vacation requests
@@ -5416,8 +5232,6 @@ async function spPush(silent = false) {
             if (!silent) spShowModalStatus(`❌ Push failed: ${e.message}`, '#ffe6e6', '#c0392b');
             spSetStatus(`⚠️ GitHub push failed`, '#fff3cd', '#856404');
         }
-    } finally {
-        window._spPushing = false;
     }
 }
 
