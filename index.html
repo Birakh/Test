@@ -169,6 +169,7 @@
         </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
@@ -3523,6 +3524,36 @@ function copyPersonalText() {
 //  Excel Export Helpers
 // ─────────────────────────────────────────────────────────
 
+// Pre-compute the actual 0/1 value for a helper cell (mirrors excelHelperFormulaPending logic in JS).
+// rawShift = w.shifts[d] (may be "VAC-PENDING", "8E-IR2", "CUS-07:00-15:30", etc.)
+function computeHelperValue(rawShift, key) {
+    const shift = isPendingVacationShift(rawShift) ? stripPendingVacation(rawShift) : (rawShift || '-');
+    const b     = getBaseShift(shift);
+    let cusStart = 99, cusEnd = 0;
+    if (b === 'CUS') {
+        const parts = shift.split('-');
+        if (parts[1]) cusStart = parseInt(parts[1].substring(0,2)) || 99;
+        if (parts[2]) cusEnd   = parseInt(parts[2].substring(0,2)) || 0;
+    }
+    switch (key) {
+        case 'c8E':   return (b.startsWith('8E')  || (b==='CUS' && cusStart<=12)) ? 1 : 0;
+        case 'c8M':   return  b.startsWith('8M')  ? 1 : 0;
+        case 'c8L':   return (b.startsWith('8L')  || (b==='CUS' && cusEnd>=14))   ? 1 : 0;
+        case 'c13H':  return  b.startsWith('13H') ? 1 : 0;
+        case 'c6H':   return  b === '6H'  ? 1 : 0;
+        case 'cImE':  return  b === 'ImE' ? 1 : 0;
+        case 'cImL':  return  b === 'ImL' ? 1 : 0;
+        case 'work':  return (b.startsWith('8E')||b.startsWith('8L')||b.startsWith('8M')||b.startsWith('13H')||b==='6H'||b==='FB'||b==='LSS'||b==='Offc'||b==='ImE'||b==='ImL'||b==='CUS') ? 1 : 0;
+        case 'vac':   return (b==='VAC'||b==='Urlaub IR'||b==='Urlaub-ZA'||b==='U-Immo') ? 1 : 0;
+        case 'sick':  return  b === 'SICK' ? 1 : 0;
+        case 'fb':    return  b === 'FB'   ? 1 : 0;
+        case 'pf':    return  b === 'PF'   ? 1 : 0;
+        case 'df':    return  b === 'DF'   ? 1 : 0;
+        case 'krank': return  b === 'SICK' ? 1 : 0;
+        default:      return 0;
+    }
+}
+
 // Convert 0-based column index → Excel letter (0→A, 25→Z, 26→AA …)
 function excelCol(idx) {
     let col = '', n = idx + 1;
@@ -3603,11 +3634,12 @@ function excelHelperFormulaPending(ref, key) {
 //  Excel style helpers (module-level — shared across all XLSX functions)
 // ─────────────────────────────────────────────────────────
 
-// CSS hex → 6-char RRGGBB string for xlsx-js-style
+// CSS hex → 8-char AARRGGBB string for xlsx-js-style (Excel requires alpha prefix)
 function xlsCssToRgb(hex) {
-    if (!hex) return 'FFFFFF';
+    if (!hex) return 'FFFFFFFF';
     hex = hex.replace('#','');
     if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+    if (hex.length === 6) hex = 'FF' + hex;
     return hex.toUpperCase();
 }
 
@@ -3625,10 +3657,10 @@ function xlsCellStyle(bgHex, opts = {}) {
                      color: opts.fontColor ? { rgb: xlsCssToRgb(opts.fontColor) } : undefined },
         alignment: { horizontal: opts.align||'center', vertical:'center', wrapText:!!opts.wrap },
         border: opts.border !== false ? {
-            top:   { style:'thin', color:{ rgb:'CCCCCC' } },
-            bottom:{ style:'thin', color:{ rgb:'CCCCCC' } },
-            left:  { style:'thin', color:{ rgb:'CCCCCC' } },
-            right: { style:'thin', color:{ rgb:'CCCCCC' } }
+            top:   { style:'thin', color:{ rgb:'FFCCCCCC' } },
+            bottom:{ style:'thin', color:{ rgb:'FFCCCCCC' } },
+            left:  { style:'thin', color:{ rgb:'FFCCCCCC' } },
+            right: { style:'thin', color:{ rgb:'FFCCCCCC' } }
         } : undefined
     };
 }
@@ -3898,7 +3930,7 @@ function buildExcelExportConfig() {
 // ─────────────────────────────────────────────────────────
 //  Download as HTML (with embedded data for SharePoint)
 // ─────────────────────────────────────────────────────────
-function downloadExcelWithFormulas() {
+async function downloadExcelWithFormulas() {
     if (typeof XLSX === 'undefined') { alert(currentLang==='de' ? 'Die Excel-Bibliothek konnte nicht geladen werden.' : 'The Excel library could not be loaded. Please reload the page and try again.'); return; }
     const cfg = buildExcelExportConfig();
     const wb  = XLSX.utils.book_new();
@@ -3996,9 +4028,9 @@ function downloadExcelWithFormulas() {
             if (!planWs[addr]) planWs[addr] = { t:'s', v:'-' };
             planWs[addr].s = {
                 fill:      cellBg ? { patternType:'solid', fgColor:{ rgb: cssToRgb(cellBg) }, bgColor:{ indexed:64 } } : undefined,
-                font:      { name:'Calibri', sz:10, italic: isPending, color: isPending ? { rgb:'999999' } : undefined },
+                font:      { name:'Calibri', sz:10, italic: isPending, color: isPending ? { rgb:'FF999999' } : undefined },
                 alignment: { horizontal:'center', vertical:'center' },
-                border:    { top:{ style:'thin', color:{ rgb:'CCCCCC' } }, bottom:{ style:'thin', color:{ rgb:'CCCCCC' } }, left:{ style:'thin', color:{ rgb:'CCCCCC' } }, right:{ style:'thin', color:{ rgb:'CCCCCC' } } }
+                border:    { top:{ style:'thin', color:{ rgb:'FFCCCCCC' } }, bottom:{ style:'thin', color:{ rgb:'FFCCCCCC' } }, left:{ style:'thin', color:{ rgb:'FFCCCCCC' } }, right:{ style:'thin', color:{ rgb:'FFCCCCCC' } } }
             };
         });
 
@@ -4019,18 +4051,20 @@ function downloadExcelWithFormulas() {
     for (let d = 0; d < daysInMonth; d++) helperRows.push([new Date(currentYear, currentMonth-1, d+1), d+1, ...Array(helperHeader.length-2).fill(null)]);
     const helperWs = XLSX.utils.aoa_to_sheet(helperRows);
 
+    // helperSums[key][d] = sum of computed values across all workers for that day
+    const helperSums = {};
+    helperKeys.forEach(key => { helperSums[key] = Array(daysInMonth).fill(0); });
+
     for (let d = 0; d < daysInMonth; d++) {
         const rowIdx = d + 1;
         helperWs[excelCell(rowIdx, 0)].t = 'd';
         helperWs[excelCell(rowIdx, 0)].z = 'dd.mm.yyyy';
         helperKeys.forEach((key, keyIdx) => workers.forEach((w, wIdx) => {
             const helperCol    = 2 + keyIdx * workers.length + wIdx;
-            // Note: helper sheet references Plan sheet. The Plan sheet worker col
-            // shows display text (e.g. "VAC ⏳") so formulas must also handle "VAC ⏳".
-            // We reference the Plan cell directly — the helper formulas check the raw value.
-            // For pending, the display is "VAC ⏳" — formulas check for base type:
             const planCellRef  = `Plan!${excelCol(cfg.workerStartCol + wIdx)}${rowIdx + 1}`;
-            helperWs[excelCell(rowIdx, helperCol)] = { t:'n', f: excelHelperFormulaPending(planCellRef, key) };
+            const val          = computeHelperValue(w.shifts[d] || '-', key);
+            helperSums[key][d] += val;
+            helperWs[excelCell(rowIdx, helperCol)] = { t:'n', v: val, f: excelHelperFormulaPending(planCellRef, key) };
         }));
     }
 
@@ -4046,12 +4080,14 @@ function downloadExcelWithFormulas() {
             if (s.key === 'absence') {
                 const col = k => excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key===k));
                 const r   = rowIdx + 1;
-                planWs[planAddr] = { t:'n', f:`SUM(${col('vac')}${r},${col('fb')}${r},${col('pf')}${r},${col('df')}${r},${col('krank')}${r})`, s: planWs[planAddr]?.s };
+                const absVal = (helperSums['vac']?.[d]||0) + (helperSums['fb']?.[d]||0) + (helperSums['pf']?.[d]||0) + (helperSums['df']?.[d]||0) + (helperSums['krank']?.[d]||0);
+                planWs[planAddr] = { t:'n', v: absVal, f:`SUM(${col('vac')}${r},${col('fb')}${r},${col('pf')}${r},${col('df')}${r},${col('krank')}${r})`, s: planWs[planAddr]?.s };
                 return;
             }
             const startCol = helperBlockStart[s.key];
             const endCol   = startCol + workers.length - 1;
-            planWs[planAddr] = { t:'n', f:`SUM(Helpers!${excelRange(rowIdx, startCol, endCol)})`, s: planWs[planAddr]?.s };
+            const sumVal   = helperSums[s.key]?.[d] ?? 0;
+            planWs[planAddr] = { t:'n', v: sumVal, f:`SUM(Helpers!${excelRange(rowIdx, startCol, endCol)})`, s: planWs[planAddr]?.s };
         });
     }
 
@@ -4098,7 +4134,6 @@ function downloadExcelWithFormulas() {
     // which Excel cannot interpret as a valid list. Using a sheet reference avoids this.
     legendWs['E1'] = { t:'s', v:'Y' };
     legendWs['E2'] = { t:'s', v:'N' };
-    const ynListRef = 'Legend!$E$1:$E$2';
 
     const maxLegendRow = Math.max(legendRows.length, shiftCodes.length, 2);
     legendWs['!ref'] = `A1:E${maxLegendRow}`;
@@ -4106,53 +4141,37 @@ function downloadExcelWithFormulas() {
     legendWs['!cols'][3] = { wch: 16 }; // col D — shift codes
     legendWs['!cols'][4] = { wch:  4 }; // col E — Y/N (narrow, helper column)
 
-    // ── Data validation ──
-    const shiftListRef = `Legend!$D$1:$D$${shiftCodes.length}`;
-    const dataValidations = [];
+    // ── Data validation — built as raw OOXML and injected via JSZip post-processing ──
+    // (xlsx-js-style does not serialise ws['!dataValidation']; we inject directly into the ZIP)
+    function buildDVXml() {
+        const lastRow    = daysInMonth + 1;
+        const ynRef      = 'Legend!$E$1:$E$2';
+        const shiftRef   = `Legend!$D$1:$D$${shiftCodes.length}`;
+        const esc        = s => s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        let xml = '', count = 0;
 
-    // HOL column (C) — Y/N via sheet reference
-    dataValidations.push({
-        type:             'list',
-        sqref:            `C2:C${daysInMonth + 1}`,
-        formula1:         ynListRef,
-        showDropDown:     false,
-        showInputMessage: true,
-        promptTitle:      de ? 'Feiertag?' : 'Holiday?',
-        prompt:           de ? 'Y = Feiertag, N = kein Feiertag' : 'Y = holiday, N = not a holiday',
-        showErrorMessage: true,
-        errorTitle:       de ? 'Ungültig' : 'Invalid',
-        error:            de ? 'Bitte Y oder N eingeben.' : 'Please enter Y or N.',
-    });
+        // HOL (C)
+        xml += `<dataValidation type="list" sqref="C2:C${lastRow}" showDropDown="0" showInputMessage="1"` +
+               ` promptTitle="${esc(de?'Feiertag?':'Holiday?')}" prompt="${esc(de?'Y = Feiertag, N = kein Feiertag':'Y = holiday, N = not a holiday')}"` +
+               ` showErrorMessage="1" errorTitle="${esc(de?'Ungültig':'Invalid')}" error="${esc(de?'Bitte Y oder N eingeben.':'Please enter Y or N.')}">` +
+               `<formula1>${ynRef}</formula1></dataValidation>`; count++;
 
-    // LSS column (D) — Y/N via sheet reference
-    dataValidations.push({
-        type:             'list',
-        sqref:            `D2:D${daysInMonth + 1}`,
-        formula1:         ynListRef,
-        showDropDown:     false,
-        showInputMessage: true,
-        promptTitle:      'LSS?',
-        prompt:           de ? 'Y = LSS-Tag, N = kein LSS-Tag' : 'Y = LSS day, N = not an LSS day',
-        showErrorMessage: true,
-        errorTitle:       de ? 'Ungültig' : 'Invalid',
-        error:            de ? 'Bitte Y oder N eingeben.' : 'Please enter Y or N.',
-    });
+        // LSS (D)
+        xml += `<dataValidation type="list" sqref="D2:D${lastRow}" showDropDown="0" showInputMessage="1"` +
+               ` promptTitle="LSS?" prompt="${esc(de?'Y = LSS-Tag, N = kein LSS-Tag':'Y = LSS day, N = not an LSS day')}"` +
+               ` showErrorMessage="1" errorTitle="${esc(de?'Ungültig':'Invalid')}" error="${esc(de?'Bitte Y oder N eingeben.':'Please enter Y or N.')}">` +
+               `<formula1>${ynRef}</formula1></dataValidation>`; count++;
 
-    // Worker shift columns
-    for (let wIdx = 0; wIdx < workers.length; wIdx++) {
-        const col = excelCol(cfg.workerStartCol + wIdx);
-        dataValidations.push({
-            type:             'list',
-            sqref:            `${col}2:${col}${daysInMonth + 1}`,
-            formula1:         shiftListRef,
-            showDropDown:     false,
-            showInputMessage: true,
-            promptTitle:      de ? 'Dienstcode' : 'Shift Code',
-            prompt:           de ? 'Wählen Sie einen Dienstcode oder geben Sie einen benutzerdefinierten Code ein (z.B. CUS-07:00-15:30).' : 'Select a shift code or type a custom code (e.g. CUS-07:00-15:30).',
-            showErrorMessage: false,
-        });
+        // Worker shift columns
+        for (let wIdx = 0; wIdx < workers.length; wIdx++) {
+            const col = excelCol(cfg.workerStartCol + wIdx);
+            xml += `<dataValidation type="list" sqref="${col}2:${col}${lastRow}" showDropDown="0" showInputMessage="1"` +
+                   ` promptTitle="${esc(de?'Dienstcode':'Shift Code')}"` +
+                   ` prompt="${esc(de?'Dienstcode wählen oder benutzerdefinierten Code eingeben (z.B. CUS-07:00-15:30).':'Select a shift code or type a custom one (e.g. CUS-07:00-15:30).')}"` +
+                   ` showErrorMessage="0"><formula1>${shiftRef}</formula1></dataValidation>`; count++;
+        }
+        return count > 0 ? `<dataValidations count="${count}">${xml}</dataValidations>` : '';
     }
-    planWs['!dataValidation'] = dataValidations;
 
     XLSX.utils.book_append_sheet(wb, planWs,    'Plan');
     XLSX.utils.book_append_sheet(wb, helperWs,  'Helpers');
@@ -4170,22 +4189,38 @@ function downloadExcelWithFormulas() {
         { name: de ? 'Analyse' : 'Analysis',     Hidden:0 },
     ];
 
-    // ── Force full recalculation when Excel opens the file ──
-    // Without this, Excel shows the cached values SheetJS baked in and
-    // doesn't recalculate until the user presses F9 or edits a cell.
-    wb.Workbook.CalcPr = {
-        calcMode:       'auto',
-        fullCalcOnLoad: true,
-        calcId:         0         // setting 0 signals Excel to treat formulas as dirty
-    };
+    wb.Workbook.CalcPr = { calcMode:'auto', fullCalcOnLoad: true };
 
     try {
         const wbOut = XLSX.write(wb, { bookType:'xlsx', type:'array', cellStyles:true });
-        const blob  = new Blob([wbOut], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        const url   = URL.createObjectURL(blob);
-        const a     = document.createElement('a');
-        a.href      = url;
-        a.download  = `ShiftPlanner_${currentYear}-${String(currentMonth).padStart(2,'0')}.xlsx`;
+
+        // ── Inject data validation via JSZip (xlsx-js-style does not support it natively) ──
+        let finalBytes = wbOut;
+        if (typeof JSZip !== 'undefined') {
+            try {
+                const zip      = await JSZip.loadAsync(wbOut);
+                const sheetKey = 'xl/worksheets/sheet1.xml';
+                const sheetFile = zip.file(sheetKey);
+                if (sheetFile) {
+                    let xml  = await sheetFile.async('string');
+                    const dv = buildDVXml();
+                    if (dv) {
+                        // Insert before </worksheet>; must come after <sheetData>
+                        xml = xml.replace(/<\/worksheet>/, dv + '</worksheet>');
+                        zip.file(sheetKey, xml);
+                    }
+                }
+                finalBytes = await zip.generateAsync({ type:'arraybuffer', compression:'DEFLATE', compressionOptions:{ level:6 } });
+            } catch (zipErr) {
+                console.warn('Data validation injection skipped:', zipErr);
+            }
+        }
+
+        const blob = new Blob([finalBytes], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `ShiftPlanner_${currentYear}-${String(currentMonth).padStart(2,'0')}.xlsx`;
         document.body.appendChild(a);
         a.click();
         setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
