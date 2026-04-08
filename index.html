@@ -3610,7 +3610,7 @@ function excelHelperFormulaPending(ref, key) {
     const is8L  = `LEFT(${ref},2)="8L"`;
     const is13H = `LEFT(${ref},3)="13H"`;
     // Vacation — match both approved and pending (⏳) display variants
-    const isVac = `OR(${ref}="VAC",${ref}="VAC ⏳",${ref}="Urlaub IR",${ref}="Urlaub IR ⏳",${ref}="Urlaub-ZA",${ref}="Urlaub-ZA ⏳",${ref}="U-Immo",${ref}="U-Immo ⏳")`;
+    const isVac = `OR(LEFT(${ref},3)="VAC",LEFT(${ref},9)="Urlaub IR",LEFT(${ref},9)="Urlaub-ZA",LEFT(${ref},6)="U-Immo")`;
     switch (key) {
         case 'c8E':   return `IF(OR(${is8E},AND(${isCus},${cusStart}<=12)),1,0)`;
         case 'c8M':   return `IF(${is8M},1,0)`;
@@ -3645,24 +3645,27 @@ function xlsCssToRgb(hex) {
 
 // Solid fill object — bgColor indexed:64 is required by OOXML for fills to render in Excel
 function xlsFill(hexColor) {
-    if (!hexColor) return undefined;
+    if (!hexColor) return { patternType:'none' };
     return { patternType:'solid', fgColor:{ rgb: xlsCssToRgb(hexColor) }, bgColor:{ indexed:64 } };
 }
 
 // Build a complete cell style object
 function xlsCellStyle(bgHex, opts = {}) {
-    return {
-        fill:      bgHex ? xlsFill(bgHex) : undefined,
-        font:      { name:'Calibri', sz: opts.sz||10, bold:!!opts.bold, italic:!!opts.italic,
-                     color: opts.fontColor ? { rgb: xlsCssToRgb(opts.fontColor) } : undefined },
+    const style = {
+        fill:      xlsFill(bgHex),
+        font:      { name:'Calibri', sz: opts.sz||10, bold:!!opts.bold, italic:!!opts.italic },
         alignment: { horizontal: opts.align||'center', vertical:'center', wrapText:!!opts.wrap },
-        border: opts.border !== false ? {
+    };
+    if (opts.fontColor) style.font.color = { rgb: xlsCssToRgb(opts.fontColor) };
+    if (opts.border !== false) {
+        style.border = {
             top:   { style:'thin', color:{ rgb:'FFCCCCCC' } },
             bottom:{ style:'thin', color:{ rgb:'FFCCCCCC' } },
             left:  { style:'thin', color:{ rgb:'FFCCCCCC' } },
             right: { style:'thin', color:{ rgb:'FFCCCCCC' } }
-        } : undefined
-    };
+        };
+    }
+    return style;
 }
 
 // Convenience: styled cell object { t, v, s }
@@ -3895,7 +3898,7 @@ function buildAnalysisSheet(de) {
     // ── Finalize ref and column widths ──
     ws['!ref'] = `A1:E${row}`;
     ws['!cols'] = [{ wch:22 }, { wch:28 }, { wch:16 }, { wch:16 }, { wch:40 }];
-    ws['!rows'] = Array(row).fill({ hpt:18 });
+    ws['!rows'] = Array.from({length: row}, () => ({hpt:18}));
     return ws;
 }
 function buildExcelExportConfig() {
@@ -3982,7 +3985,7 @@ async function downloadExcelWithFormulas() {
         ...workers.map(() => ({wch:18})),
         ...cfg.summary.map(s => ({wch: s.key==='comments' ? 28 : 10}))
     ];
-    planWs['!rows'] = Array(planRows.length).fill({hpt:18});
+    planWs['!rows'] = Array.from({length: planRows.length}, () => ({hpt:18}));
     planWs['!autofilter'] = { ref:`A1:${excelCol(planHeader.length-1)}${planRows.length}` };
 
     // ── Apply styles ──
@@ -4027,8 +4030,9 @@ async function downloadExcelWithFormulas() {
             const addr      = excelCell(rowIdx, cfg.workerStartCol + wIdx);
             if (!planWs[addr]) planWs[addr] = { t:'s', v:'-' };
             planWs[addr].s = {
-                fill:      cellBg ? { patternType:'solid', fgColor:{ rgb: cssToRgb(cellBg) }, bgColor:{ indexed:64 } } : undefined,
-                font:      { name:'Calibri', sz:10, italic: isPending, color: isPending ? { rgb:'FF999999' } : undefined },
+                fill:      xlsFill(cellBg),
+                font:      Object.assign({ name:'Calibri', sz:10, italic: isPending },
+                               isPending ? { color:{ rgb:'FF999999' } } : {}),
                 alignment: { horizontal:'center', vertical:'center' },
                 border:    { top:{ style:'thin', color:{ rgb:'FFCCCCCC' } }, bottom:{ style:'thin', color:{ rgb:'FFCCCCCC' } }, left:{ style:'thin', color:{ rgb:'FFCCCCCC' } }, right:{ style:'thin', color:{ rgb:'FFCCCCCC' } } }
             };
@@ -4072,22 +4076,62 @@ async function downloadExcelWithFormulas() {
     helperKeys.forEach((key, idx) => helperBlockStart[key] = 2 + idx * workers.length);
 
     for (let d = 0; d < daysInMonth; d++) {
-        const rowIdx = d + 1;
+        const rowIdx  = d + 1;
+        const excelRow = rowIdx + 1;  // 1-based Excel row (header is row 1)
+        // Worker range for this day on the Plan sheet, e.g. "E7:F7"
+        const wFirst = excelCol(cfg.workerStartCol);
+        const wLast  = excelCol(cfg.workerStartCol + Math.max(workers.length - 1, 0));
+        const wRng   = `${wFirst}${excelRow}:${wLast}${excelRow}`;
+
         cfg.summary.forEach((s, idx) => {
             const planCol  = cfg.summaryStartCol + idx;
             const planAddr = excelCell(rowIdx, planCol);
-            if (s.key === 'comments') { planWs[planAddr] = { t:'s', v: dailyComments[d]||'', s: planWs[planAddr]?.s }; return; }
-            if (s.key === 'absence') {
-                const col = k => excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key===k));
-                const r   = rowIdx + 1;
-                const absVal = (helperSums['vac']?.[d]||0) + (helperSums['fb']?.[d]||0) + (helperSums['pf']?.[d]||0) + (helperSums['df']?.[d]||0) + (helperSums['krank']?.[d]||0);
-                planWs[planAddr] = { t:'n', v: absVal, f:`SUM(${col('vac')}${r},${col('fb')}${r},${col('pf')}${r},${col('df')}${r},${col('krank')}${r})`, s: planWs[planAddr]?.s };
+            const baseStyle = planWs[planAddr]?.s || xlsCellStyle('#'+SUMMARY_BG, { border:true });
+
+            if (s.key === 'comments') {
+                planWs[planAddr] = { t:'s', v: dailyComments[d]||'', s: planWs[planAddr]?.s || xlsCellStyle('#'+COMMENT_BG, { border:true, align:'left' }) };
                 return;
             }
-            const startCol = helperBlockStart[s.key];
-            const endCol   = startCol + workers.length - 1;
-            const sumVal   = helperSums[s.key]?.[d] ?? 0;
-            planWs[planAddr] = { t:'n', v: sumVal, f:`SUM(Helpers!${excelRange(rowIdx, startCol, endCol)})`, s: planWs[planAddr]?.s };
+
+            // Build a direct COUNTIF/SUMPRODUCT formula on the Plan sheet worker range.
+            // This avoids cross-sheet SUM(Helpers!...) and the column-offset dependency.
+            let f;
+            const ci = (rng, pat) => `COUNTIF(${rng},"${pat}")`;
+            switch (s.key) {
+                case 'c8E':  f = ci(wRng,'8E*'); break;
+                case 'c8M':  f = ci(wRng,'8M*'); break;
+                case 'c8L':  f = ci(wRng,'8L*'); break;
+                case 'c13H': f = ci(wRng,'13H*'); break;
+                case 'c6H':  f = ci(wRng,'6H'); break;
+                case 'cImE': f = ci(wRng,'ImE'); break;
+                case 'cImL': f = ci(wRng,'ImL'); break;
+                case 'work':
+                    // Count any working shift: 8x, 13H, ImE, ImL, 6H, FB, LSS, Offc, RB*, CUS*
+                    f = `${ci(wRng,'8*')}+${ci(wRng,'13H*')}+${ci(wRng,'ImE')}+${ci(wRng,'ImL')}` +
+                        `+${ci(wRng,'6H')}+${ci(wRng,'FB')}+${ci(wRng,'LSS')}` +
+                        `+${ci(wRng,'Offc')}+${ci(wRng,'RB*')}+${ci(wRng,'CUS*')}`;
+                    break;
+                case 'vac':
+                    f = `${ci(wRng,'VAC')}+${ci(wRng,'VAC *')}+${ci(wRng,'Urlaub*')}+${ci(wRng,'U-Immo*')}`;
+                    break;
+                case 'sick':  f = ci(wRng,'SICK'); break;
+                case 'fb':    f = ci(wRng,'FB'); break;
+                case 'pf':    f = ci(wRng,'PF'); break;
+                case 'df':    f = ci(wRng,'DF'); break;
+                case 'krank': f = ci(wRng,'SICK'); break;
+                case 'absence': {
+                    // SUM of the vac, fb, pf, df, krank summary columns on this same row
+                    const col = k => excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key===k));
+                    f = `SUM(${col('vac')}${excelRow},${col('fb')}${excelRow},${col('pf')}${excelRow},${col('df')}${excelRow},${col('krank')}${excelRow})`;
+                    break;
+                }
+                default: f = null;
+            }
+
+            const val = helperSums[s.key]?.[d] ?? 0;
+            planWs[planAddr] = f
+                ? { t:'n', v: val, f, s: baseStyle }
+                : { t:'n', v: val,    s: baseStyle };
         });
     }
 
@@ -4144,33 +4188,26 @@ async function downloadExcelWithFormulas() {
     // ── Data validation — built as raw OOXML and injected via JSZip post-processing ──
     // (xlsx-js-style does not serialise ws['!dataValidation']; we inject directly into the ZIP)
     function buildDVXml() {
-        const lastRow    = daysInMonth + 1;
-        const ynRef      = 'Legend!$E$1:$E$2';
-        const shiftRef   = `Legend!$D$1:$D$${shiftCodes.length}`;
-        const esc        = s => s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const lastRow  = daysInMonth + 1;
+        // Use named ranges (defined in workbook.xml) — cross-sheet refs in formula1
+        // are not supported by Excel and cause "Removed Feature: Data validation".
+        const ynRef    = 'SP_YNList';
+        const shiftRef = 'SP_ShiftCodes';
+
+        function dv(sqref, formula) {
+            return `<dataValidation type="list" allowBlank="1" showDropDown="0"` +
+                   ` showInputMessage="0" showErrorMessage="0"` +
+                   ` sqref="${sqref}"><formula1>${formula}</formula1></dataValidation>`;
+        }
+
         let xml = '', count = 0;
-
-        // HOL (C)
-        xml += `<dataValidation type="list" sqref="C2:C${lastRow}" showDropDown="0" showInputMessage="1"` +
-               ` promptTitle="${esc(de?'Feiertag?':'Holiday?')}" prompt="${esc(de?'Y = Feiertag, N = kein Feiertag':'Y = holiday, N = not a holiday')}"` +
-               ` showErrorMessage="1" errorTitle="${esc(de?'Ungültig':'Invalid')}" error="${esc(de?'Bitte Y oder N eingeben.':'Please enter Y or N.')}">` +
-               `<formula1>${ynRef}</formula1></dataValidation>`; count++;
-
-        // LSS (D)
-        xml += `<dataValidation type="list" sqref="D2:D${lastRow}" showDropDown="0" showInputMessage="1"` +
-               ` promptTitle="LSS?" prompt="${esc(de?'Y = LSS-Tag, N = kein LSS-Tag':'Y = LSS day, N = not an LSS day')}"` +
-               ` showErrorMessage="1" errorTitle="${esc(de?'Ungültig':'Invalid')}" error="${esc(de?'Bitte Y oder N eingeben.':'Please enter Y or N.')}">` +
-               `<formula1>${ynRef}</formula1></dataValidation>`; count++;
-
-        // Worker shift columns
+        xml += dv(`C2:C${lastRow}`, ynRef); count++;
+        xml += dv(`D2:D${lastRow}`, ynRef); count++;
         for (let wIdx = 0; wIdx < workers.length; wIdx++) {
             const col = excelCol(cfg.workerStartCol + wIdx);
-            xml += `<dataValidation type="list" sqref="${col}2:${col}${lastRow}" showDropDown="0" showInputMessage="1"` +
-                   ` promptTitle="${esc(de?'Dienstcode':'Shift Code')}"` +
-                   ` prompt="${esc(de?'Dienstcode wählen oder benutzerdefinierten Code eingeben (z.B. CUS-07:00-15:30).':'Select a shift code or type a custom one (e.g. CUS-07:00-15:30).')}"` +
-                   ` showErrorMessage="0"><formula1>${shiftRef}</formula1></dataValidation>`; count++;
+            xml += dv(`${col}2:${col}${lastRow}`, shiftRef); count++;
         }
-        return count > 0 ? `<dataValidations count="${count}">${xml}</dataValidations>` : '';
+        return `<dataValidations count="${count}">${xml}</dataValidations>`;
     }
 
     XLSX.utils.book_append_sheet(wb, planWs,    'Plan');
@@ -4189,7 +4226,7 @@ async function downloadExcelWithFormulas() {
         { name: de ? 'Analyse' : 'Analysis',     Hidden:0 },
     ];
 
-    wb.Workbook.CalcPr = { calcMode:'auto', fullCalcOnLoad: true };
+    // CalcPr removed — not supported by xlsx-js-style and causes workbook.xml errors
 
     try {
         const wbOut = XLSX.write(wb, { bookType:'xlsx', type:'array', cellStyles:true });
@@ -4199,14 +4236,45 @@ async function downloadExcelWithFormulas() {
         if (typeof JSZip !== 'undefined') {
             try {
                 const zip      = await JSZip.loadAsync(wbOut);
+
+                // ── Step 1: inject definedNames into workbook.xml ──
+                // Named ranges are required because cross-sheet refs in formula1
+                // (e.g. Legend!$D$1:$D$32) cause "Removed Feature: Data validation".
+                const wbXmlFile = zip.file('xl/workbook.xml');
+                if (wbXmlFile) {
+                    let wbXml = await wbXmlFile.async('string');
+                    const shiftCodesRef = `Legend!$D$1:$D$${shiftCodes.length}`;
+                    const ynRef         = 'Legend!$E$1:$E$2';
+                    const defNames = `<definedNames>` +
+                        `<definedName name="SP_ShiftCodes">${shiftCodesRef}</definedName>` +
+                        `<definedName name="SP_YNList">${ynRef}</definedName>` +
+                        `</definedNames>`;
+                    // Remove any existing SP_ defined names to avoid duplicates
+                    wbXml = wbXml.replace(/<definedNames>[\s\S]*?<\/definedNames>/g, '');
+                    // Insert before </workbook>
+                    wbXml = wbXml.replace('</workbook>', defNames + '</workbook>');
+                    zip.file('xl/workbook.xml', wbXml);
+                }
+
+                // ── Step 2: inject dataValidations into sheet1.xml ──
                 const sheetKey = 'xl/worksheets/sheet1.xml';
                 const sheetFile = zip.file(sheetKey);
                 if (sheetFile) {
                     let xml  = await sheetFile.async('string');
                     const dv = buildDVXml();
                     if (dv) {
-                        // Insert before </worksheet>; must come after <sheetData>
-                        xml = xml.replace(/<\/worksheet>/, dv + '</worksheet>');
+                        // Remove any existing <dataValidations> block to avoid duplicates
+                        xml = xml.replace(/<dataValidations[\s\S]*?<\/dataValidations>/g, '');
+                        // OOXML: <dataValidations> must come AFTER <autoFilter>.
+                        // xlsx-js-style writes autoFilter as self-closing <autoFilter .../> — no closing tag.
+                        const autoFilterRe = /(<autoFilter[^>]*\/?>)/;
+                        if (autoFilterRe.test(xml)) {
+                            xml = xml.replace(autoFilterRe, '$1' + dv);
+                        } else if (xml.includes('</sheetData>')) {
+                            xml = xml.replace('</sheetData>', '</sheetData>' + dv);
+                        } else {
+                            xml = xml.replace('</worksheet>', dv + '</worksheet>');
+                        }
                         zip.file(sheetKey, xml);
                     }
                 }
@@ -5953,6 +6021,42 @@ function renderMobileView() {
         if (saved) { try { var c = JSON.parse(saved); hasCfg = !!(c.siteUrl && c.folderPath); } catch(e){} }
         if (!hasCfg) suShow();
     }, 700);
+})();
+</script>
+
+<!-- ── Globals bridge: expose local let/function declarations to window so the
+     extension IIFE below can access them via window.X without errors ── -->
+<script>
+(function bridgeGlobals(){
+    const expose = {
+        // state variables
+        get workers()           { return workers; },
+        get currentRole()       { return currentRole; },
+        get isEditMode()        { return isEditMode; },
+        get currentYear()       { return currentYear; },
+        get currentMonth()      { return currentMonth; },
+        get daysInMonth()       { return daysInMonth; },
+        get currentMonthKey()   { return currentMonthKey; },
+        get lssDays()           { return lssDays; },
+        get dailyTargets()      { return dailyTargets; },
+        get dailyComments()     { return dailyComments; },
+        get workerRoster()      { return workerRoster; },
+        // functions
+        getBaseShift:            (...a) => getBaseShift(...a),
+        isPendingVacationShift:  (...a) => isPendingVacationShift(...a),
+        stripPendingVacation:    (...a) => stripPendingVacation(...a),
+        isVacationBase:          (...a) => isVacationBase(...a),
+        isHoliday:               (...a) => isHoliday(...a),
+        saveData:                (...a) => saveData(...a),
+        renderTable:             (...a) => renderTable(...a),
+        pushUndo:                (...a) => pushUndo(...a),
+    };
+    Object.keys(expose).forEach(function(k){
+        if(!(k in window)){
+            try { Object.defineProperty(window, k, { get: function(){ return expose[k]; }, configurable:true }); }
+            catch(e){ window[k] = expose[k]; }
+        }
+    });
 })();
 </script>
 
