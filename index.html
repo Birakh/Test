@@ -4303,15 +4303,14 @@ async function downloadExcelWithFormulas() {
     try {
         const wbOut = XLSX.write(wb, { bookType:'xlsx', type:'array', cellStyles:true });
 
-        // ── Inject data validation via JSZip (xlsx-js-style does not support it natively) ──
+        // ── Post-process xlsx via JSZip: inject DV, CF and dxfs ──────────────────────────────
+        // All injections happen in a single pass per file to avoid read-back issues.
         let finalBytes = wbOut;
         if (typeof JSZip !== 'undefined') {
             try {
-                const zip      = await JSZip.loadAsync(wbOut);
+                const zip = await JSZip.loadAsync(wbOut);
 
-                // ── Step 1: inject definedNames into workbook.xml ──
-                // Named ranges are required because cross-sheet refs in formula1
-                // (e.g. Legend!$D$1:$D$32) cause "Removed Feature: Data validation".
+                // ── workbook.xml: inject named ranges for DV formula1 references ──
                 const wbXmlFile = zip.file('xl/workbook.xml');
                 if (wbXmlFile) {
                     let wbXml = await wbXmlFile.async('string');
@@ -4321,71 +4320,65 @@ async function downloadExcelWithFormulas() {
                         `<definedName name="SP_ShiftCodes">${shiftCodesRef}</definedName>` +
                         `<definedName name="SP_YNList">${ynRef}</definedName>` +
                         `</definedNames>`;
-                    // Remove any existing SP_ defined names to avoid duplicates
                     wbXml = wbXml.replace(/<definedNames>[\s\S]*?<\/definedNames>/g, '');
-                    // Insert before </workbook>
                     wbXml = wbXml.replace('</workbook>', defNames + '</workbook>');
                     zip.file('xl/workbook.xml', wbXml);
                 }
 
-                // ── Step 2: inject dataValidations into sheet1.xml ──
-                const sheetKey = 'xl/worksheets/sheet1.xml';
+                // ── sheet1.xml: inject DV + CF in ONE read → modify → write pass ──
+                const sheetKey  = 'xl/worksheets/sheet1.xml';
                 const sheetFile = zip.file(sheetKey);
                 if (sheetFile) {
-                    let xml  = await sheetFile.async('string');
-                    const dv = buildDVXml();
-                    if (dv) {
-                        // Remove any existing <dataValidations> block to avoid duplicates
-                        xml = xml.replace(/<dataValidations[\s\S]*?<\/dataValidations>/g, '');
-                        // OOXML: <dataValidations> must come AFTER <autoFilter>.
-                        // xlsx-js-style writes autoFilter as self-closing <autoFilter .../> — no closing tag.
-                        const autoFilterRe = /(<autoFilter[^>]*\/?>)/;
-                        if (autoFilterRe.test(xml)) {
-                            xml = xml.replace(autoFilterRe, '$1' + dv);
-                        } else if (xml.includes('</sheetData>')) {
-                            xml = xml.replace('</sheetData>', '</sheetData>' + dv);
-                        } else {
-                            xml = xml.replace('</worksheet>', dv + '</worksheet>');
-                        }
-                        zip.file(sheetKey, xml);
+                    let xml = await sheetFile.async('string');
+
+                    // 1. Remove any stale DV / CF blocks
+                    xml = xml.replace(/<dataValidations[\s\S]*?<\/dataValidations>/g, '');
+                    xml = xml.replace(/<conditionalFormatting[\s\S]*?<\/conditionalFormatting>/g, '');
+
+                    // 2. Build both payloads
+                    const dvXml  = buildDVXml();
+                    const cfXml  = buildCFXml();
+
+                    // 3. Find the best insertion anchor (OOXML order: CF → DV → ignoredErrors → worksheet end)
+                    const insertAfterAutoFilter = /(<autoFilter[^>]*\/?>)/;
+                    let anchor = '';
+                    if (insertAfterAutoFilter.test(xml))  anchor = 'autoFilter';
+                    else if (xml.includes('</sheetData>')) anchor = 'sheetData';
+                    else                                   anchor = 'worksheet';
+
+                    // 4. Insert CF then DV at the anchor point (CF must precede DV in OOXML)
+                    const cfDvBlock = (cfXml || '') + (dvXml || '');
+                    if (anchor === 'autoFilter') {
+                        xml = xml.replace(insertAfterAutoFilter, '$1' + cfDvBlock);
+                    } else if (anchor === 'sheetData') {
+                        xml = xml.replace('</sheetData>', '</sheetData>' + cfDvBlock);
+                    } else {
+                        xml = xml.replace('</worksheet>', cfDvBlock + '</worksheet>');
                     }
+
+                    zip.file(sheetKey, xml);
                 }
 
-                // ── Step 3: inject conditionalFormatting into sheet1.xml ──
-                const cfXml = buildCFXml();
-                if (cfXml) {
-                    const sheetFile3 = zip.file(sheetKey);
-                    if (sheetFile3) {
-                        let xml3 = await sheetFile3.async('string');
-                        // Remove any existing <conditionalFormatting> blocks to avoid duplicates
-                        xml3 = xml3.replace(/<conditionalFormatting[\s\S]*?<\/conditionalFormatting>/g, '');
-                        // OOXML order: conditionalFormatting comes BEFORE dataValidations
-                        if (xml3.includes('<dataValidations')) {
-                            xml3 = xml3.replace('<dataValidations', cfXml + '<dataValidations');
-                        } else {
-                            xml3 = xml3.replace('</worksheet>', cfXml + '</worksheet>');
-                        }
-                        zip.file(sheetKey, xml3);
-                    }
-                }
-
-                // ── Step 4: inject dxfs (differential formats) into xl/styles.xml ──
+                // ── styles.xml: inject dxfs (required for CF fill colours) ──
                 const stylesFile = zip.file('xl/styles.xml');
                 if (stylesFile) {
                     let stylesXml = await stylesFile.async('string');
                     const dxfsXml = buildDxfsXml();
-                    // Remove any existing <dxfs .../> self-closing or <dxfs>...</dxfs> block
-                    stylesXml = stylesXml
-                        .replace(/<dxfs[^>]*\/>/g, '')
-                        .replace(/<dxfs[\s\S]*?<\/dxfs>/g, '');
-                    // Insert before </styleSheet>
+                    // Remove the existing empty <dxfs /> placeholder written by xlsx-js-style
+                    stylesXml = stylesXml.replace(/<dxfs[^>]*\/>/g, '');
+                    stylesXml = stylesXml.replace(/<dxfs[\s\S]*?<\/dxfs>/g, '');
+                    // Append before closing tag (works regardless of whitespace/encoding)
                     stylesXml = stylesXml.replace('</styleSheet>', dxfsXml + '</styleSheet>');
+                    if (!stylesXml.includes(dxfsXml)) {
+                        // Fallback: closing tag not found — append at end
+                        stylesXml += dxfsXml;
+                    }
                     zip.file('xl/styles.xml', stylesXml);
                 }
 
-                finalBytes = await zip.generateAsync({ type:'arraybuffer', compression:'DEFLATE', compressionOptions:{ level:6 } });
+                finalBytes = await zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } });
             } catch (zipErr) {
-                console.warn('Data validation injection skipped:', zipErr);
+                console.error('XLSX post-processing failed:', zipErr);
             }
         }
 
