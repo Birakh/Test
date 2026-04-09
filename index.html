@@ -4218,12 +4218,16 @@ async function downloadExcelWithFormulas() {
     const analysisWs = buildAnalysisSheet(de);
     XLSX.utils.book_append_sheet(wb, analysisWs, de ? 'Analyse' : 'Analysis');
 
+    const rtWs = buildDienstplanRTSheet();
+    XLSX.utils.book_append_sheet(wb, rtWs, 'Dienstplan RT');
+
     wb.Workbook = wb.Workbook || {};
     wb.Workbook.Sheets = [
-        { name:'Plan',                           Hidden:0 },
-        { name:'Helpers',                        Hidden:1 },
-        { name:'Legend',                         Hidden:0 },
-        { name: de ? 'Analyse' : 'Analysis',     Hidden:0 },
+        { name:'Plan',                        Hidden:0 },
+        { name:'Helpers',                     Hidden:1 },
+        { name:'Legend',                      Hidden:0 },
+        { name: de ? 'Analyse' : 'Analysis',  Hidden:0 },
+        { name:'Dienstplan RT',               Hidden:0 },
     ];
 
     // CalcPr removed — not supported by xlsx-js-style and causes workbook.xml errors
@@ -4295,6 +4299,314 @@ async function downloadExcelWithFormulas() {
     } catch(e) {
         alert('❌ Excel export failed: ' + e.message + '\n\nTry using the JSON Backup instead (💾 Backup JSON).');
     }
+}
+
+// ─────────────────────────────────────────────────────────
+//  Dienstplan RT sheet — shift-code → RT room/shift mapping
+// ─────────────────────────────────────────────────────────
+function shiftToRTView(shift) {
+    if (!shift || shift === '-') return null;
+    const base = getBaseShift(shift);
+    const room = getRoomAssignment(shift); // 'IR2' | 'IR3' | 'IR4' | ''
+    const isFruh = s => ['8E','13H','6H'].includes(s);
+
+    if (room === 'IR2') return { room:'IR 2', shift: isFruh(base) ? 1 : 2 };
+    if (room === 'IR3') return { room:'IR 3', shift: isFruh(base) ? 1 : 2 };
+    if (room === 'IR4') return { room:'IR 4', shift: isFruh(base) ? 1 : 2 };
+    if (base === 'ImE')  return { room:'Immo',   shift: 1 };
+    if (base === 'ImL')  return { room:'Immo',   shift: 2 };
+    if (['VAC','Urlaub IR','Urlaub-ZA'].includes(base)) return { room:'U-IR',   shift: null };
+    if (base === 'U-Immo') return { room:'U-Immo', shift: null };
+    if (base === 'SICK')   return { room:'K',  shift: null };
+    if (base === 'PF')     return { room:'PF', shift: null };
+    if (base === 'DF')     return { room:'DF', shift: null };
+    if (base === 'FB')     return { room:'FB', shift: null };
+    if (base === 'LSS')    return { room:'LSS',  shift: null };
+    if (base === 'Offc')   return { room:'Offc', shift: null };
+    if (base && base.startsWith('RB')) return { room:'RB', shift: null };
+    if (['8E','8M','8L','13H','6H'].includes(base))
+        return { room: base, shift: isFruh(base) ? 1 : 2 };
+    if (base === 'CUS') {
+        const m = String(shift).match(/CUS-(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
+        const early = m ? (parseInt(m[1]) < 12) : true;
+        return { room:'CUS', shift: early ? 1 : 2 };
+    }
+    return null;
+}
+
+// ─────────────────────────────────────────────────────────
+//  Build the "Dienstplan RT" worksheet
+// ─────────────────────────────────────────────────────────
+function buildDienstplanRTSheet() {
+    const ws  = {};
+    const de  = currentLang === 'de';
+
+    // excelCol(n) in this app is 0-based → A=0, B=1, C=2, D=3 ...
+    // We work 1-based internally and convert with: col1(c) = excelCol(c-1)
+    const col1 = c => excelCol(c - 1);
+    const addr = (r, c) => `${col1(c)}${r}`;
+
+    // ── Column layout (1-based) ────────────────────────────────────────────
+    const COL_KW   = 1; // A
+    const COL_DATE = 2; // B
+    const COL_DAY  = 3; // C
+    // Workers: each gets 3 cols — room_col, shift_col, note_col
+    const WORKER_START = 4; // D
+    const nW = workers.length;
+    const COL_KOMMENTAR  = WORKER_START + nW * 3;      // after all workers
+    const SUMMARY_START  = COL_KOMMENTAR + 1;
+
+    // Summary definitions
+    const ROOM_SUM = [
+        { room:'IR 2', shift:1,    label:'IR2F' },
+        { room:'IR 2', shift:2,    label:'IR2S' },
+        { room:'IR 3', shift:1,    label:'IR3F' },
+        { room:'IR 3', shift:2,    label:'IR3S' },
+        { room:'IR 4', shift:1,    label:'IR4F' },
+        { room:'IR 4', shift:2,    label:'IR4S' },
+        { room:'Immo',   shift:null, label:'Immo'  },
+        { room:'U-IR',   shift:null, label:'U-IR'  },
+        { room:'U-Immo', shift:null, label:'U-Im'  },
+    ];
+    const COUNTIF_FIELDS = [
+        { label:'Krank', code:'K'  },
+        { label:'PF',    code:'PF' },
+        { label:'DF',    code:'DF' },
+        { label:'FB',    code:'FB' },
+    ];
+    const cfStart     = SUMMARY_START + ROOM_SUM.length * 2;
+    const laengeStart = cfStart + COUNTIF_FIELDS.length;
+    const lastCol     = laengeStart + ROOM_SUM.length * 2 - 1;
+
+    // ── Style helpers ──────────────────────────────────────────────────────
+    const HDR_BG  = '1F4E79';
+    const HDR_LT  = 'BDD7EE';
+    const WE_BG   = 'F0F0F0';
+    const HOL_BG  = 'FFF2CC';
+
+    function hdr(v, bg, fontDark, sz) {
+        return { t:'s', v: String(v ?? ''), s: xlsCellStyle('#'+bg, {
+            bold:true, sz: sz||9, border:false,
+            fontColor: fontDark ? '#000000' : '#FFFFFF',
+            align:'center'
+        })};
+    }
+    function dat(v, bg, opts) {
+        const t = (v instanceof Date) ? 'd' : typeof v === 'number' ? 'n' : 's';
+        return { t, v: v ?? '', s: xlsCellStyle(bg ? '#'+bg : null, { sz:9, border:true, ...opts }) };
+    }
+    // frmStr: string-result formula (t:'str').  frmNum: numeric-result formula (t:'n').
+    // Pre-computing cached value v prevents Excel from recalculating on open,
+    // which avoids false circular-reference warnings from unresolved formula chains.
+    function frmStr(f, cachedVal, bg, opts) {
+        return { t:'str', v: String(cachedVal ?? ''), f,
+            s: xlsCellStyle(bg ? '#'+bg : null, { sz:8, border:true, ...opts }) };
+    }
+    function frmNum(f, cachedVal, bg, opts) {
+        return { t:'n', v: Number(cachedVal ?? 0), f,
+            s: xlsCellStyle(bg ? '#'+bg : null, { sz:8, border:true, ...opts }) };
+    }
+
+    // ── Row 1: title + summary labels ──────────────────────────────────────
+    ws[addr(1,1)] = hdr('Dienstplan RT', HDR_BG, false, 11);
+    ROOM_SUM.forEach((rs, i) => {
+        ws[addr(1, SUMMARY_START + i*2)]     = hdr(rs.room,          HDR_BG, false, 8);
+        ws[addr(1, SUMMARY_START + i*2 + 1)] = hdr(rs.shift ?? '-',  HDR_BG, false, 8);
+    });
+    COUNTIF_FIELDS.forEach((cf, i) => {
+        ws[addr(1, cfStart + i)] = hdr(cf.label, HDR_BG, false, 8);
+    });
+    ROOM_SUM.forEach((rs, i) => {
+        ws[addr(1, laengeStart + i*2)]     = hdr('Lg '  + rs.label, HDR_BG, false, 7);
+        ws[addr(1, laengeStart + i*2 + 1)] = hdr('Anz ' + rs.label, HDR_BG, false, 7);
+    });
+
+    // ── Row 2: month name + worker abbreviations ───────────────────────────
+    const monthLabel = new Date(currentYear, currentMonth-1, 1)
+        .toLocaleString(de ? 'de-DE' : 'en-US', { month:'long', year:'numeric' });
+    ws[addr(2,3)] = { t:'s', v: monthLabel,
+        s: xlsCellStyle(null, { bold:true, sz:10, align:'center', border:false }) };
+    ws[addr(2, COL_KOMMENTAR)] = hdr('Kommentar', 'EEEEEE', true, 8);
+
+    workers.forEach((w, i) => {
+        const rc = WORKER_START + i * 3;
+        const abbrev = w.name.slice(0, 3);
+        ws[addr(2, rc)]     = hdr(' ' + abbrev, HDR_LT, true, 9);
+        ws[addr(2, rc + 1)] = hdr('Sh',          HDR_LT, true, 7);
+        ws[addr(2, rc + 2)] = hdr('',            HDR_LT, true, 7);
+    });
+    ROOM_SUM.forEach((rs, i) => {
+        ws[addr(2, SUMMARY_START + i*2)]     = hdr(rs.room,         HDR_LT, true, 8);
+        ws[addr(2, SUMMARY_START + i*2 + 1)] = hdr(rs.shift ?? '-', HDR_LT, true, 8);
+    });
+    COUNTIF_FIELDS.forEach((cf, i) => {
+        ws[addr(2, cfStart + i)] = hdr(cf.label, HDR_LT, true, 8);
+    });
+    ROOM_SUM.forEach((rs, i) => {
+        ws[addr(2, laengeStart + i*2)]     = hdr('Lg '  + rs.label, HDR_LT, true, 7);
+        ws[addr(2, laengeStart + i*2 + 1)] = hdr('Anz ' + rs.label, HDR_LT, true, 7);
+    });
+
+    // ── Data rows (start at Excel row 6, matching reference layout) ────────
+    const DATA_ROW = 6;
+    const DAY_NAMES_DE = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+    // First / last worker data column letters (for COUNTIF range)
+    const firstDataLet = col1(WORKER_START);
+    const lastDataLet  = col1(WORKER_START + nW * 3 - 1);
+
+    for (let d = 0; d < daysInMonth; d++) {
+        const r = DATA_ROW + d;
+        const dateObj = new Date(currentYear, currentMonth - 1, d + 1);
+        const dow  = dateObj.getDay();
+        const isWE = dow === 0 || dow === 6;
+        const isHol = isHoliday(d);
+        const bg = isHol ? HOL_BG : (isWE ? WE_BG : null);
+
+        // Pre-compute all worker RT views for this day (used for cached formula values)
+        const dayRTs = workers.map(w => shiftToRTView(w.shifts[d] || '-'));
+
+        // A – KW (string formula — t:'str')
+        const kwVal = `KW ${new Date(currentYear, currentMonth-1, d+1).toLocaleDateString('de-DE',{week:'long'}).split(',')[0]}`;
+        const wkNum = (() => { const jan4 = new Date(currentYear,0,4); return Math.ceil(((dateObj-jan4)/86400000+jan4.getDay()+1)/7); })();
+        ws[addr(r, 1)] = frmStr(`IFERROR("KW "&WEEKNUM(${col1(2)}${r}),"")`,
+            'KW ' + wkNum, bg, { fontColor:'#999999' });
+        // B – date
+        const dc = dat(dateObj, bg, {});
+        dc.z = 'DD.MM.YYYY';
+        ws[addr(r, 2)] = dc;
+        // C – weekday
+        ws[addr(r, 3)] = dat(DAY_NAMES_DE[dow], bg, { bold: isWE || isHol });
+
+        // Kommentar
+        ws[addr(r, COL_KOMMENTAR)] = dat(dailyComments[d] || '', bg,
+            { align:'left', sz:8 });
+        if (isHol && dailyComments[d]) {
+            ws[addr(r, COL_KOMMENTAR)].s = xlsCellStyle('#'+HOL_BG,
+                { align:'left', sz:8, italic:true, border:true });
+        }
+
+        // ── Worker assignment cells (static values, no formulas) ───────────
+        workers.forEach((w, i) => {
+            const rc = WORKER_START + i * 3;
+            const rt = dayRTs[i];
+            ws[addr(r, rc)]     = dat(rt ? rt.room  : '',         bg, { align:'center', bold:!!rt });
+            ws[addr(r, rc + 1)] = dat(rt ? (rt.shift ?? '') : '', bg, { align:'center', sz:8 });
+            ws[addr(r, rc + 2)] = dat('', bg, {});
+        });
+
+        // ── IR-room assignment formulas (string result → t:'str') ──────────
+        ROOM_SUM.forEach((rs, si) => {
+            const sumCol = SUMMARY_START + si * 2;
+
+            // Pre-compute cached value: collect matching worker abbreviations
+            const matchingAbbrevs = workers
+                .filter((w, wi) => {
+                    const rt = dayRTs[wi];
+                    if (!rt) return false;
+                    if (rs.shift !== null) {
+                        return (rt.room === rs.room || rt.room === 'Springer') && rt.shift === rs.shift;
+                    }
+                    if (rs.room === 'U-IR')   return rt.room === 'U-IR'   || rt.room === 'ZA';
+                    if (rs.room === 'U-Immo') return rt.room === 'U-Immo' || rt.room === 'U-I';
+                    return rt.room === rs.room;
+                })
+                .map(w => w.name.slice(0, 3))
+                .join(' ');  // space-separated like the reference file
+
+            // Build the Excel formula &-chain
+            const parts = workers.map((w, wi) => {
+                const rc   = WORKER_START + wi * 3;
+                const rLet = col1(rc);
+                const sLet = col1(rc + 1);
+                const hRef = `$${rLet}$2`;
+                const rRef = `$${rLet}${r}`;
+                const sRef = `$${sLet}${r}`;
+                let cond;
+                if (rs.shift !== null) {
+                    cond = `AND(OR(${rRef}="${rs.room}",${rRef}="Springer"),${sRef}=${rs.shift})`;
+                } else if (rs.room === 'U-IR') {
+                    cond = `OR(${rRef}="U-IR",${rRef}="ZA")`;
+                } else if (rs.room === 'U-Immo') {
+                    cond = `OR(${rRef}="U-Immo",${rRef}="U-I")`;
+                } else {
+                    cond = `${rRef}="${rs.room}"`;
+                }
+                return `IF(${cond},${hRef},"")`;
+            });
+
+            ws[addr(r, sumCol)] = parts.length
+                ? frmStr(parts.join('&'), matchingAbbrevs, bg, { fontColor:'#1F4E79' })
+                : dat(matchingAbbrevs, bg, { fontColor:'#1F4E79' });
+            ws[addr(r, sumCol + 1)] = dat('', bg, {});
+        });
+
+        // ── COUNTIF formulas (numeric result → t:'n') ──────────────────────
+        const range = `${firstDataLet}${r}:${lastDataLet}${r}`;
+        COUNTIF_FIELDS.forEach((cf, i) => {
+            const countVal = workers.filter((w, wi) => {
+                const rt = dayRTs[wi];
+                return rt && rt.room === cf.code;
+            }).length + workers.filter(w => {
+                // also count raw status codes stored in worker cols
+                const s = (w.shifts[d] || '').toUpperCase();
+                return s === cf.code;
+            }).length;
+            // Use simpler direct count from JS — formula for recalculation
+            const cfVal = workers.filter(w => {
+                const rt = shiftToRTView(w.shifts[d] || '-');
+                return rt && rt.room === cf.code;
+            }).length;
+            ws[addr(r, cfStart + i)] = frmNum(
+                `COUNTIF(${range},"${cf.code}")`, cfVal, bg, {});
+        });
+
+        // ── Länge / Anz-RTTs (numeric result → t:'n') ─────────────────────
+        ROOM_SUM.forEach((rs, i) => {
+            const sLet = col1(SUMMARY_START + i * 2);
+            const lCol = laengeStart + i * 2;
+            const lLet = col1(lCol);
+
+            // Pre-compute cached values from the already-computed matchingAbbrevs
+            const summaryCell = ws[addr(r, SUMMARY_START + i * 2)];
+            const summaryVal  = summaryCell ? String(summaryCell.v || '') : '';
+            const laengeVal   = summaryVal.replace(/ /g, '').length || '';
+            const anzVal      = laengeVal !== '' ? Math.floor(Number(laengeVal) / 3) : 0;
+
+            ws[addr(r, lCol)] = laengeVal !== ''
+                ? frmNum(`IF(${sLet}${r}<>"",LEN(SUBSTITUTE(${sLet}${r}," ","")),"")`
+                    , laengeVal, bg, { fontColor:'#666666' })
+                : frmStr(`IF(${sLet}${r}<>"",LEN(SUBSTITUTE(${sLet}${r}," ","")),"")`
+                    , '', bg, { fontColor:'#666666' });
+            ws[addr(r, lCol + 1)] = frmNum(
+                `IF(${lLet}${r}<>"",${lLet}${r}/3,0)`, anzVal, bg, { fontColor:'#666666' });
+        });
+    }
+
+    // ── Sheet !ref, !cols, !rows, freeze panes ─────────────────────────────
+    ws['!ref'] = `A1:${col1(lastCol)}${DATA_ROW + daysInMonth - 1}`;
+
+    ws['!cols'] = [
+        { wch: 7  },  // A KW
+        { wch: 11 },  // B Date
+        { wch: 4  },  // C Day
+        ...workers.flatMap(() => [{ wch:9 }, { wch:3 }, { wch:3 }]),
+        { wch: 22 },  // Kommentar
+        ...ROOM_SUM.flatMap(() => [{ wch:14 }, { wch:3 }]),
+        ...COUNTIF_FIELDS.map(() => ({ wch:5 })),
+        ...ROOM_SUM.flatMap(() => [{ wch:7 }, { wch:6 }]),
+    ];
+
+    ws['!rows'] = [
+        { hpt:20 }, { hpt:18 },    // rows 1-2
+        { hpt:14 }, { hpt:14 }, { hpt:14 },  // rows 3-5 (blank)
+        ...Array.from({ length: daysInMonth }, () => ({ hpt:16 })),
+    ];
+
+    // Freeze first 3 cols and first 5 rows (header area)
+    // Freeze panes: injected via JSZip post-processing (xlsx-js-style does not support !freeze)
+
+    return ws;
 }
 
 function downloadAsHTML() {
