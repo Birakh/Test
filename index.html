@@ -4303,82 +4303,64 @@ async function downloadExcelWithFormulas() {
     try {
         const wbOut = XLSX.write(wb, { bookType:'xlsx', type:'array', cellStyles:true });
 
-        // ── Post-process xlsx via JSZip: inject DV, CF and dxfs ──────────────────────────────
-        // All injections happen in a single pass per file to avoid read-back issues.
+        // ── Post-process xlsx via JSZip: inject named ranges, DV, CF, and dxfs ──
         let finalBytes = wbOut;
         if (typeof JSZip !== 'undefined') {
             try {
                 const zip = await JSZip.loadAsync(wbOut);
 
-                // ── workbook.xml: inject named ranges for DV formula1 references ──
+                // ── 1. workbook.xml: add named ranges so DV formula1 can use short names ──
                 const wbXmlFile = zip.file('xl/workbook.xml');
                 if (wbXmlFile) {
                     let wbXml = await wbXmlFile.async('string');
                     const shiftCodesRef = `Legend!$D$1:$D$${shiftCodes.length}`;
-                    const ynRef         = 'Legend!$E$1:$E$2';
-                    const defNames = `<definedNames>` +
-                        `<definedName name="SP_ShiftCodes">${shiftCodesRef}</definedName>` +
-                        `<definedName name="SP_YNList">${ynRef}</definedName>` +
-                        `</definedNames>`;
-                    wbXml = wbXml.replace(/<definedNames>[\s\S]*?<\/definedNames>/g, '');
-                    wbXml = wbXml.replace('</workbook>', defNames + '</workbook>');
-                    zip.file('xl/workbook.xml', wbXml);
+                    const defNames =
+                        '<definedNames>' +
+                        '<definedName name="SP_ShiftCodes">' + shiftCodesRef + '</definedName>' +
+                        '<definedName name="SP_YNList">Legend!$E$1:$E$2</definedName>' +
+                        '</definedNames>';
+                    // Remove any existing block then insert before </workbook>
+                    const wbClean = wbXml.replace(/<definedNames>[\s\S]*?<\/definedNames>/g, '');
+                    zip.file('xl/workbook.xml', wbClean.replace('</workbook>', defNames + '</workbook>'));
                 }
 
-                // ── sheet1.xml: inject DV + CF in ONE read → modify → write pass ──
+                // ── 2. styles.xml: replace the empty dxfs placeholder with 19 fill entries ──
+                // xlsx-js-style always emits exactly '<dxfs count="0"/>' — safe literal match.
+                const stylesFile = zip.file('xl/styles.xml');
+                if (stylesFile) {
+                    const stylesXml = await stylesFile.async('string');
+                    const EMPTY_DXFS = '<dxfs count="0"/>';
+                    if (stylesXml.includes(EMPTY_DXFS)) {
+                        zip.file('xl/styles.xml', stylesXml.replace(EMPTY_DXFS, buildDxfsXml()));
+                    }
+                }
+
+                // ── 3. sheet1.xml: inject CF + DV in a single read-modify-write ──
                 const sheetKey  = 'xl/worksheets/sheet1.xml';
                 const sheetFile = zip.file(sheetKey);
                 if (sheetFile) {
                     let xml = await sheetFile.async('string');
 
-                    // 1. Remove any stale DV / CF blocks
+                    // Remove any stale blocks from previous export attempts
                     xml = xml.replace(/<dataValidations[\s\S]*?<\/dataValidations>/g, '');
                     xml = xml.replace(/<conditionalFormatting[\s\S]*?<\/conditionalFormatting>/g, '');
 
-                    // 2. Build both payloads
-                    const dvXml  = buildDVXml();
-                    const cfXml  = buildCFXml();
+                    // Build payloads and concatenate (OOXML order: CF before DV)
+                    const payload = buildCFXml() + buildDVXml();
 
-                    // 3. Find the best insertion anchor (OOXML order: CF → DV → ignoredErrors → worksheet end)
-                    const insertAfterAutoFilter = /(<autoFilter[^>]*\/?>)/;
-                    let anchor = '';
-                    if (insertAfterAutoFilter.test(xml))  anchor = 'autoFilter';
-                    else if (xml.includes('</sheetData>')) anchor = 'sheetData';
-                    else                                   anchor = 'worksheet';
-
-                    // 4. Insert CF then DV at the anchor point (CF must precede DV in OOXML)
-                    const cfDvBlock = (cfXml || '') + (dvXml || '');
-                    if (anchor === 'autoFilter') {
-                        xml = xml.replace(insertAfterAutoFilter, '$1' + cfDvBlock);
-                    } else if (anchor === 'sheetData') {
-                        xml = xml.replace('</sheetData>', '</sheetData>' + cfDvBlock);
+                    // Insert after <autoFilter .../> — that tag is always present
+                    const afRe = /(<autoFilter[^>]*>)/;
+                    if (afRe.test(xml)) {
+                        xml = xml.replace(afRe, function(m) { return m + payload; });
                     } else {
-                        xml = xml.replace('</worksheet>', cfDvBlock + '</worksheet>');
+                        xml = xml.replace('</worksheet>', payload + '</worksheet>');
                     }
-
                     zip.file(sheetKey, xml);
-                }
-
-                // ── styles.xml: inject dxfs (required for CF fill colours) ──
-                const stylesFile = zip.file('xl/styles.xml');
-                if (stylesFile) {
-                    let stylesXml = await stylesFile.async('string');
-                    const dxfsXml = buildDxfsXml();
-                    // Remove the existing empty <dxfs /> placeholder written by xlsx-js-style
-                    stylesXml = stylesXml.replace(/<dxfs[^>]*\/>/g, '');
-                    stylesXml = stylesXml.replace(/<dxfs[\s\S]*?<\/dxfs>/g, '');
-                    // Append before closing tag (works regardless of whitespace/encoding)
-                    stylesXml = stylesXml.replace('</styleSheet>', dxfsXml + '</styleSheet>');
-                    if (!stylesXml.includes(dxfsXml)) {
-                        // Fallback: closing tag not found — append at end
-                        stylesXml += dxfsXml;
-                    }
-                    zip.file('xl/styles.xml', stylesXml);
                 }
 
                 finalBytes = await zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } });
             } catch (zipErr) {
-                console.error('XLSX post-processing failed:', zipErr);
+                console.error('[ShiftPlanner] XLSX post-processing failed:', zipErr);
             }
         }
 
