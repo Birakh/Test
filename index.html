@@ -4210,6 +4210,74 @@ async function downloadExcelWithFormulas() {
         return `<dataValidations count="${count}">${xml}</dataValidations>`;
     }
 
+    // ── Conditional Formatting: dxf fill entries for styles.xml ──
+    function buildDxfsXml() {
+        // Order must match dxfId indices used in buildCFXml()
+        const fills = [
+            'FFFFF2A8', // 0  IR2
+            'FFCFE2FF', // 1  IR3
+            'FFF3D1FF', // 2  IR4
+            'FFFFE599', // 3  13H
+            'FFCFE2F3', // 4  8E
+            'FFF4CCCC', // 5  8L
+            'FFF9CB9C', // 6  8M
+            'FFD9EAD3', // 7  6H
+            'FFA2C4C9', // 8  ImE
+            'FF76A5AF', // 9  ImL
+            'FFE0E0E0', // 10 OFF/DF
+            'FFB6D7A8', // 11 VAC/Urlaub/U-Immo
+            'FFF5B7B1', // 12 SICK
+            'FF9FC5E8', // 13 FB
+            'FFEAD1DC', // 14 PF
+            'FFD9D9D9', // 15 LSS
+            'FFFFFDE7', // 16 Offc  (#fffde7)
+            'FFE8D5F5', // 17 CUS
+            'FFFCE5CD', // 18 RB1/RB2
+        ];
+        const dxfs = fills.map(rgb =>
+            `<dxf><fill><patternFill patternType="solid"><fgColor rgb="${rgb}"/><bgColor indexed="64"/></patternFill></fill></dxf>`
+        ).join('');
+        return `<dxfs count="${fills.length}">${dxfs}</dxfs>`;
+    }
+
+    // ── Conditional Formatting: cfRules for sheet1.xml ──
+    function buildCFXml() {
+        if (!workers.length) return '';
+        const lastRow = daysInMonth + 1;
+        const sqref   = workers.map((_, i) => {
+            const c = excelCol(cfg.workerStartCol + i);
+            return `${c}2:${c}${lastRow}`;
+        }).join(' ');
+        const ref = excelCol(cfg.workerStartCol) + '2'; // top-left cell of CF range
+
+        const rules = [
+            [0,  `ISNUMBER(SEARCH("-IR2",${ref}))`],
+            [1,  `ISNUMBER(SEARCH("-IR3",${ref}))`],
+            [2,  `ISNUMBER(SEARCH("-IR4",${ref}))`],
+            [3,  `LEFT(${ref},3)="13H"`],
+            [4,  `LEFT(${ref},2)="8E"`],
+            [5,  `LEFT(${ref},2)="8L"`],
+            [6,  `LEFT(${ref},2)="8M"`],
+            [7,  `${ref}="6H"`],
+            [8,  `${ref}="ImE"`],
+            [9,  `${ref}="ImL"`],
+            [10, `OR(${ref}="OFF",${ref}="DF")`],
+            [11, `OR(${ref}="VAC",LEFT(${ref},6)="Urlaub",${ref}="U-Immo")`],
+            [12, `${ref}="SICK"`],
+            [13, `${ref}="FB"`],
+            [14, `${ref}="PF"`],
+            [15, `${ref}="LSS"`],
+            [16, `${ref}="Offc"`],
+            [17, `LEFT(${ref},3)="CUS"`],
+            [18, `OR(${ref}="RB1",${ref}="RB2")`],
+        ];
+        const rulesXml = rules.map(([dxfId, formula], i) =>
+            `<cfRule type="expression" dxfId="${dxfId}" priority="${i + 1}">` +
+            `<formula>${formula}</formula></cfRule>`
+        ).join('');
+        return `<conditionalFormatting sqref="${sqref}">${rulesXml}</conditionalFormatting>`;
+    }
+
     XLSX.utils.book_append_sheet(wb, planWs,    'Plan');
     XLSX.utils.book_append_sheet(wb, helperWs,  'Helpers');
     XLSX.utils.book_append_sheet(wb, legendWs,  'Legend');
@@ -4282,6 +4350,39 @@ async function downloadExcelWithFormulas() {
                         zip.file(sheetKey, xml);
                     }
                 }
+
+                // ── Step 3: inject conditionalFormatting into sheet1.xml ──
+                const cfXml = buildCFXml();
+                if (cfXml) {
+                    const sheetFile3 = zip.file(sheetKey);
+                    if (sheetFile3) {
+                        let xml3 = await sheetFile3.async('string');
+                        // Remove any existing <conditionalFormatting> blocks to avoid duplicates
+                        xml3 = xml3.replace(/<conditionalFormatting[\s\S]*?<\/conditionalFormatting>/g, '');
+                        // OOXML order: conditionalFormatting comes BEFORE dataValidations
+                        if (xml3.includes('<dataValidations')) {
+                            xml3 = xml3.replace('<dataValidations', cfXml + '<dataValidations');
+                        } else {
+                            xml3 = xml3.replace('</worksheet>', cfXml + '</worksheet>');
+                        }
+                        zip.file(sheetKey, xml3);
+                    }
+                }
+
+                // ── Step 4: inject dxfs (differential formats) into xl/styles.xml ──
+                const stylesFile = zip.file('xl/styles.xml');
+                if (stylesFile) {
+                    let stylesXml = await stylesFile.async('string');
+                    const dxfsXml = buildDxfsXml();
+                    // Remove any existing <dxfs .../> self-closing or <dxfs>...</dxfs> block
+                    stylesXml = stylesXml
+                        .replace(/<dxfs[^>]*\/>/g, '')
+                        .replace(/<dxfs[\s\S]*?<\/dxfs>/g, '');
+                    // Insert before </styleSheet>
+                    stylesXml = stylesXml.replace('</styleSheet>', dxfsXml + '</styleSheet>');
+                    zip.file('xl/styles.xml', stylesXml);
+                }
+
                 finalBytes = await zip.generateAsync({ type:'arraybuffer', compression:'DEFLATE', compressionOptions:{ level:6 } });
             } catch (zipErr) {
                 console.warn('Data validation injection skipped:', zipErr);
