@@ -4235,7 +4235,7 @@ async function downloadExcelWithFormulas() {
             'FFFCE5CD', // 18 RB1/RB2
         ];
         const dxfs = fills.map(rgb =>
-            `<dxf><fill><patternFill patternType="solid"><fgColor rgb="${rgb}"/><bgColor indexed="64"/></patternFill></fill></dxf>`
+            `<dxf><fill><patternFill patternType="solid"><fgColor rgb="${rgb}"/></patternFill></fill></dxf>`
         ).join('');
         return `<dxfs count="${fills.length}">${dxfs}</dxfs>`;
     }
@@ -4262,7 +4262,7 @@ async function downloadExcelWithFormulas() {
             [8,  `${ref}="ImE"`],
             [9,  `${ref}="ImL"`],
             [10, `OR(${ref}="OFF",${ref}="DF")`],
-            [11, `OR(${ref}="VAC",LEFT(${ref},6)="Urlaub",${ref}="U-Immo")`],
+            [11, `OR(LEFT(${ref},3)="VAC",LEFT(${ref},6)="Urlaub",${ref}="U-Immo")`],
             [12, `${ref}="SICK"`],
             [13, `${ref}="FB"`],
             [14, `${ref}="PF"`],
