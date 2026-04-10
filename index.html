@@ -559,10 +559,10 @@
             <option value="8E-Immo">8E-Immo</option><option value="8L-Immo">8L-Immo</option>
         </optgroup>
         <optgroup label="Special">
-            <option value="OFF">OFF</option><option value="VAC">VAC</option><option value="SICK">SICK</option>
+            <option value="OFF">OFF</option><option value="VAC">🏖 VAC</option><option value="SICK">SICK</option>
             <option value="FB">FB</option><option value="PF">PF</option><option value="LSS">LSS</option><option value="Offc">Offc</option>
             <option value="RB1">RB1</option><option value="RB2">RB2</option><option value="DF">DF</option>
-            <option value="Urlaub IR">Urlaub IR</option><option value="Urlaub-ZA">Urlaub-ZA</option><option value="U-Immo">U-Immo</option>
+            <option value="Urlaub IR">🏖 Urlaub IR</option><option value="Urlaub-ZA">🏖 Urlaub-ZA</option><option value="U-Immo">🏖 U-Immo</option>
         </optgroup>
     </select>
     <button id="btnApplyBulk"  onclick="applyBulkShift()"  style="background:#e67e22;">✔ Apply to All Selected</button>
@@ -1913,9 +1913,8 @@ function updateShift(wIndex, dIndex, value) {
         finalValue = viewerShiftValueForSave(value);
     } else if (isPendingVacationShift(oldValue) && isVacationBase(stripPendingVacation(value))) { finalValue = stripPendingVacation(value); }
     pushUndo(); workers[wIndex].shifts[dIndex] = finalValue; saveData();
-    const sel = document.querySelector(`.shift-select[data-w="${wIndex}"][data-d="${dIndex}"]`);
-    if (sel) { const bgColor = getColor(finalValue); sel.style.backgroundColor = bgColor; sel.style.color = ''; const td = sel.closest('td'); if (td) td.style.backgroundColor = bgColor; sel.innerHTML = getDropdownOptions(finalValue); sel.value = finalValue; }
-    renderTableFoot(); if (document.getElementById('statsToggle') && document.getElementById('statsToggle').checked) renderStats();
+    renderTable();
+    if (document.getElementById('statsToggle') && document.getElementById('statsToggle').checked) renderStats();
     // ── Auto-push for viewer vacation requests ──
     // Viewers don't always have a personal PAT — fall back to shared comment token.
     if (currentRole === 'viewer' && spConfig.siteUrl && spConfig.folderPath) {
@@ -2227,14 +2226,14 @@ function restoreData(input) {
 // ─────────────────────────────────────────────────────────
 function getDropdownOptions(currentShift) {
     const base=["-","13H","8E","8L","8M","6H","OFF","VAC","SICK","FB","PF","DF","Urlaub IR","Urlaub-ZA","U-Immo","LSS","Offc","RB1","RB2"]; const immo=["ImE","ImL"]; const rooms=["IR2","IR3","IR4","Immo"]; const rShifts=["13H","8E","8L","8M","6H"]; const currentBase=getBaseShift(currentShift); let html=`<option value="-" ${currentShift==='-'?'selected':''}>-</option>`;
-    if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${currentShift || '-'}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; } if (isPendingVacationShift(currentShift)) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ request</option>`; vacationTypes.forEach(s => { const selected = stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${selected?'selected':''}>${s}</option>`; }); return html; }
+    if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${currentShift || '-'}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; } if (isPendingVacationShift(currentShift)) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ request</option>`; const vacEmoji = { 'VAC':'🏖 VAC', 'Urlaub IR':'🏖 Urlaub IR', 'Urlaub-ZA':'🏖 Urlaub-ZA', 'U-Immo':'🏖 U-Immo' }; vacationTypes.forEach(s => { const selected = stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${selected?'selected':''}>${vacEmoji[s]||s}</option>`; }); return html; }
     if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; }
     // ── FIX: for VAC-PENDING cells, only the pending option gets 'selected'. ──
     // Do NOT also mark the plain VAC option as selected — that caused the browser
     // to display VAC as the active selection, making an accidental click auto-approve.
     const isPending = isPendingVacationShift(currentShift);
     if (isPending) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ pending approval</option>`;
-    html += `<optgroup label="Immo Shifts">`; immo.forEach(s => html += `<option value="${s}" ${currentShift===s?'selected':''}>${s}</option>`); html += `</optgroup><optgroup label="Base Shifts & Special">`; base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${(currentShift===s || (!isPending && stripPendingVacation(currentShift)===s))?'selected':''}>${s}</option>`; }); html += `</optgroup>`; rooms.forEach(room => { html += `<optgroup label="${room} Assigned">`; rShifts.forEach(s => { const v=`${s}-${room}`; html += `<option value="${v}" ${currentShift===v?'selected':''}>${v}</option>`; }); html += `</optgroup>`; }); return html;
+    html += `<optgroup label="Immo Shifts">`; immo.forEach(s => html += `<option value="${s}" ${currentShift===s?'selected':''}>${s}</option>`); html += `</optgroup><optgroup label="Base Shifts & Special">`; const vacEmoji = { 'VAC':'🏖 VAC', 'Urlaub IR':'🏖 Urlaub IR', 'Urlaub-ZA':'🏖 Urlaub-ZA', 'U-Immo':'🏖 U-Immo' }; base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${(currentShift===s || (!isPending && stripPendingVacation(currentShift)===s))?'selected':''}>${vacEmoji[s]||s}</option>`; }); html += `</optgroup>`; rooms.forEach(room => { html += `<optgroup label="${room} Assigned">`; rShifts.forEach(s => { const v=`${s}-${room}`; html += `<option value="${v}" ${currentShift===v?'selected':''}>${v}</option>`; }); html += `</optgroup>`; }); return html;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -2428,9 +2427,17 @@ function renderTable() {
             const cellKey  = `${wIndex}_${d}`;
             const selClass = selectedCells.has(cellKey) ? 'selected-cell' : '';
 
-            bodyHTML += `<td data-cell="${cellKey}" class="${selClass}" onclick="handleCellClick(event,${wIndex},${d})" style="background-color:${bgColor};">
+            // For empty cells on holiday/weekend rows, use the row bg instead of white
+            // so the row colouring is visible (inline style would otherwise override the class)
+            let cellBg = bgColor;
+            if (bgColor === '#ffffff') {
+                if (isHol) cellBg = '#e8daef';
+                else if (isWE) cellBg = '#f0f0f0';
+            }
+
+            bodyHTML += `<td data-cell="${cellKey}" class="${selClass}" onclick="handleCellClick(event,${wIndex},${d})" style="background-color:${cellBg};">
                 <select class="shift-select ${currentRole==='viewer' && viewerCanEditCell(shift) ? "viewer-vac-select" : ""} ${consecClass}" data-w="${wIndex}" data-d="${d}"
-                    style="background-color:${bgColor}; ${textCol}"
+                    style="background-color:${cellBg}; ${textCol}"
                     onchange="updateShift(${wIndex},${d},this.value)">
                     ${getDropdownOptions(shift)}
                 </select>${cusLabel}
@@ -4568,12 +4575,50 @@ function buildDienstplanRTSheet() {
                 { align:'left', sz:8, italic:true, border:true });
         }
 
-        // ── Worker assignment cells (static values, no formulas) ───────────
+        // ── Worker assignment cells — formula-driven from Plan sheet ────────
+        // Plan sheet: header = row 1, data starts at row 2.
+        // Dienstplan RT data starts at DATA_ROW (6).
+        // For RT row r: corresponding Plan row = r - DATA_ROW + 2 = r - 4.
+        // Plan sheet worker col for worker i (0-based): excelCol(4 + i)  (workerStartCol = 4)
         workers.forEach((w, i) => {
             const rc = WORKER_START + i * 3;
             const rt = dayRTs[i];
-            ws[addr(r, rc)]     = dat(rt ? rt.room  : '',         bg, { align:'center', bold:!!rt });
-            ws[addr(r, rc + 1)] = dat(rt ? (rt.shift ?? '') : '', bg, { align:'center', sz:8 });
+            const P  = `Plan!${excelCol(4 + i)}${r - 4}`;  // Plan cell for this worker & day
+
+            // Room formula — maps Plan shift code → RT room label
+            const roomFrm = (
+                `IF(OR(${P}="",${P}="-"),"",` +
+                `IF(ISNUMBER(SEARCH("IR2",${P})),"IR 2",` +
+                `IF(ISNUMBER(SEARCH("IR3",${P})),"IR 3",` +
+                `IF(ISNUMBER(SEARCH("IR4",${P})),"IR 4",` +
+                `IF(${P}="ImE","Immo",` +
+                `IF(${P}="ImL","Immo",` +
+                `IF(LEFT(${P},6)="U-Immo","U-Immo",` +
+                `IF(OR(LEFT(${P},3)="VAC",LEFT(${P},9)="Urlaub IR",LEFT(${P},9)="Urlaub-ZA"),"U-IR",` +
+                `IF(${P}="SICK","K",` +
+                `IF(${P}="PF","PF",` +
+                `IF(${P}="DF","DF",` +
+                `IF(${P}="FB","FB",` +
+                `IF(${P}="LSS","LSS",` +
+                `IF(${P}="Offc","Offc",` +
+                `IF(LEFT(${P},2)="RB","RB",` +
+                `IF(LEFT(${P},3)="CUS","CUS",` +
+                `IF(OR(LEFT(${P},2)="8E",LEFT(${P},2)="8M",LEFT(${P},2)="8L",LEFT(${P},3)="13H",LEFT(${P},2)="6H"),` +
+                `LEFT(${P},IFERROR(FIND("-",${P})-1,LEN(${P}))),` +
+                `"")))))))))))))))))`
+            );
+
+            // Shift formula — returns 1 (Früh), 2 (Spät), or 0 (absent/off)
+            const shiftFrm = (
+                `IF(OR(${P}="",${P}="-"),0,` +
+                `IF(OR(LEFT(${P},2)="8E",LEFT(${P},2)="6H",LEFT(${P},3)="13H",${P}="ImE"),1,` +
+                `IF(OR(LEFT(${P},2)="8L",LEFT(${P},2)="8M",${P}="ImL"),2,` +
+                `IF(LEFT(${P},3)="CUS",IF(VALUE(MID(${P},5,2))<12,1,2),` +
+                `0))))`
+            );
+
+            ws[addr(r, rc)]     = frmStr(roomFrm,  rt ? rt.room       : '', bg, { align:'center', bold:!!rt });
+            ws[addr(r, rc + 1)] = frmNum(shiftFrm, rt ? (rt.shift??0) :  0, bg, { align:'center', sz:8 });
             ws[addr(r, rc + 2)] = dat('', bg, {});
         });
 
