@@ -4398,10 +4398,11 @@ function shiftToRTView(shift) {
     const base = getBaseShift(shift);
     const room = getRoomAssignment(shift); // 'IR2' | 'IR3' | 'IR4' | ''
     const isFruh = s => ['8E','13H','6H'].includes(s);
+    const isMitte = s => s === '8M';
 
-    if (room === 'IR2') return { room:'IR 2', shift: isFruh(base) ? 1 : 2 };
-    if (room === 'IR3') return { room:'IR 3', shift: isFruh(base) ? 1 : 2 };
-    if (room === 'IR4') return { room:'IR 4', shift: isFruh(base) ? 1 : 2 };
+    if (room === 'IR2') return { room:'IR 2', shift: isFruh(base) ? 1 : isMitte(base) ? 3 : 2 };
+    if (room === 'IR3') return { room:'IR 3', shift: isFruh(base) ? 1 : isMitte(base) ? 3 : 2 };
+    if (room === 'IR4') return { room:'IR 4', shift: isFruh(base) ? 1 : isMitte(base) ? 3 : 2 };
     if (base === 'ImE')  return { room:'Immo',   shift: 1 };
     if (base === 'ImL')  return { room:'Immo',   shift: 2 };
     if (['VAC','Urlaub IR','Urlaub-ZA'].includes(base)) return { room:'U-IR',   shift: null };
@@ -4448,10 +4449,13 @@ function buildDienstplanRTSheet() {
     // Summary definitions
     const ROOM_SUM = [
         { room:'IR 2', shift:1,    label:'IR2F' },
+        { room:'IR 2', shift:3,    label:'IR2M' },
         { room:'IR 2', shift:2,    label:'IR2S' },
         { room:'IR 3', shift:1,    label:'IR3F' },
+        { room:'IR 3', shift:3,    label:'IR3M' },
         { room:'IR 3', shift:2,    label:'IR3S' },
         { room:'IR 4', shift:1,    label:'IR4F' },
+        { room:'IR 4', shift:3,    label:'IR4M' },
         { room:'IR 4', shift:2,    label:'IR4S' },
         { room:'Immo',   shift:null, label:'Immo'  },
         { room:'U-IR',   shift:null, label:'U-IR'  },
@@ -4497,10 +4501,11 @@ function buildDienstplanRTSheet() {
     }
 
     // ── Row 1: title + summary labels ──────────────────────────────────────
+    const shiftLabel = s => s === 1 ? 'F' : s === 2 ? 'S' : s === 3 ? 'M' : '-';
     ws[addr(1,1)] = hdr('Dienstplan RT', HDR_BG, false, 11);
     ROOM_SUM.forEach((rs, i) => {
-        ws[addr(1, SUMMARY_START + i*2)]     = hdr(rs.room,          HDR_BG, false, 8);
-        ws[addr(1, SUMMARY_START + i*2 + 1)] = hdr(rs.shift ?? '-',  HDR_BG, false, 8);
+        ws[addr(1, SUMMARY_START + i*2)]     = hdr(rs.room,                          HDR_BG, false, 8);
+        ws[addr(1, SUMMARY_START + i*2 + 1)] = hdr(rs.shift != null ? shiftLabel(rs.shift) : '-', HDR_BG, false, 8);
     });
     COUNTIF_FIELDS.forEach((cf, i) => {
         ws[addr(1, cfStart + i)] = hdr(cf.label, HDR_BG, false, 8);
@@ -4526,7 +4531,7 @@ function buildDienstplanRTSheet() {
     });
     ROOM_SUM.forEach((rs, i) => {
         ws[addr(2, SUMMARY_START + i*2)]     = hdr(rs.room,         HDR_LT, true, 8);
-        ws[addr(2, SUMMARY_START + i*2 + 1)] = hdr(rs.shift ?? '-', HDR_LT, true, 8);
+        ws[addr(2, SUMMARY_START + i*2 + 1)] = hdr(rs.shift != null ? shiftLabel(rs.shift) : '-', HDR_LT, true, 8);
     });
     COUNTIF_FIELDS.forEach((cf, i) => {
         ws[addr(2, cfStart + i)] = hdr(cf.label, HDR_LT, true, 8);
@@ -4608,13 +4613,14 @@ function buildDienstplanRTSheet() {
                 `"")))))))))))))))))`
             );
 
-            // Shift formula — returns 1 (Früh), 2 (Spät), or 0 (absent/off)
+            // Shift formula — returns 1 (Früh), 2 (Spät), 3 (Mitte/8M), or 0 (absent/off)
             const shiftFrm = (
                 `IF(OR(${P}="",${P}="-"),0,` +
                 `IF(OR(LEFT(${P},2)="8E",LEFT(${P},2)="6H",LEFT(${P},3)="13H",${P}="ImE"),1,` +
-                `IF(OR(LEFT(${P},2)="8L",LEFT(${P},2)="8M",${P}="ImL"),2,` +
+                `IF(OR(LEFT(${P},2)="8L",${P}="ImL"),2,` +
+                `IF(LEFT(${P},2)="8M",3,` +
                 `IF(LEFT(${P},3)="CUS",IF(VALUE(MID(${P},5,2))<12,1,2),` +
-                `0))))`
+                `0)))))`
             );
 
             ws[addr(r, rc)]     = frmStr(roomFrm,  rt ? rt.room       : '', bg, { align:'center', bold:!!rt });
