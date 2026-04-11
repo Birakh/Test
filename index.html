@@ -3573,7 +3573,7 @@ function buildPersonalICS(w) {
         else if (shift.includes('-IR4')) summary = `${cleanB} — IR 4`;
         else if (shift.includes('-Immo')) summary = `${cleanB} — Immo`;
 
-        const uid = `shiftplanner-${currentYear}${String(currentMonth).padStart(2,'0')}${String(d+1).padStart(2,'0')}-${w.name.replace(/\s/g,'')}@sp`;
+        const uid = `shiftplanner-${currentYear}${String(currentMonth).padStart(2,'0')}${String(d+1).padStart(2,'0')}-${w.name.replace(/[^a-zA-Z0-9]/g,'')}@sp`;
 
         const times = SHIFT_TIMES[cleanB];
         const allDay = ALLDAY_SHIFTS.includes(cleanB) || isPend || !times;
@@ -3610,12 +3610,15 @@ function buildPersonalICS(w) {
             lines.push(`DTEND;VALUE=DATE:${icsDate(nextDay.getFullYear(), nextDay.getMonth()+1, nextDay.getDate())}`);
         }
 
-        if (w.requests && w.requests[d]) lines.push('DESCRIPTION:⭐ Special request');
-        if (isHoliday(d)) lines.push('DESCRIPTION:🏖 Public holiday');
+        // DESCRIPTION — combine request flag and holiday note into one line
+        const descParts = [];
+        if (w.requests && w.requests[d]) descParts.push('⭐ Special request');
+        if (isHoliday(d)) descParts.push('🏖 Public holiday');
+        if (descParts.length) lines.push(`DESCRIPTION:${icsEscape(descParts.join(' · '))}`);
         lines.push('END:VEVENT');
     }
     lines.push('END:VCALENDAR');
-    return lines.join('\r\n');
+    return lines.join('\r\n') + '\r\n';  // RFC 5545 requires trailing CRLF
 }
 
 function openPersonalModal() {
@@ -3676,9 +3679,14 @@ function emailPersonalSchedule() {
     if (!ta.value) generatePersonalText();
     const monthName = new Date(currentYear, currentMonth-1, 1).toLocaleString('default', { month:'long', year:'numeric' });
     const subject = encodeURIComponent(`Shift Schedule — ${w.name} — ${monthName}`);
-    const body    = encodeURIComponent(document.getElementById('personalTextArea').value + '\n\n(Tip: attach the downloaded .ics file so the recipient can import it into their calendar.)');
-    const to      = email ? encodeURIComponent(email) : '';
-    window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
+    const body    = encodeURIComponent(ta.value + '\n\n(Tip: attach the downloaded .ics file so the recipient can import it into their calendar.)');
+    // Do NOT encode the email address itself — encodeURIComponent turns @ into %40 which breaks the To field
+    const href = `mailto:${email}?subject=${subject}&body=${body}`;
+    const a = document.createElement('a');
+    a.href = href;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
 }
 
 // ─────────────────────────────────────────────────────────
@@ -4400,7 +4408,7 @@ async function downloadExcelWithFormulas() {
             'FFF0F0F0', // 22 Weekend row background
         ];
         const dxfs = fills.map(rgb =>
-            `<dxf><fill><patternFill><bgColor rgb="${rgb}"/></patternFill></fill></dxf>`
+            `<dxf><fill><patternFill patternType="solid"><fgColor rgb="${rgb}"/></patternFill></fill></dxf>`
         ).join('');
         return `<dxfs count="${fills.length}">${dxfs}</dxfs>`;
     }
@@ -4519,15 +4527,14 @@ async function downloadExcelWithFormulas() {
                     zip.file('xl/workbook.xml', wbClean.replace('</workbook>', defNames + '</workbook>'));
                 }
 
-                // ── 2. styles.xml: replace the empty dxfs placeholder with 19 fill entries ──
-                // xlsx-js-style always emits exactly '<dxfs count="0"/>' — safe literal match.
+                // ── 2. styles.xml: replace the empty dxfs placeholder ──
+                // xlsx-js-style emits '<dxfs count="0"/>' or '<dxfs count="0"></dxfs>'
                 const stylesFile = zip.file('xl/styles.xml');
                 if (stylesFile) {
-                    const stylesXml = await stylesFile.async('string');
-                    const EMPTY_DXFS = '<dxfs count="0"/>';
-                    if (stylesXml.includes(EMPTY_DXFS)) {
-                        zip.file('xl/styles.xml', stylesXml.replace(EMPTY_DXFS, buildDxfsXml()));
-                    }
+                    let stylesXml = await stylesFile.async('string');
+                    // Match both self-closing and open/close variants
+                    stylesXml = stylesXml.replace(/<dxfs count="0"\s*\/?>((<\/dxfs>)?)/, buildDxfsXml());
+                    zip.file('xl/styles.xml', stylesXml);
                 }
 
                 // ── 3. sheet1.xml: inject CF + DV in a single read-modify-write ──
