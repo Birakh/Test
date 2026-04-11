@@ -4241,6 +4241,9 @@ async function downloadExcelWithFormulas() {
             'FFE8D5F5', // 17 CUS
             'FFFCE5CD', // 18 RB1/RB2
             '00FFFFFF', // 19 pending vacation (white)
+            'FFE8DAEF', // 20 Holiday row background
+            'FFE8E8E8', // 21 LSS row background
+            'FFF0F0F0', // 22 Weekend row background
         ];
         const dxfs = fills.map(rgb =>
             `<dxf><fill><patternFill><bgColor rgb="${rgb}"/></patternFill></fill></dxf>`
@@ -4252,6 +4255,8 @@ async function downloadExcelWithFormulas() {
     function buildCFXml() {
         if (!workers.length) return '';
         const lastRow = daysInMonth + 1;
+
+        // ── 1. Shift-level CF — worker columns only (shift colours) ──
         const sqref   = workers.map((_, i) => {
             const c = excelCol(cfg.workerStartCol + i);
             return `${c}2:${c}${lastRow}`;
@@ -4284,7 +4289,34 @@ async function downloadExcelWithFormulas() {
             `<cfRule type="expression" dxfId="${dxfId}" priority="${i + 1}" stopIfTrue="0">` +
             `<formula>${formula}</formula></cfRule>`
         ).join('');
-        return `<conditionalFormatting sqref="${sqref}">${rulesXml}</conditionalFormatting>`;
+        const shiftCF = `<conditionalFormatting sqref="${sqref}">${rulesXml}</conditionalFormatting>`;
+
+        // ── 2. Row-level CF — full row (A to last summary col) for Hol/LSS/Weekend ──
+        // Applied at lower priority than shift colours (priority numbers continue from above).
+        // Col C = Holiday? (index 2 = "C"), Col D = LSS? (index 3 = "D"), Col A = Date (index 0)
+        const firstCol = 'A';
+        const lastCol  = excelCol(cfg.summaryStartCol + cfg.summary.length - 1);
+        const rowSqref = `${firstCol}2:${lastCol}${lastRow}`;
+        // Anchor cols C and D so formula applies row-by-row
+        const holRef  = `$C2`;
+        const lssRef  = `$D2`;
+        const dateRef = `$A2`;
+        const rowRules = [
+            // Holiday wins over weekend — check first (lower priority number = wins)
+            [20, `${holRef}="Y"`],                                    // holiday purple
+            [22, `OR(WEEKDAY(${dateRef},2)=6,WEEKDAY(${dateRef},2)=7)`], // weekend grey
+            [21, `${lssRef}="Y"`],                                    // LSS light grey
+        ];
+        let pri = rules.length + 1;
+        const rowRulesXml = rowRules.map(([dxfId, formula]) => {
+            const r = `<cfRule type="expression" dxfId="${dxfId}" priority="${pri}" stopIfTrue="0">` +
+                      `<formula>${formula}</formula></cfRule>`;
+            pri++;
+            return r;
+        }).join('');
+        const rowCF = `<conditionalFormatting sqref="${rowSqref}">${rowRulesXml}</conditionalFormatting>`;
+
+        return shiftCF + rowCF;
     }
 
     XLSX.utils.book_append_sheet(wb, planWs,    'Plan');
