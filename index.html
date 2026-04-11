@@ -754,13 +754,36 @@
 
 <!-- Personal Export Modal -->
 <div id="personalModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width:560px;">
         <span class="close-btn" onclick="document.getElementById('personalModal').style.display='none'">&times;</span>
-        <h2 style="color:#27ae60;">📱 Export Personal Schedule</h2>
-        <p>Select a worker to generate a clean text schedule for WhatsApp or Email.</p>
-        <select id="personalWorkerSelect" onchange="generatePersonalText()" style="width:100%; padding:8px; margin-bottom:10px; font-weight:bold;"></select>
-        <textarea id="personalTextArea" style="width:100%; height:250px; font-family:monospace; padding:10px; border-radius:5px; border:1px solid #ccc;"></textarea>
-        <button class="btn-auto" onclick="copyPersonalText()" style="width:100%; margin-top:10px;">📋 Copy Text to Clipboard</button>
+        <h2 style="color:#27ae60; margin-top:0;">📱 Personal Schedule Export</h2>
+
+        <!-- Worker + email row -->
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+            <div style="flex:1; min-width:140px;">
+                <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:3px;">Worker</label>
+                <select id="personalWorkerSelect" onchange="generatePersonalText()" style="width:100%; padding:7px; font-weight:bold; border:1px solid #ccc; border-radius:4px;"></select>
+            </div>
+            <div style="flex:1.4; min-width:160px;">
+                <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:3px;">Email address <span style="font-weight:normal; color:#888;">(for mailto)</span></label>
+                <input type="email" id="personalEmail" placeholder="worker@example.com"
+                    style="width:100%; box-sizing:border-box; padding:7px; border:1px solid #ccc; border-radius:4px; font-size:13px;">
+            </div>
+        </div>
+
+        <!-- Preview -->
+        <textarea id="personalTextArea" readonly style="width:100%; height:200px; font-family:monospace; font-size:11px; padding:10px; border-radius:5px; border:1px solid #ccc; box-sizing:border-box; resize:vertical; background:#f9f9f9;"></textarea>
+
+        <!-- Action buttons -->
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:10px;">
+            <button onclick="copyPersonalText()" style="background:#0056b3; color:white; border:none; border-radius:4px; padding:9px 6px; font-size:12px; font-weight:bold; cursor:pointer;">📋 Copy Text</button>
+            <button onclick="downloadPersonalICS()" style="background:#27ae60; color:white; border:none; border-radius:4px; padding:9px 6px; font-size:12px; font-weight:bold; cursor:pointer;">📅 Download ICS</button>
+            <button onclick="emailPersonalSchedule()" style="background:#e67e22; color:white; border:none; border-radius:4px; padding:9px 6px; font-size:12px; font-weight:bold; cursor:pointer;">✉️ Open in Mail</button>
+        </div>
+        <p style="font-size:10px; color:#888; margin:8px 0 0 0;">
+            💡 <strong>ICS</strong> = imports directly into Google Calendar, Outlook, Apple Calendar.<br>
+            ✉️ <strong>Open in Mail</strong> = opens your default mail app. Attach the ICS file to let the recipient import it.
+        </p>
     </div>
 </div>
 
@@ -3495,8 +3518,106 @@ function runAIAnalysis() {
 }
 
 // ─────────────────────────────────────────────────────────
-//  Personal Export
+//  Personal Export  (text preview + ICS + mailto)
 // ─────────────────────────────────────────────────────────
+
+// Shift → { startHH, startMM, endHH, endMM } — null = all-day
+const SHIFT_TIMES = {
+    '8E':  { sh:7,  sm:0,  eh:15, em:30 },
+    '8L':  { sh:13, sm:30, eh:22, em:0  },
+    '8M':  { sh:9,  sm:0,  eh:17, em:30 },
+    '13H': { sh:7,  sm:0,  eh:20, em:0  },
+    '6H':  { sh:7,  sm:0,  eh:13, em:0  },
+    'ImE': { sh:7,  sm:0,  eh:15, em:30 },
+    'ImL': { sh:7,  sm:30, eh:16, em:0  },
+    'FB':  { sh:8,  sm:0,  eh:16, em:0  },
+    'LSS': { sh:7,  sm:0,  eh:15, em:30 },
+    'Offc':{ sh:8,  sm:0,  eh:16, em:0  },
+};
+// All-day shifts (no time block)
+const ALLDAY_SHIFTS = ['VAC','Urlaub IR','Urlaub-ZA','U-Immo','SICK','OFF','DF','PF','RB1','RB2'];
+
+function icsDateTime(y, m, d, hh, mm) {
+    const pad = n => String(n).padStart(2,'0');
+    return `${y}${pad(m)}${pad(d)}T${pad(hh)}${pad(mm)}00`;
+}
+function icsDate(y, m, d) {
+    const pad = n => String(n).padStart(2,'0');
+    return `${y}${pad(m)}${pad(d)}`;
+}
+function icsEscape(s) {
+    return String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+}
+
+function buildPersonalICS(w) {
+    const lines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        `PRODID:-//ShiftPlanner//ShiftPlanner ${currentYear}-${String(currentMonth).padStart(2,'0')}//EN`,
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+    ];
+    const stamp = new Date().toISOString().replace(/[-:]/g,'').split('.')[0] + 'Z';
+
+    for (let d = 0; d < daysInMonth; d++) {
+        const shift = w.shifts[d] || '-';
+        if (shift === '-') continue;
+        const base   = getBaseShift(shift);
+        const isPend = isPendingVacationShift(shift);
+        const cleanB = isPend ? stripPendingVacation(shift) : base;
+
+        // Build summary label
+        let summary = isPend ? `⏳ ${cleanB} (pending)` : shift;
+        if (shift.includes('-IR2')) summary = `${cleanB} — IR 2`;
+        else if (shift.includes('-IR3')) summary = `${cleanB} — IR 3`;
+        else if (shift.includes('-IR4')) summary = `${cleanB} — IR 4`;
+        else if (shift.includes('-Immo')) summary = `${cleanB} — Immo`;
+
+        const uid = `shiftplanner-${currentYear}${String(currentMonth).padStart(2,'0')}${String(d+1).padStart(2,'0')}-${w.name.replace(/\s/g,'')}@sp`;
+
+        const times = SHIFT_TIMES[cleanB];
+        const allDay = ALLDAY_SHIFTS.includes(cleanB) || isPend || !times;
+
+        // CUS custom hours
+        let cusStart = null, cusEnd = null;
+        if (cleanB === 'CUS') {
+            const m = String(shift).match(/CUS-(\d{2}):(\d{2})-(\d{2}):(\d{2})/);
+            if (m) { cusStart = { h:parseInt(m[1]), m:parseInt(m[2]) }; cusEnd = { h:parseInt(m[3]), m:parseInt(m[4]) }; }
+        }
+
+        lines.push('BEGIN:VEVENT');
+        lines.push(`UID:${uid}`);
+        lines.push(`DTSTAMP:${stamp}`);
+        lines.push(`SUMMARY:${icsEscape(summary)}`);
+
+        if (cusStart) {
+            lines.push(`DTSTART:${icsDateTime(currentYear, currentMonth, d+1, cusStart.h, cusStart.m)}`);
+            lines.push(`DTEND:${icsDateTime(currentYear, currentMonth, d+1, cusEnd.h, cusEnd.m)}`);
+        } else if (!allDay && times) {
+            lines.push(`DTSTART:${icsDateTime(currentYear, currentMonth, d+1, times.sh, times.sm)}`);
+            // End time — if end crosses midnight bump the date
+            if (times.eh < times.sh) {
+                const nextD = d + 2 <= daysInMonth ? d + 2 : 1;
+                const nextM = d + 2 <= daysInMonth ? currentMonth : currentMonth + 1;
+                lines.push(`DTEND:${icsDateTime(currentYear, nextM, nextD, times.eh, times.em)}`);
+            } else {
+                lines.push(`DTEND:${icsDateTime(currentYear, currentMonth, d+1, times.eh, times.em)}`);
+            }
+        } else {
+            // All-day: DTSTART as DATE, DTEND = next day
+            const nextDay = new Date(currentYear, currentMonth-1, d+2);
+            lines.push(`DTSTART;VALUE=DATE:${icsDate(currentYear, currentMonth, d+1)}`);
+            lines.push(`DTEND;VALUE=DATE:${icsDate(nextDay.getFullYear(), nextDay.getMonth()+1, nextDay.getDate())}`);
+        }
+
+        if (w.requests && w.requests[d]) lines.push('DESCRIPTION:⭐ Special request');
+        if (isHoliday(d)) lines.push('DESCRIPTION:🏖 Public holiday');
+        lines.push('END:VEVENT');
+    }
+    lines.push('END:VCALENDAR');
+    return lines.join('\r\n');
+}
+
 function openPersonalModal() {
     const sel = document.getElementById('personalWorkerSelect');
     sel.innerHTML = '<option value="">-- Select Worker --</option>';
@@ -3507,14 +3628,19 @@ function openPersonalModal() {
 
 function generatePersonalText() {
     const wIndex = document.getElementById('personalWorkerSelect').value;
-    if (wIndex==='') { document.getElementById('personalTextArea').value=''; return; }
+    if (wIndex === '') { document.getElementById('personalTextArea').value = ''; return; }
     const w = workers[wIndex];
-    const monthName = new Date(currentYear, currentMonth-1, 1).toLocaleString('default',{month:'long'});
-    let text = `📅 Schedule for ${w.name} (${monthName} ${currentYear})\n====================================\n`;
-    for (let d=0; d<daysInMonth; d++) {
+    const monthName = new Date(currentYear, currentMonth-1, 1).toLocaleString('default', { month:'long' });
+    let text = `📅 ${w.name} — ${monthName} ${currentYear}\n${'='.repeat(36)}\n`;
+    for (let d = 0; d < daysInMonth; d++) {
         const dow   = new Date(currentYear, currentMonth-1, d+1).getDay();
-        const shift = w.shifts[d]==='-' ? 'OFF' : w.shifts[d];
-        text += `${String(d+1).padStart(2,'0')}. ${dayNames[dow]}: ${shift}\n`;
+        const shift = w.shifts[d] === '-' ? 'OFF' : (w.shifts[d] || 'OFF');
+        const isPend = isPendingVacationShift(shift);
+        const label = isPend ? `${stripPendingVacation(shift)} ⏳` : shift;
+        const times = SHIFT_TIMES[getBaseShift(isPend ? stripPendingVacation(shift) : shift)];
+        const timeStr = times ? ` (${String(times.sh).padStart(2,'0')}:${String(times.sm).padStart(2,'0')}–${String(times.eh).padStart(2,'0')}:${String(times.em).padStart(2,'0')})` : '';
+        const holMark = isHoliday(d) ? ' 🏖' : '';
+        text += `${String(d+1).padStart(2,'0')}. ${dayNames[dow]}: ${label}${timeStr}${holMark}\n`;
     }
     document.getElementById('personalTextArea').value = text;
 }
@@ -3522,9 +3648,37 @@ function generatePersonalText() {
 function copyPersonalText() {
     const ta = document.getElementById('personalTextArea');
     if (!ta.value) { alert('Please select a worker first!'); return; }
-    ta.select(); ta.setSelectionRange(0,99999);
-    document.execCommand('copy');
+    navigator.clipboard ? navigator.clipboard.writeText(ta.value) : (ta.select(), document.execCommand('copy'));
     alert('✅ Schedule copied to clipboard!');
+}
+
+function downloadPersonalICS() {
+    const wIndex = document.getElementById('personalWorkerSelect').value;
+    if (wIndex === '') { alert('Please select a worker first!'); return; }
+    const w = workers[wIndex];
+    const ics = buildPersonalICS(w);
+    const blob = new Blob([ics], { type:'text/calendar;charset=utf-8' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `${w.name}_${currentYear}-${String(currentMonth).padStart(2,'0')}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+}
+
+function emailPersonalSchedule() {
+    const wIndex = document.getElementById('personalWorkerSelect').value;
+    if (wIndex === '') { alert('Please select a worker first!'); return; }
+    const w       = workers[wIndex];
+    const email   = document.getElementById('personalEmail').value.trim();
+    const ta      = document.getElementById('personalTextArea');
+    if (!ta.value) generatePersonalText();
+    const monthName = new Date(currentYear, currentMonth-1, 1).toLocaleString('default', { month:'long', year:'numeric' });
+    const subject = encodeURIComponent(`Shift Schedule — ${w.name} — ${monthName}`);
+    const body    = encodeURIComponent(document.getElementById('personalTextArea').value + '\n\n(Tip: attach the downloaded .ics file so the recipient can import it into their calendar.)');
+    const to      = email ? encodeURIComponent(email) : '';
+    window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
 }
 
 // ─────────────────────────────────────────────────────────
