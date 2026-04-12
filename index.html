@@ -42,6 +42,7 @@
 
         .weekend     { background-color: #f0f0f0 !important; }
         .holiday-row { background-color: #e8daef !important; }
+        .lss-row     { background-color: #e8f8e8 !important; }
 
         .checkbox-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
         .shift-select { width: 100%; min-width: 140px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-weight: bold; text-align: center; color: #222; font-size: 11px; }
@@ -184,6 +185,7 @@
         body.dark .shift-select { color: #222 !important; } /* keep shift dropdowns readable */
         body.dark .weekend { background-color: #1e2d4a !important; }
         body.dark .holiday-row { background-color: #2d1f4a !important; }
+        body.dark .lss-row { background-color: #1a2e1a !important; }
         body.dark .role-targets-panel { background: #0f3460 !important; border-color: #2a3a5c !important; }
         body.dark .stats-good { color: #4ade80; }
         body.dark .stats-warn { color: #fbbf24; }
@@ -2614,7 +2616,8 @@ function renderTable() {
         const dow      = dateObj.getDay();
         const isWE     = (dow===0||dow===6);
         const isHol    = isHoliday(d);
-        const rowClass = isHol ? 'holiday-row' : (isWE ? 'weekend' : '');
+        const isLSS    = lssDays.includes(d);
+        const rowClass = isHol ? 'holiday-row' : (isWE ? 'weekend' : isLSS ? 'lss-row' : '');
 
         bodyHTML += `<tr class="${rowClass}">__DATECELL_${d}__`;
 
@@ -2704,12 +2707,13 @@ function renderTable() {
             const cellKey  = `${wIndex}_${d}`;
             const selClass = selectedCells.has(cellKey) ? 'selected-cell' : '';
 
-            // For empty cells on holiday/weekend rows, use the row bg instead of white
-            // so the row colouring is visible (inline style would otherwise override the class)
+            // For empty/white cells on special rows, inherit the row background colour
+            // so the row colouring shows through (inline style overrides CSS class)
             let cellBg = bgColor;
             if (bgColor === '#ffffff') {
-                if (isHol) cellBg = '#e8daef';
-                else if (isWE) cellBg = '#f0f0f0';
+                if (isHol)      cellBg = '#e8daef';
+                else if (isWE)  cellBg = '#f0f0f0';
+                else if (isLSS) cellBg = '#e8f8e8';
             }
 
             bodyHTML += `<td data-cell="${cellKey}" class="${selClass}" onclick="handleCellClick(event,${wIndex},${d})" style="background-color:${cellBg};">
@@ -4444,16 +4448,17 @@ async function downloadExcelWithFormulas() {
             planWs[a].s = cellStyle(rowBg || null, { border:true });
         }
 
-        // Worker shift cells — NO static fill; conditional formatting provides all colours.
-        // (xlsx-js-style writes applyFill="1" on every xf which blocks CF override.
-        //  Writing patternType:'none' keeps the cell colourless so CF wins.)
+        // Worker shift cells — NO static fill so CF wins.
+        // CRITICAL: do not set fill at all (not even patternType:'none') because
+        // xlsx-js-style writes applyFill="1" on any xf that has a fill property,
+        // which blocks conditional formatting overrides.
         workers.forEach((w, wIdx) => {
             const shift     = w.shifts[d] || '-';
             const isPending = isPendingVacationShift(shift);
             const addr      = excelCell(rowIdx, cfg.workerStartCol + wIdx);
             if (!planWs[addr]) planWs[addr] = { t:'s', v:'-' };
             planWs[addr].s = {
-                fill:      { patternType: 'none' },   // no static fill — CF handles colour
+                // fill intentionally omitted — CF handles all colours
                 font:      Object.assign({ name:'Calibri', sz:10, italic: isPending },
                                isPending ? { color:{ rgb:'FF999999' } } : {}),
                 alignment: { horizontal:'center', vertical:'center' },
@@ -4657,12 +4662,12 @@ async function downloadExcelWithFormulas() {
             'FFE8D5F5', // 17 CUS
             'FFFCE5CD', // 18 RB1/RB2
             '00FFFFFF', // 19 pending vacation (white)
-            'FFE8DAEF', // 20 Holiday row background
-            'FFE8E8E8', // 21 LSS row background
-            'FFF0F0F0', // 22 Weekend row background
+            'FFE8DAEF', // 20 Holiday row background  (#e8daef)
+            'FFE8F8E8', // 21 LSS row background       (#e8f8e8)
+            'FFF0F0F0', // 22 Weekend row background   (#f0f0f0)
         ];
         const dxfs = fills.map(rgb =>
-            `<dxf><fill><patternFill patternType="solid"><fgColor rgb="${rgb}"/></patternFill></fill></dxf>`
+            `<dxf><fill><patternFill><bgColor rgb="${rgb}"/></patternFill></fill></dxf>`
         ).join('');
         return `<dxfs count="${fills.length}">${dxfs}</dxfs>`;
     }
@@ -4710,7 +4715,7 @@ async function downloadExcelWithFormulas() {
         // ── 2. Row-level CF — full row (A to last summary col) for Hol/LSS/Weekend ──
         // Applied at lower priority than shift colours (priority numbers continue from above).
         // Col C = Holiday? (index 2 = "C"), Col D = LSS? (index 3 = "D"), Col A = Date (index 0)
-        const firstCol = 'A';
+        const firstCol = excelCol(cfg.workerStartCol); // start after date/hol/lss cols to avoid circular ref ($A2,$C2,$D2 outside range)
         const lastCol  = excelCol(cfg.summaryStartCol + cfg.summary.length - 1);
         const rowSqref = `${firstCol}2:${lastCol}${lastRow}`;
         // Anchor cols C and D so formula applies row-by-row
@@ -4760,13 +4765,13 @@ async function downloadExcelWithFormulas() {
     try {
         const wbOut = XLSX.write(wb, { bookType:'xlsx', type:'array', cellStyles:true });
 
-        // ── Post-process xlsx via JSZip: inject named ranges, DV, CF, and dxfs ──
+        // ── Post-process xlsx via JSZip: named ranges, dxfs, applyFill fix, CF, DV ──
         let finalBytes = wbOut;
         if (typeof JSZip !== 'undefined') {
             try {
                 const zip = await JSZip.loadAsync(wbOut);
 
-                // ── 1. workbook.xml: add named ranges so DV formula1 can use short names ──
+                // ── 1. workbook.xml: named ranges for DV formula1 ──
                 const wbXmlFile = zip.file('xl/workbook.xml');
                 if (wbXmlFile) {
                     let wbXml = await wbXmlFile.async('string');
@@ -4776,46 +4781,81 @@ async function downloadExcelWithFormulas() {
                         '<definedName name="SP_ShiftCodes">' + shiftCodesRef + '</definedName>' +
                         '<definedName name="SP_YNList">Legend!$E$1:$E$2</definedName>' +
                         '</definedNames>';
-                    // Remove any existing block then insert before </workbook>
                     const wbClean = wbXml.replace(/<definedNames>[\s\S]*?<\/definedNames>/g, '');
                     zip.file('xl/workbook.xml', wbClean.replace('</workbook>', defNames + '</workbook>'));
                 }
 
-                // ── 2. styles.xml: replace the empty dxfs placeholder ──
-                // xlsx-js-style emits '<dxfs count="0"/>' or '<dxfs count="0"></dxfs>'
+                // ── 2+3. styles.xml + sheet1.xml — read once, patch, write once ──
                 const stylesFile = zip.file('xl/styles.xml');
-                if (stylesFile) {
+                const sheetKey   = 'xl/worksheets/sheet1.xml';
+                const sheetFile  = zip.file(sheetKey);
+
+                if (stylesFile && sheetFile) {
                     let stylesXml = await stylesFile.async('string');
-                    // Match both self-closing and open/close variants
-                    stylesXml = stylesXml.replace(/<dxfs count="0"\s*\/?>((<\/dxfs>)?)/, buildDxfsXml());
-                    zip.file('xl/styles.xml', stylesXml);
-                }
+                    let sheetXml  = await sheetFile.async('string');
 
-                // ── 3. sheet1.xml: inject CF + DV in a single read-modify-write ──
-                const sheetKey  = 'xl/worksheets/sheet1.xml';
-                const sheetFile = zip.file(sheetKey);
-                if (sheetFile) {
-                    let xml = await sheetFile.async('string');
+                    // 2a. Inject dxfs — xlsx-js-style always emits '<dxfs count="0"/>' literally
+                    const EMPTY_DXFS = '<dxfs count="0"/>';
+                    if (stylesXml.includes(EMPTY_DXFS)) {
+                        stylesXml = stylesXml.replace(EMPTY_DXFS, buildDxfsXml());
+                    } else {
+                        // Fallback: strip any block, append before </styleSheet>
+                        stylesXml = stylesXml
+                            .replace(/<dxfs[^>]*\/>/g, '')
+                            .replace(/<dxfs[\s\S]*?<\/dxfs>/g, '');
+                        stylesXml = stylesXml.replace('</styleSheet>', buildDxfsXml() + '</styleSheet>');
+                    }
 
-                    // Remove any stale blocks from previous export attempts
-                    xml = xml.replace(/<dataValidations[\s\S]*?<\/dataValidations>/g, '');
-                    xml = xml.replace(/<conditionalFormatting[\s\S]*?<\/conditionalFormatting>/g, '');
+                    // 2b. Strip applyFill="1" from xf entries used by worker cells.
+                    //     xlsx-js-style writes applyFill="1" which prevents CF fills from applying.
+                    //     We find which xf style indices worker cells reference, patch those entries.
+                    const workerCols = workers.map((_, i) => excelCol(cfg.workerStartCol + i));
+                    const usedIdx = new Set();
+                    workerCols.forEach(col => {
+                        // Match <c r="E2" ... s="7"> — extract style index
+                        const re = new RegExp('<c r="' + col + '\\d+"[^>]*s="(\\d+)"', 'g');
+                        let m;
+                        while ((m = re.exec(sheetXml)) !== null) usedIdx.add(parseInt(m[1]));
+                    });
 
-                    // Build payloads and concatenate (OOXML order: CF before DV)
+                    if (usedIdx.size > 0) {
+                        stylesXml = stylesXml.replace(
+                            /(<cellXfs[^>]*>)([\s\S]*?)(<\/cellXfs>)/,
+                            function(_, open, body, close) {
+                                let i = 0;
+                                // CRITICAL: match self-closing <xf .../> separately from <xf ...>...</xf>
+                                // Using \/> (not \/?>) so self-closing alt only matches '/>'
+                                const patched = body.replace(
+                                    /<xf [^>]*\/>|<xf [^>]*>[\s\S]*?<\/xf>/g,
+                                    function(xf) {
+                                        const idx = i++;
+                                        if (!usedIdx.has(idx)) return xf;
+                                        return xf
+                                            .replace(/\s*applyFill="1"/, '')
+                                            .replace(/fillId="\d+"/, 'fillId="0"');
+                                    }
+                                );
+                                return open + patched + close;
+                            }
+                        );
+                    }
+
+                    // 3. Inject CF + DV into sheet1.xml (single pass)
+                    sheetXml = sheetXml.replace(/<dataValidations[\s\S]*?<\/dataValidations>/g, '');
+                    sheetXml = sheetXml.replace(/<conditionalFormatting[\s\S]*?<\/conditionalFormatting>/g, '');
                     const payload = buildCFXml() + buildDVXml();
-
-                    // Insert at correct OOXML position — CF must precede ignoredErrors
                     const anchors = ['<ignoredErrors', '<pageMargins', '<pageSetup', '<extLst', '</worksheet>'];
                     let inserted = false;
                     for (const anchor of anchors) {
-                        if (xml.includes(anchor)) {
-                            xml = xml.replace(anchor, payload + anchor);
-                            inserted = true;
-                            break;
+                        if (sheetXml.includes(anchor)) {
+                            sheetXml = sheetXml.replace(anchor, payload + anchor);
+                            inserted = true; break;
                         }
                     }
-                    if (!inserted) xml = xml.replace('</worksheet>', payload + '</worksheet>');
-                    zip.file(sheetKey, xml);
+                    if (!inserted) sheetXml = sheetXml.replace('</worksheet>', payload + '</worksheet>');
+
+                    zip.file('xl/styles.xml', stylesXml);
+                    zip.file(sheetKey, sheetXml);
                 }
 
                 finalBytes = await zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } });
