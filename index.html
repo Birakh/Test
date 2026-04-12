@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Monthly Shift Planner</title>
+    <title>Shift Planner V1</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 20px; font-size: 13px; }
         h1, h2 { color: #333; margin-top: 0; }
@@ -230,12 +230,12 @@
 <!-- Init error bar — hidden unless onload crashes -->
 <div id="initErrorBar" style="display:none; background:#c0392b; color:white; padding:10px 16px; font-size:13px; font-weight:bold; position:fixed; top:0; left:0; right:0; z-index:9999; cursor:pointer;" onclick="this.style.display='none'">❌ Loading error — click to dismiss</div>
 
-<h1 id="pageTitle" class="no-print" style="display:inline-block; margin-right:16px;">Shift Planner (Forever Memory Enabled ⏳💾)</h1>
+<h1 id="pageTitle" class="no-print" style="display:inline-block; margin-right:16px;">Shift Planner V1</h1>
 
 <!-- ═══ MOBILE VIEW ═══ -->
 <div id="mobileView">
     <div class="mob-header">
-        <h2>📅 Shift Planner</h2>
+        <h2>📅 Shift Planner V1</h2>
         <p id="mobMonthLabel">Loading...</p>
     </div>
     <div class="mob-month-nav">
@@ -552,6 +552,13 @@
             <strong>🏥 Immo Worker Types:</strong><br>
             <span style="color:#1a5276;"><strong>[F.Immo]</strong></span> Fixed Immo — <em>Immo shifts only</em> (ImE / ImL or mixed), never regular wards.<br>
             <span style="color:#8e44ad;"><strong>[J.Immo]</strong></span> Jump-in — regular worker; covers Immo <em>manually</em> when someone is sick or understaffed.
+        </div>
+        <div style="margin-top:8px; font-size:11px; padding:7px 8px; background:#f0f9ff; border-left:3px solid #0891b2; border-radius:0 4px 4px 0;">
+            <strong>📊 Excel Room Columns (IR2 / IR3 / IR4):</strong><br>
+            <strong>Early / Früh</strong> — workers on 8E, 6H, or 13H assigned to that room.<br>
+            <strong>M</strong> — workers on 8M assigned to that room.<br>
+            <strong>Late / Spät</strong> — workers on 8L or 13H assigned to that room.<br>
+            <em>Assign a room by choosing e.g. <code>8E-IR2</code> from the shift dropdown. Names fill automatically in the export.</em>
         </div>
         <p style="font-size:10px; margin:4px 0; color:#555;">★ 6H = fixed weekly short shift for 22h workers — day is chosen per worker when adding them</p>
         <p style="font-size:10px; margin:2px 0; color:#6c3483;">★ CUS (Custom Hours) — if the shift spans both early &amp; late (e.g. 07:00–16:00), it is counted in <em>both</em> 8E and 8L buckets and marked with ★ in the cell.</p>
@@ -4352,6 +4359,16 @@ function buildExcelExportConfig() {
         { label: 'Krank',                              key: 'krank'   },
         { label: de ? 'Abwesenheit ges.': 'Absence Total', key: 'absence' },
         { label: de ? 'Kommentare'      : 'Comments',  key: 'comments'},
+        // Room assignment columns — auto-filled with worker names per shift
+        { label: de ? 'IR2 Früh'   : 'IR2 Early', key: 'ir2_e' },
+        { label: 'IR2 M',                          key: 'ir2_m' },
+        { label: de ? 'IR2 Spät'   : 'IR2 Late',  key: 'ir2_l' },
+        { label: de ? 'IR3 Früh'   : 'IR3 Early', key: 'ir3_e' },
+        { label: 'IR3 M',                          key: 'ir3_m' },
+        { label: de ? 'IR3 Spät'   : 'IR3 Late',  key: 'ir3_l' },
+        { label: de ? 'IR4 Früh'   : 'IR4 Early', key: 'ir4_e' },
+        { label: 'IR4 M',                          key: 'ir4_m' },
+        { label: de ? 'IR4 Spät'   : 'IR4 Late',  key: 'ir4_l' },
     ];
 
     return { workerStartCol, summaryStartCol, summary };
@@ -4402,7 +4419,23 @@ async function downloadExcelWithFormulas() {
                 : shift;
             row.push(displayShift);
         });
-        cfg.summary.forEach(s => row.push(s.key === 'comments' ? (dailyComments[d] || '') : null));
+        // Room columns: gather worker names by room and shift type
+        const roomNames = { ir2_e:[], ir2_m:[], ir2_l:[], ir3_e:[], ir3_m:[], ir3_l:[], ir4_e:[], ir4_m:[], ir4_l:[] };
+        workers.forEach(w => {
+            const sh   = w.shifts[d] || '-';
+            const base = getBaseShift(sh);
+            const room = getRoomAssignment(sh);
+            if (!room) return;
+            const key = room.toLowerCase();
+            if (['8E','6H','13H','ImE'].includes(base)) roomNames[key + '_e'].push(w.name);
+            if (base === '8M')                          roomNames[key + '_m'].push(w.name);
+            if (['8L','13H','ImL'].includes(base))      roomNames[key + '_l'].push(w.name);
+        });
+        cfg.summary.forEach(s => {
+            if (s.key === 'comments')              { row.push(dailyComments[d] || ''); return; }
+            if (roomNames[s.key] !== undefined)    { row.push(roomNames[s.key].join(', ')); return; }
+            row.push(null);
+        });
         planRows.push(row);
     }
 
@@ -4410,7 +4443,11 @@ async function downloadExcelWithFormulas() {
     planWs['!cols'] = [
         {wch:12},{wch:10},{wch:10},{wch:6},
         ...workers.map(() => ({wch:18})),
-        ...cfg.summary.map(s => ({wch: s.key==='comments' ? 28 : 10}))
+        ...cfg.summary.map(s => {
+            if (s.key === 'comments')      return { wch: 28 };
+            if (s.key.startsWith('ir'))    return { wch: 22 };
+            return { wch: 10 };
+        })
     ];
     planWs['!rows'] = Array.from({length: planRows.length}, () => ({hpt:18}));
     planWs['!autofilter'] = { ref:`A1:${excelCol(planHeader.length-1)}${planRows.length}` };
@@ -4470,8 +4507,19 @@ async function downloadExcelWithFormulas() {
         cfg.summary.forEach((s, idx) => {
             const addr = excelCell(rowIdx, cfg.summaryStartCol + idx);
             if (!planWs[addr]) planWs[addr] = { t:'s', v:'' };
-            const bg = s.key === 'comments' ? COMMENT_BG : SUMMARY_BG;
-            planWs[addr].s = cellStyle('#'+bg, { border:true, align: s.key==='comments'?'left':'center' });
+            let bg, fontColor;
+            if (s.key === 'comments')          { bg = COMMENT_BG; }
+            else if (s.key === 'ir2_m')        { bg = rowBg ? rowBg : '#F9CB9C'; fontColor = '#5D4037'; }
+            else if (s.key.startsWith('ir2'))  { bg = rowBg ? rowBg : '#FFF2A8'; fontColor = '#5D4037'; }
+            else if (s.key === 'ir3_m')        { bg = rowBg ? rowBg : '#F9CB9C'; fontColor = '#1A237E'; }
+            else if (s.key.startsWith('ir3'))  { bg = rowBg ? rowBg : '#CFE2FF'; fontColor = '#1A237E'; }
+            else if (s.key === 'ir4_m')        { bg = rowBg ? rowBg : '#F9CB9C'; fontColor = '#4A148C'; }
+            else if (s.key.startsWith('ir4'))  { bg = rowBg ? rowBg : '#F3D1FF'; fontColor = '#4A148C'; }
+            else                               { bg = SUMMARY_BG; }
+            const isRoom = s.key.startsWith('ir');
+            const opts = { border:true, align: s.key==='comments' ? 'left' : 'center' };
+            if (fontColor && !rowBg) opts.fontColor = fontColor;
+            planWs[addr].s = cellStyle(isRoom ? bg : (rowBg || ('#'+bg)), opts);
         });
     }
 
@@ -4566,13 +4614,15 @@ async function downloadExcelWithFormulas() {
     // ── Legend sheet ──
     // Column A: notes. Column D onward: shift code list (used as dropdown source).
     const legendRows = [
-        [de?'Schichtplan – Export mit Formeln':'Shift Planner – Formula Export'],
+        [de?'Schichtplaner V1 – Export mit Formeln':'Shift Planner V1 – Formula Export'],
         [monthTitle], [''],
         [de?'Hinweise':'Notes'],
         [de?'• Plan: Hauptblatt. Wenn Dienstcodes geändert werden, berechnen sich Summen automatisch neu.':'• Plan: Main sheet. Changing a shift code in any cell immediately recalculates all totals.'],
         [de?'• ⏳ = Urlaub beantragt (noch nicht genehmigt).':'• ⏳ = Vacation requested (pending approval).'],
         [de?'• CUS zählt zu 8E wenn Start ≤12:00, zu 8L wenn Ende ≥14:00.':'• CUS counts as 8E if start ≤12:00, as 8L if end ≥14:00.'],
         [de?'• Abwesenheit ges. = Urlaub + FB + PF + DF + Krank.':'• Absence Total = Vacation + FB + PF + DF + Krank.'],
+        [de?'• IR2/IR3/IR4 Spalten: Früh = 8E/6H/13H, M = 8M, Spät = 8L/13H. Namen werden automatisch eingetragen.':'• IR2/IR3/IR4 columns: Early = 8E/6H/13H, M = 8M, Late = 8L/13H. Worker names are filled automatically.'],
+        [de?'• Farben ändern sich automatisch wenn ein Dienst per Dropdown geändert wird (Bedingte Formatierung).':'• Cell colours update automatically when a shift is changed via the dropdown (Conditional Formatting).'],
         [''],
         [de?'Farbschlüssel':'Colour Key'],
         ['8E', '#CFE2F3'], ['8L', '#F4CCCC'], ['8M', '#F9CB9C'], ['13H', '#FFE599'],
@@ -4715,7 +4765,7 @@ async function downloadExcelWithFormulas() {
         // ── 2. Row-level CF — full row (A to last summary col) for Hol/LSS/Weekend ──
         // Applied at lower priority than shift colours (priority numbers continue from above).
         // Col C = Holiday? (index 2 = "C"), Col D = LSS? (index 3 = "D"), Col A = Date (index 0)
-        const firstCol = excelCol(cfg.workerStartCol); // start after date/hol/lss cols to avoid circular ref ($A2,$C2,$D2 outside range)
+        const firstCol = excelCol(cfg.workerStartCol); // start after date/hol/lss cols — avoids circular ref on $A2/$C2/$D2
         const lastCol  = excelCol(cfg.summaryStartCol + cfg.summary.length - 1);
         const rowSqref = `${firstCol}2:${lastCol}${lastRow}`;
         // Anchor cols C and D so formula applies row-by-row
@@ -4799,7 +4849,6 @@ async function downloadExcelWithFormulas() {
                     if (stylesXml.includes(EMPTY_DXFS)) {
                         stylesXml = stylesXml.replace(EMPTY_DXFS, buildDxfsXml());
                     } else {
-                        // Fallback: strip any block, append before </styleSheet>
                         stylesXml = stylesXml
                             .replace(/<dxfs[^>]*\/>/g, '')
                             .replace(/<dxfs[\s\S]*?<\/dxfs>/g, '');
@@ -4808,23 +4857,18 @@ async function downloadExcelWithFormulas() {
 
                     // 2b. Strip applyFill="1" from xf entries used by worker cells.
                     //     xlsx-js-style writes applyFill="1" which prevents CF fills from applying.
-                    //     We find which xf style indices worker cells reference, patch those entries.
                     const workerCols = workers.map((_, i) => excelCol(cfg.workerStartCol + i));
                     const usedIdx = new Set();
                     workerCols.forEach(col => {
-                        // Match <c r="E2" ... s="7"> — extract style index
                         const re = new RegExp('<c r="' + col + '\\d+"[^>]*s="(\\d+)"', 'g');
                         let m;
                         while ((m = re.exec(sheetXml)) !== null) usedIdx.add(parseInt(m[1]));
                     });
-
                     if (usedIdx.size > 0) {
                         stylesXml = stylesXml.replace(
                             /(<cellXfs[^>]*>)([\s\S]*?)(<\/cellXfs>)/,
                             function(_, open, body, close) {
                                 let i = 0;
-                                // CRITICAL: match self-closing <xf .../> separately from <xf ...>...</xf>
-                                // Using \/> (not \/?>) so self-closing alt only matches '/>'
                                 const patched = body.replace(
                                     /<xf [^>]*\/>|<xf [^>]*>[\s\S]*?<\/xf>/g,
                                     function(xf) {
@@ -4840,7 +4884,7 @@ async function downloadExcelWithFormulas() {
                         );
                     }
 
-                    // 3. Inject CF + DV into sheet1.xml (single pass)
+                    // 3. Inject CF + DV into sheet1.xml
                     sheetXml = sheetXml.replace(/<dataValidations[\s\S]*?<\/dataValidations>/g, '');
                     sheetXml = sheetXml.replace(/<conditionalFormatting[\s\S]*?<\/conditionalFormatting>/g, '');
                     const payload = buildCFXml() + buildDVXml();
@@ -4860,7 +4904,7 @@ async function downloadExcelWithFormulas() {
 
                 finalBytes = await zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } });
             } catch (zipErr) {
-                console.error('[ShiftPlanner] XLSX post-processing failed:', zipErr);
+                console.error('[ShiftPlanner V1] XLSX post-processing failed:', zipErr);
             }
         }
 
@@ -5337,7 +5381,7 @@ function copyColorfulExcel() {
 // ─────────────────────────────────────────────────────────
 const T = {
   en: {
-    pageTitle:      'Shift Planner (Forever Memory Enabled ⏳💾)',
+    pageTitle:      'Shift Planner V1',
     langBtn:        '🌐 Deutsch',
     months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
     p1title:        '1. Setup & Action',
@@ -5399,7 +5443,7 @@ const T = {
     helpContent:    getHelpContent('en'),
   },
   de: {
-    pageTitle:      'Dienstplaner (Dauerspeicher aktiviert ⏳💾)',
+    pageTitle:      'Dienstplaner V1',
     langBtn:        '🌐 English',
     months: ['Jänner','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
     p1title:        '1. Einrichtung & Aktionen',
@@ -5534,7 +5578,7 @@ function getHelpContent(lang) {
   ${de?'Zwei gespeicherte Monate nebeneinander vergleichen — Stunden, Früh/Spät-Verschiebungen und jeden geänderten Dienst.':'Compare any two saved months side by side — hours, early/late changes, and every shifted day.'}
 
   <h3>${de?'Schritt 12: Zimmer zuweisen 🚪':'Step 12: Assign Rooms 🚪'}</h3>
-  ${de?'Dienst wie <code>8E</code> auf <code>8E-IR2</code> ändern, um die Zimmerspalten automatisch zu befüllen.':'Change a shift like <code>8E</code> to <code>8E-IR2</code> to populate the Room columns automatically.'}
+  ${de?'Dienst wie <code>8E</code> auf <code>8E-IR2</code> ändern, um die Zimmerspalten automatisch zu befüllen. Zellfarben aktualisieren sich automatisch per bedingter Formatierung.':'Change a shift like <code>8E</code> to <code>8E-IR2</code> to populate the Room columns automatically. Cell colours update via Conditional Formatting.'}
 
   <h3>${de?'Schritt 13: KI-Prüfung & Tauschvorschläge 🤖':'Step 13: AI Check & Swap Suggestions 🤖'}</h3>
   ${de?'Überprüft Gerechtigkeit, Arbeitszeitverstöße, Unterbesetzung und Immo-Lücken. Schlägt konkrete Tausche vor. <strong>Auch im Excel-Export</strong> als "Analyse"-Blatt enthalten.':'Checks fairness, labour law violations, understaffing and Immo gaps. Proposes specific swaps. <strong>Also included in the Excel export</strong> as an "Analysis" sheet.'}
