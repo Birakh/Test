@@ -1224,43 +1224,87 @@ let spConfig = { siteUrl:'', folderPath:'', fileName:'', autoSync:false };
 // All JSON files stored on GitHub are AES-encrypted with this shared password.
 // Everyone who can access the app needs to know it. Completely separate from
 // the admin/editor login passwords.
-let dataPassword = ''; // set via setup popup or settings; stored in localStorage
+let dataPassword = ''; // held in memory only — never stored in plaintext
 
-function encryptData(plainText) {
-    if (!dataPassword) return plainText; // no password = no encryption (fallback)
+// ── Helpers ──────────────────────────────────────────────
+const _toHex = arr => Array.from(arr).map(b => b.toString(16).padStart(2,'0')).join('');
+const _fromHex = h => new Uint8Array(h.match(/.{2}/g).map(b => parseInt(b,16)));
+const _toB64  = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const _fromB64 = s  => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+
+// Derive a 256-bit AES-GCM key from a password + salt via PBKDF2 (200k iterations, SHA-256)
+async function _deriveKey(password, salt) {
+    const km = await crypto.subtle.importKey(
+        'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 200000, hash: 'SHA-256' },
+        km, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+
+// Encrypt with AES-GCM + PBKDF2 key derivation
+// Output: { v:2, salt:<hex>, iv:<hex>, data:<base64> }
+async function encryptData(plainText) {
+    if (!dataPassword) return plainText;
     try {
-        return JSON.stringify({ encrypted: CryptoJS.AES.encrypt(plainText, dataPassword).toString() });
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iv   = crypto.getRandomValues(new Uint8Array(12));
+        const key  = await _deriveKey(dataPassword, salt);
+        const enc  = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key,
+                         new TextEncoder().encode(plainText));
+        return JSON.stringify({ v: 2, salt: _toHex(salt), iv: _toHex(iv), data: _toB64(enc) });
     } catch(e) { console.warn('Encrypt failed:', e); return plainText; }
 }
 
-function decryptData(text) {
+// Decrypt — handles v2 (AES-GCM/PBKDF2), v1 legacy (CryptoJS/EvpKDF), and plaintext
+async function decryptData(text) {
     if (!text) return text;
     try {
         const obj = JSON.parse(text);
+        // ── v2: AES-GCM + PBKDF2 ──
+        if (obj && obj.v === 2 && obj.salt && obj.iv && obj.data) {
+            if (!dataPassword) throw new Error('Data is encrypted — enter the data password first.');
+            const key = await _deriveKey(dataPassword, _fromHex(obj.salt));
+            const dec = await crypto.subtle.decrypt(
+                { name: 'AES-GCM', iv: _fromHex(obj.iv) }, key, _fromB64(obj.data));
+            return new TextDecoder().decode(dec);
+        }
+        // ── v1 legacy: CryptoJS AES (read-only — old data migrates on next push) ──
         if (obj && obj.encrypted) {
             if (!dataPassword) throw new Error('Data is encrypted — enter the data password first.');
             const bytes = CryptoJS.AES.decrypt(obj.encrypted, dataPassword);
-            const dec = bytes.toString(CryptoJS.enc.Utf8);
+            const dec   = bytes.toString(CryptoJS.enc.Utf8);
             if (!dec) throw new Error('Wrong data password — decryption produced empty result.');
             return dec;
         }
     } catch(e) {
-        if (e.message.includes('encrypted') || e.message.includes('password')) throw e;
-        // Not JSON or not encrypted object — return as-is (plain text fallback)
+        if (e.message && (e.message.includes('encrypted') || e.message.includes('password'))) throw e;
     }
-    return text; // unencrypted data (legacy / first run)
+    return text; // unencrypted / plain JSON fallback
 }
 
+// Data password lives in sessionStorage only (cleared when the tab closes).
+// The plaintext is never written to localStorage.
 function loadDataPassword() {
     try {
-        const saved = localStorage.getItem('shiftPlannerDataPwd');
+        // Migrate away from old localStorage entry if present
+        const legacy = localStorage.getItem('shiftPlannerDataPwd');
+        if (legacy) {
+            dataPassword = legacy;
+            sessionStorage.setItem('shiftPlannerDataPwd', legacy);
+            localStorage.removeItem('shiftPlannerDataPwd'); // remove plaintext copy
+            return;
+        }
+        const saved = sessionStorage.getItem('shiftPlannerDataPwd');
         if (saved) dataPassword = saved;
     } catch(e) {}
 }
 
 function saveDataPassword(pwd) {
     dataPassword = pwd;
-    try { localStorage.setItem('shiftPlannerDataPwd', pwd); } catch(e) {}
+    try {
+        sessionStorage.setItem('shiftPlannerDataPwd', pwd);
+        localStorage.removeItem('shiftPlannerDataPwd'); // keep localStorage clean
+    } catch(e) {}
 }
 
 // ── Shared comment token — admin embeds this once so all viewers can push comments ──
@@ -1840,7 +1884,7 @@ function changeMonth(isInit=false) {
     setTimeout(() => cmtPull(true), 300);
 }
 
-function refreshBoard() { saveData(); renderTable(); }
+function refreshBoard() { saveData(); scheduleRenderTable(); }
 
 // ─────────────────────────────────────────────────────────
 //  Dark Mode
@@ -2020,7 +2064,7 @@ function getPrevMonthLastDays(workerName, numDays) {
 function updateDailyTarget(dIndex, type, value) {
     if (!requireEdit("Change Daily Target")) return;
     dailyTargets[dIndex][type] = parseInt(value) || 0;
-    saveData(); renderTable();
+    saveData(); scheduleRenderTable();
 }
 
 // ─────────────────────────────────────────────────────────
@@ -2233,6 +2277,21 @@ function saveEditWorker() {
 }
 
 // ─────────────────────────────────────────────────────────
+//  Debounced render — prevents UI freeze on rapid dropdown
+//  changes by deferring the full table rebuild to the next
+//  event-loop tick and collapsing back-to-back calls.
+// ─────────────────────────────────────────────────────────
+let _renderScheduled = false;
+function scheduleRenderTable() {
+    if (_renderScheduled) return;
+    _renderScheduled = true;
+    setTimeout(function () {
+        _renderScheduled = false;
+        renderTable();
+    }, 0);
+}
+
+// ─────────────────────────────────────────────────────────
 //  Update Daily Target (inline inputs in table)
 // ─────────────────────────────────────────────────────────
 
@@ -2243,8 +2302,7 @@ function updateShift(wIndex, dIndex, value) {
         finalValue = viewerShiftValueForSave(value);
     } else if (isPendingVacationShift(oldValue) && isVacationBase(stripPendingVacation(value))) { finalValue = stripPendingVacation(value); }
     pushUndo(); workers[wIndex].shifts[dIndex] = finalValue; saveData();
-    renderTable();
-    if ($('statsToggle') && $('statsToggle').checked) renderStats();
+    scheduleRenderTable();
 
     // ── Notifications ──
     const wasVacRequest = isPendingVacationShift(finalValue);
@@ -2280,7 +2338,7 @@ function updateShift(wIndex, dIndex, value) {
     }
 }
 
-function updateRequest(wIndex, dIndex, isChecked) { workers[wIndex].requests[dIndex]=isChecked; saveData(); renderTable(); }
+function updateRequest(wIndex, dIndex, isChecked) { workers[wIndex].requests[dIndex]=isChecked; saveData(); scheduleRenderTable(); }
 function updateComment(dIndex, text) { dailyComments[dIndex]=text; saveData(); scheduleCommentSync(); }
 
 function toggleHoliday(dIndex, el) {
@@ -2695,7 +2753,8 @@ function renderTable() {
         const isLSS    = lssDays.includes(d);
         const rowClass = isHol ? 'holiday-row' : (isWE ? 'weekend' : isLSS ? 'lss-row' : '');
 
-        bodyHTML += `<tr class="${rowClass}" data-day="${d}">__DATECELL_${d}__`;
+        bodyHTML += `<tr class="${rowClass}" data-day="${d}">`;
+        let rowWorkerCells = '';
 
         let c8E=0,c8M=0,c8L=0,c13H=0,c6H=0,cImE=0,cImL=0,vCount=0,sickCount=0,workingCount=0,cFB=0,cPF=0,cDF=0,cKrank=0;
         const sickNames=[], vacNames=[], fbNames=[], pfNames=[], dfNames=[], krankNames=[];
@@ -2792,7 +2851,7 @@ function renderTable() {
                 else if (isLSS) cellBg = '#e8f8e8';
             }
 
-            bodyHTML += `<td data-cell="${cellKey}" data-w="${wIndex}" class="${selClass}" onclick="handleCellClick(event,${wIndex},${d})" style="background-color:${cellBg};">
+            rowWorkerCells += `<td data-cell="${cellKey}" data-w="${wIndex}" class="${selClass}" onclick="handleCellClick(event,${wIndex},${d})" style="background-color:${cellBg};">
                 <select class="shift-select ${currentRole==='viewer' && viewerCanEditCell(shift) ? "viewer-vac-select" : ""} ${consecClass}" data-w="${wIndex}" data-d="${d}"
                     style="background-color:${cellBg}; ${textCol}"
                     onchange="updateShift(${wIndex},${d},this.value)">
@@ -2818,8 +2877,8 @@ function renderTable() {
             `${dayNames[dow]} ${d+1}.${minAlert?' ⚠'+workingCount:''}${holNameHtml}</td>`+
             `<td class="sticky-col no-print ${rowClass}"><input type="checkbox" ${isHol?'checked':''} onchange="toggleHoliday(${d},this)"></td>`+
             `<td class="sticky-col no-print ${rowClass}"><input type="checkbox" ${lssDays.includes(d)?'checked':''} onchange="toggleLSS(${d},this)"></td>`;
-        // Replace the placeholder we inserted when the row opened
-        bodyHTML = bodyHTML.replace(`__DATECELL_${d}__`, dateCellHtml);
+        // Append date cells first, then the pre-built worker cells (avoids scanning the full bodyHTML string)
+        bodyHTML += dateCellHtml + rowWorkerCells;
 
         // Shift count columns
         const tgt8E=dailyTargets[d].t8E, tgt8M=dailyTargets[d].t8M, tgt8L=dailyTargets[d].t8L;
@@ -5830,8 +5889,37 @@ function applyLang() {
 //  Edit-Mode Lock / Unlock
 // ─────────────────────────────────────────────────────────
 
+// ── Login password hashing — PBKDF2 (200k iterations, SHA-256, random 16-byte salt) ──
+// Stored format: "<saltHex>:<hashHex>"  (64+1+64 = 129 chars)
+// Legacy format (no colon): plain SHA-256 hex — still verified for backward compat
+
+async function pbkdf2LoginHash(password, saltHex) {
+    const salt = saltHex ? _fromHex(saltHex)
+                         : crypto.getRandomValues(new Uint8Array(16));
+    const km = await crypto.subtle.importKey(
+        'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits(
+        { name: 'PBKDF2', salt, iterations: 200000, hash: 'SHA-256' }, km, 256);
+    return _toHex(salt) + ':' + _toHex(new Uint8Array(bits));
+}
+
+async function verifyLoginHash(password, stored) {
+    if (!stored) return false;
+    if (stored.includes(':')) {
+        // New PBKDF2 format: "<salt>:<hash>"
+        const [saltHex, hashHex] = stored.split(':');
+        const computed = await pbkdf2LoginHash(password, saltHex);
+        const [, computedHash] = computed.split(':');
+        return computedHash === hashHex;
+    }
+    // Legacy: plain SHA-256 (no salt) — accept but flag for upgrade
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+    return _toHex(new Uint8Array(buf)) === stored;
+}
+
+// Keep sha256 available for any other non-auth uses (e.g. GitHub file SHA)
 async function sha256(str) {
-    const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
@@ -5877,6 +5965,13 @@ function switchLoginTab(tab) {
     }
 }
 
+// ── Brute-force protection ──────────────────────────────────
+let _loginFailCount  = 0;
+let _loginLockUntil  = 0;
+const _LOGIN_MAX_TRIES = 5;     // attempts before lockout
+const _LOGIN_LOCKOUT_MS = 30000; // 30 s base lockout (doubles each subsequent trigger)
+let _loginLockMultiplier = 1;
+
 function toggleLock() {
     if (currentRole !== 'viewer') {
         // Log out → back to viewer
@@ -5900,33 +5995,58 @@ function toggleLock() {
 }
 
 async function attemptUnlock() {
-    const input = $('unlockInput').value;
-    const hash  = await sha256(input);
     const errEl = $('unlockError');
 
-    if (loginTab === 'admin' && adminHash && hash === adminHash) {
-        currentRole = 'admin';
-        pwHash = adminHash; // compat
-        applyLockState();
+    // ── Lockout check ──
+    const now = Date.now();
+    if (now < _loginLockUntil) {
+        const secs = Math.ceil((_loginLockUntil - now) / 1000);
+        errEl.textContent = `⏳ Too many failed attempts — wait ${secs}s before trying again.`;
+        errEl.style.display = 'block';
+        return;
+    }
+
+    const input = $('unlockInput').value;
+    errEl.style.display = 'none';
+
+    let success = false;
+    if (loginTab === 'admin'  && adminHash  && await verifyLoginHash(input, adminHash)) {
+        currentRole = 'admin'; pwHash = adminHash; applyLockState();
         $('unlockModal').style.display = 'none';
         $('unlockInput').value = '';
-        errEl.style.display = 'none';
-    } else if (loginTab === 'editor' && editorHash && hash === editorHash) {
-        currentRole = 'editor';
-        applyLockState();
+        // Upgrade legacy SHA-256 hash to PBKDF2 silently if user is admin
+        if (adminHash && !adminHash.includes(':')) {
+            pbkdf2LoginHash(input).then(h => { adminHash = h; });
+        }
+        success = true;
+    } else if (loginTab === 'editor' && editorHash && await verifyLoginHash(input, editorHash)) {
+        currentRole = 'editor'; applyLockState();
         $('unlockModal').style.display = 'none';
         $('unlockInput').value = '';
-        errEl.style.display = 'none';
-    } else if (loginTab === 'admin' && adminHash && hash === editorHash) {
-        // Typed editor password in admin tab - redirect
+        success = true;
+    } else if (loginTab === 'admin' && adminHash && editorHash && await verifyLoginHash(input, editorHash)) {
         errEl.textContent = '❌ That is the Editor password. Switch to the Editor tab.';
         errEl.style.display = 'block';
         $('unlockInput').value = '';
-    } else {
-        errEl.textContent = '❌ Incorrect password. Try again.';
+        // counts as a failed attempt to prevent tab-guessing as an oracle
+    }
+
+    if (!success) {
+        _loginFailCount++;
+        if (_loginFailCount >= _LOGIN_MAX_TRIES) {
+            _loginLockUntil = Date.now() + _LOGIN_LOCKOUT_MS * _loginLockMultiplier;
+            _loginLockMultiplier = Math.min(_loginLockMultiplier * 2, 32); // cap at 32× = ~16 min
+            _loginFailCount = 0;
+            errEl.textContent = `🔒 ${_LOGIN_MAX_TRIES} failed attempts — locked out for ${_LOGIN_LOCKOUT_MS * (_loginLockMultiplier/2) / 1000}s.`;
+        } else if (!errEl.style.display || errEl.style.display === 'none') {
+            errEl.textContent = `❌ Incorrect password. ${_LOGIN_MAX_TRIES - _loginFailCount} attempt(s) remaining.`;
+        }
         errEl.style.display = 'block';
         $('unlockInput').value = '';
         $('unlockInput').focus();
+    } else {
+        _loginFailCount = 0;
+        _loginLockMultiplier = 1;
     }
 }
 
@@ -5974,8 +6094,8 @@ async function saveAllPasswords() {
     // Validate
     if (a1 && a1 !== a2) { err.textContent = '⚠️ Admin passwords do not match.'; err.style.display='block'; return; }
     if (e1 && e1 !== e2) { err.textContent = '⚠️ Editor passwords do not match.'; err.style.display='block'; return; }
-    if (a1 && a1.length < 4) { err.textContent = '⚠️ Admin password must be at least 4 characters.'; err.style.display='block'; return; }
-    if (e1 && e1.length < 4) { err.textContent = '⚠️ Editor password must be at least 4 characters.'; err.style.display='block'; return; }
+    if (a1 && a1.length < 8) { err.textContent = '⚠️ Admin password must be at least 8 characters.'; err.style.display='block'; return; }
+    if (e1 && e1.length < 8) { err.textContent = '⚠️ Editor password must be at least 8 characters.'; err.style.display='block'; return; }
     if (!a1 && !e1) { err.textContent = '⚠️ Enter at least one password to save.'; err.style.display='block'; return; }
 
     try {
@@ -5986,8 +6106,8 @@ async function saveAllPasswords() {
             if (existing) cfg = JSON.parse(existing);
         } catch(e) {}
 
-        if (a1) { cfg.adminHash  = await sha256(a1); adminHash  = cfg.adminHash; pwHash = cfg.adminHash; }
-        if (e1) { cfg.editorHash = await sha256(e1); editorHash = cfg.editorHash; }
+        if (a1) { cfg.adminHash  = await pbkdf2LoginHash(a1); adminHash  = cfg.adminHash; pwHash = cfg.adminHash; }
+        if (e1) { cfg.editorHash = await pbkdf2LoginHash(e1); editorHash = cfg.editorHash; }
         cfg.version = 2;
 
         await ghWriteFile(spCfgFile, JSON.stringify(cfg, null, 2));
@@ -6052,7 +6172,7 @@ async function ghReadFile(file) {
                 // ── Cache SHA for conflict detection ──
                 window._shaCache[file] = data.sha;
                 const text = decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
-                return decryptData(text);
+                return await decryptData(text);
             }
             if (r.status === 404) return null;
             // non-404 error → fall through to raw URL attempt
@@ -6069,7 +6189,7 @@ async function ghReadFile(file) {
             const rr = await fetch(rawUrl);
             if (rr.ok) {
                 const text = await rr.text();
-                return decryptData(text);
+                return await decryptData(text);
             }
         } catch(e) {
             if (e.message && (e.message.includes('encrypted') || e.message.includes('password'))) throw e;
@@ -6081,7 +6201,7 @@ async function ghReadFile(file) {
 // Write a file to GitHub (create or update)
 async function ghWriteFile(file, content, commitMsg) {
     // Encrypt before pushing if data password is set
-    const payload = encryptData(content);
+    const payload = await encryptData(content);
 
     // ── Use the SHA we cached when we last READ this file ──
     // If someone else pushed between our last read and now, GitHub will
@@ -6969,7 +7089,8 @@ function renderMobileView() {
                 if (o && c.siteUrl)    o.value = c.siteUrl;
                 if (r && c.folderPath) r.value = c.folderPath;
                 var dp = $('su_datapwd');
-                var savedPwd = localStorage.getItem('shiftPlannerDataPwd');
+                var savedPwd = sessionStorage.getItem('shiftPlannerDataPwd')
+                           || localStorage.getItem('shiftPlannerDataPwd');
                 if (dp && savedPwd) dp.value = savedPwd;
             } catch(e) {}
         }
@@ -7036,9 +7157,10 @@ function renderMobileView() {
             // Save GitHub config
             var cfg = { siteUrl: owner, folderPath: repo, fileName: token, autoSync: false };
             localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(cfg));
-            // Save data password
+            // Save data password — use saveDataPassword so it goes to sessionStorage only
             var dpwd = ($('su_datapwd') || {value:''}).value.trim();
-            if (dpwd) localStorage.setItem('shiftPlannerDataPwd', dpwd);
+            if (dpwd && typeof saveDataPassword === 'function') saveDataPassword(dpwd);
+            else if (dpwd) sessionStorage.setItem('shiftPlannerDataPwd', dpwd);
             stat.textContent = 'Connected to ' + data.full_name + '! Loading config...';
             stat.style.display = 'block';
             btn.textContent = 'Connected!';
@@ -7301,7 +7423,7 @@ function renderMobileView() {
       worker.shifts[idx] = (viewerMode && typeof window.viewerShiftValueForSave === 'function') ? window.viewerShiftValueForSave(vacType) : vacType;
       changed++;
     }
-    if(changed > 0){ window.saveData(); window.renderTable(); }
+    if(changed > 0){ window.saveData(); if(typeof window.scheduleRenderTable === 'function') window.scheduleRenderTable(); else window.renderTable(); }
     if(res) res.textContent = 'Updated ' + changed + ' day(s). Skipped: ' + skipWeekend + ' weekend, ' + skipHoliday + ' holiday, ' + skipFixed + ' fixed day-off, ' + skipBusy + ' occupied, ' + skipMonth + ' outside this month.';
   };
 
@@ -7361,16 +7483,36 @@ function renderMobileView() {
     window.selectedCells.clear();
     const cnt = $('selectionCount');
     if(cnt) cnt.textContent = 0;
-    window.saveData(); window.renderTable();
+    window.saveData();
+    if(typeof window.scheduleRenderTable === 'function') window.scheduleRenderTable(); else window.renderTable();
     alert('Vacation requests added to ' + changed + ' cell(s). Skipped ' + skipped + ' locked/occupied cell(s).');
   };
+
+  // ── Caches for post-render hooks ──
+  // populateVacationRangeWorkerSelect: only rebuild when the worker name list changes
+  let _lastRosterFingerprint = '';
+  function _rosterFingerprint(){
+    return (window.workers || []).map(function(w){ return w.name; }).join(',');
+  }
+  // renderSyncStatusBadges: throttle to at most once every 3 seconds
+  let _lastBadgeRender = 0;
 
   const origRenderTable = window.renderTable;
   window.renderTable = function(){
     const r = origRenderTable.apply(this, arguments);
     ensureSelectModeButtonForViewer();
-    populateVacationRangeWorkerSelect();
-    renderSyncStatusBadges();
+    // Only rebuild vacation-worker select when the roster actually changed
+    const fp = _rosterFingerprint();
+    if(fp !== _lastRosterFingerprint){
+      _lastRosterFingerprint = fp;
+      populateVacationRangeWorkerSelect();
+    }
+    // Throttle badge bar — localStorage read + DOM write every render is wasteful
+    const now = Date.now();
+    if(now - _lastBadgeRender > 3000){
+      _lastBadgeRender = now;
+      renderSyncStatusBadges();
+    }
     updateSelectModeUI();
     return r;
   };
