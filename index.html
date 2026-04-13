@@ -937,6 +937,9 @@
                         oninput="liveUpdatePAT(this.value)"
                         style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
                     <small id="spFileNameStatus" style="color:#1a7f37; display:none;">✔ PAT updated</small>
+                    <div id="patWriteWarn" style="display:none; margin-top:5px; padding:6px 8px; background:#fff3cd; border:1px solid #ffc107; border-radius:4px; font-size:11px; color:#856404;">
+                        ⚠️ <strong>Security notice:</strong> This PAT is stored in your browser's <code>localStorage</code> only — it is never embedded in the HTML file. However, any JavaScript running on this page can read <code>localStorage</code>. Use the minimum required scope (<em>Contents: Read &amp; Write</em>) and rotate the token regularly.
+                    </div>
                     <small style="color:#666;">
                         Create at <strong>GitHub → Settings → Developer settings → Personal access tokens → Fine-grained</strong><br>
                         Needs <em>Contents: Read &amp; Write</em> permission on this repo. Stored only in your browser's localStorage.
@@ -1023,6 +1026,9 @@
                 <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Shared Comments Token (PAT)</label>
                 <input id="cmtSharedToken" type="password" placeholder="ghp_xxxxxxxxxxxx (paste once, then re-download HTML)"
                     style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                <div style="margin-top:5px; padding:6px 8px; background:#ffeaea; border:1px solid #f5c6cb; border-radius:4px; font-size:11px; color:#721c24;">
+                        🔴 <strong>Write-capable PAT warning:</strong> This token is <strong>baked into the HTML file</strong> and distributed to every user. Anyone who views the page source can read it. <strong>Never paste a write-capable PAT here</strong> unless you accept that all users can push to your repo. Use a dedicated read-only or comments-only scoped token whenever possible.
+                    </div>
                 <small style="color:#666;">This token is embedded in the HTML file itself — not stored in localStorage. It can be read-only or read-write.</small>
             </div>
 
@@ -1326,8 +1332,8 @@ let commentSyncDebounceTimer = null;
 let currentRole = 'viewer';
 let isEditMode  = false;
 let pwHash      = null;   // kept for compat — now = adminHash
-let adminHash   = null;
-let editorHash  = null;
+let adminHash   = null; // __BAKE_ADMIN_HASH__
+let editorHash  = null; // __BAKE_EDITOR_HASH__
 let spCfgFile   = 'shiftplanner_config.json';
 let loginTab    = 'editor'; // which tab is active in login modal
 
@@ -5426,8 +5432,22 @@ function downloadAsHTML() {
 
     let html = document.documentElement.outerHTML;
     // Bake current password hashes into downloaded HTML so new browsers are protected
-    if (adminHash)  html = html.replace(/let adminHash\s*=\s*null/, 'let adminHash = ' + JSON.stringify(adminHash));
-    if (editorHash) html = html.replace(/let editorHash\s*=\s*null/, 'let editorHash = ' + JSON.stringify(editorHash));
+    // Bake password hashes using exact sentinel markers — immune to minification or variable reordering
+    const ADMIN_SENTINEL  = 'let adminHash   = null; // __BAKE_ADMIN_HASH__';
+    const EDITOR_SENTINEL = 'let editorHash  = null; // __BAKE_EDITOR_HASH__';
+    if (adminHash && html.includes(ADMIN_SENTINEL)) {
+        html = html.replace(ADMIN_SENTINEL, 'let adminHash   = ' + JSON.stringify(adminHash) + '; // __BAKE_ADMIN_HASH__');
+    } else if (adminHash) {
+        // Sentinel missing — fall back to regex and log a warning
+        console.warn('[ShiftPlanner] Admin hash sentinel not found — falling back to regex bake-in.');
+        html = html.replace(/let adminHash\s*=\s*null/, 'let adminHash = ' + JSON.stringify(adminHash));
+    }
+    if (editorHash && html.includes(EDITOR_SENTINEL)) {
+        html = html.replace(EDITOR_SENTINEL, 'let editorHash  = ' + JSON.stringify(editorHash) + '; // __BAKE_EDITOR_HASH__');
+    } else if (editorHash) {
+        console.warn('[ShiftPlanner] Editor hash sentinel not found — falling back to regex bake-in.');
+        html = html.replace(/let editorHash\s*=\s*null/, 'let editorHash = ' + JSON.stringify(editorHash));
+    }
     // Insert seed script just before </head>
     html = html.replace('</head>', seedScript + '\n</head>');
 
@@ -6023,6 +6043,10 @@ async function attemptUnlock() {
         currentRole = 'editor'; applyLockState();
         $('unlockModal').style.display = 'none';
         $('unlockInput').value = '';
+        // Upgrade legacy SHA-256 hash to PBKDF2 silently if editor is on old format
+        if (editorHash && !editorHash.includes(':')) {
+            pbkdf2LoginHash(input).then(h => { editorHash = h; });
+        }
         success = true;
     } else if (loginTab === 'admin' && adminHash && editorHash && await verifyLoginHash(input, editorHash)) {
         errEl.textContent = '❌ That is the Editor password. Switch to the Editor tab.';
@@ -6825,6 +6849,9 @@ function liveUpdatePAT(value) {
     localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(saved));
     const status = $('spFileNameStatus');
     if (status) { status.style.display = trimmed ? 'inline' : 'none'; }
+    // Show security warning whenever a PAT is present
+    const warn = $('patWriteWarn');
+    if (warn) { warn.style.display = trimmed ? 'block' : 'none'; }
 }
 
 function liveUpdateEncryption(value) {
