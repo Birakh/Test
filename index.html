@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shift Planner V1</title>
+    <title>Shift Planner V2</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 20px; font-size: 13px; }
         h1, h2 { color: #333; margin-top: 0; }
@@ -18,20 +18,21 @@
         .btn-half-r { margin-top: 7px; width: 48%; font-size: 11px; float: right; padding: 5px 6px; }
         .btn-full   { margin-top: 7px; width: 100%; font-size: 11px; clear: both; display: block; padding: 6px; }
 
-        .btn-auto     { background-color: #28a745; } .btn-auto:hover     { background-color: #218838; }
-        .btn-ai       { background-color: #8e44ad; } .btn-ai:hover       { background-color: #732d91; }
-        .btn-personal { background-color: #27ae60; } .btn-personal:hover { background-color: #219653; }
-        .btn-help     { background-color: #f39c12; } .btn-help:hover     { background-color: #e67e22; }
-        .btn-refresh  { background-color: #34495e; } .btn-refresh:hover  { background-color: #2c3e50; }
-        .btn-export   { background-color: #17a2b8; } .btn-export:hover   { background-color: #138496; }
-        .btn-clear    { background-color: #dc3545; } .btn-clear:hover    { background-color: #c82333; }
-        .btn-backup   { background-color: #6c757d; } .btn-backup:hover   { background-color: #5a6268; }
-        .btn-restore  { background-color: #20c997; } .btn-restore:hover  { background-color: #17a589; }
-        .btn-select   { background-color: #34495e; } .btn-select:hover   { background-color: #2c3e50; }
-        .btn-select.active { background-color: #e67e22; }
-        .btn-undo     { background-color: #5d6d7e; } .btn-undo:hover     { background-color: #4a5568; }
-        .btn-redo     { background-color: #5d6d7e; } .btn-redo:hover     { background-color: #4a5568; }
-        .btn-undo:disabled, .btn-redo:disabled { background-color: #bdc3c7; cursor: not-allowed; opacity: 0.6; }
+        /* Button palette — set --bc (base) and --bh (hover) per class, one rule does the rest */
+        button[class*="btn-"] { background-color: var(--bc); }
+        button[class*="btn-"]:hover:not(:disabled) { background-color: var(--bh); }
+        .btn-auto     { --bc:#28a745; --bh:#218838; }
+        .btn-ai       { --bc:#8e44ad; --bh:#732d91; }
+        .btn-personal { --bc:#27ae60; --bh:#219653; }
+        .btn-help     { --bc:#f39c12; --bh:#e67e22; }
+        .btn-refresh,.btn-select { --bc:#34495e; --bh:#2c3e50; }
+        .btn-export   { --bc:#17a2b8; --bh:#138496; }
+        .btn-clear    { --bc:#dc3545; --bh:#c82333; }
+        .btn-backup   { --bc:#6c757d; --bh:#5a6268; }
+        .btn-restore  { --bc:#20c997; --bh:#17a589; }
+        .btn-select.active { --bc:#e67e22; }
+        .btn-undo,.btn-redo { --bc:#5d6d7e; --bh:#4a5568; }
+        .btn-undo:disabled, .btn-redo:disabled { background-color:#bdc3c7; cursor:not-allowed; opacity:0.6; }
         .min-staff-alert { background-color: #ff6b6b !important; color: white !important; font-weight: bold; }
 
         table { width: 100%; border-collapse: collapse; background: white; white-space: nowrap; }
@@ -168,38 +169,34 @@
         .mob-full-link { text-align: center; padding: 10px; color: #7f8c8d; font-size: 12px; margin-top: 8px; }
         .mob-full-link a { color: #0969da; text-decoration: none; }
 
-        /* ── Dark Mode ── */
-        body.dark { background-color: #1a1a2e; color: #e0e0e0; }
-        body.dark h1, body.dark h2 { color: #e0e0e0; }
-        body.dark .panel { background: #16213e; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-        body.dark .modal-content { background: #16213e; color: #e0e0e0; }
-        body.dark table { background: #16213e; }
-        body.dark th { background-color: #0f3460; color: #e0e0e0; }
-        body.dark td { border-color: #2a3a5c; color: #e0e0e0; }
-        body.dark .sticky-col { background-color: #1a2a4a; color: #e0e0e0; }
-        body.dark th.sticky-col { background-color: #0f3460; }
-        body.dark .table-wrapper { border-color: #2a3a5c; }
-        body.dark input, body.dark select, body.dark textarea { background: #0f3460; color: #e0e0e0; border-color: #2a3a5c; }
-        body.dark .tgt-input { background: #1a3a6a !important; color: #ffe082 !important; }
-        body.dark .comment-input { background: #0f3460; color: #e0e0e0; }
-        body.dark .shift-select { color: #222 !important; } /* keep shift dropdowns readable */
-        body.dark .weekend { background-color: #1e2d4a !important; }
-        body.dark .holiday-row { background-color: #2d1f4a !important; }
-        body.dark .lss-row { background-color: #1a2e1a !important; }
-        body.dark .role-targets-panel { background: #0f3460 !important; border-color: #2a3a5c !important; }
-        body.dark .stats-good { color: #4ade80; }
-        body.dark .stats-warn { color: #fbbf24; }
-        body.dark .stats-bad  { color: #f87171; }
-        body.dark #statsPanel { background: #16213e; }
-        body.dark #statsPanel thead th { background: #0f3460; }
-        body.dark #statsPanel tbody tr:nth-child(even) { background: #1a2a4a; }
-        body.dark .close-btn { color: #aaa; }
-        body.dark .close-btn:hover { color: #fff; }
-        body.dark #selectionBar { background: #0f3460; }
-        body.dark .btn-delete-worker { background-color: #2a3a5c !important; color: #ccc !important; border-color: #3a4a6c !important; }
+        /* ── Dark Mode — CSS vars on body.dark ── */
+        :root { --dm-bg:#1a1a2e; --dm-panel:#16213e; --dm-card:#0f3460; --dm-border:#2a3a5c;
+                --dm-row2:#1a2a4a; --dm-text:#e0e0e0; }
+        body.dark { background-color:var(--dm-bg); color:var(--dm-text); }
+        body.dark h1, body.dark h2 { color:var(--dm-text); }
+        body.dark .panel, body.dark .modal-content, body.dark table,
+        body.dark #statsPanel { background:var(--dm-panel); }
+        body.dark th, body.dark th.sticky-col, body.dark #statsPanel thead th,
+        body.dark #selectionBar { background-color:var(--dm-card); color:var(--dm-text); }
+        body.dark td { border-color:var(--dm-border); color:var(--dm-text); }
+        body.dark .sticky-col { background-color:var(--dm-row2); color:var(--dm-text); }
+        body.dark .table-wrapper { border-color:var(--dm-border); }
+        body.dark input, body.dark select, body.dark textarea,
+        body.dark .comment-input { background:var(--dm-card); color:var(--dm-text); border-color:var(--dm-border); }
+        body.dark .tgt-input { background:#1a3a6a !important; color:#ffe082 !important; }
+        body.dark .shift-select { color:#222 !important; }
+        body.dark .weekend { background-color:#1e2d4a !important; }
+        body.dark .holiday-row { background-color:#2d1f4a !important; }
+        body.dark .lss-row { background-color:#1a2e1a !important; }
+        body.dark .role-targets-panel { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
+        body.dark .stats-good { color:#4ade80; } body.dark .stats-warn { color:#fbbf24; } body.dark .stats-bad { color:#f87171; }
+        body.dark #statsPanel tbody tr:nth-child(even) { background:var(--dm-row2); }
+        body.dark .close-btn { color:#aaa; } body.dark .close-btn:hover { color:#fff; }
+        body.dark .btn-delete-worker { background-color:#2a3a5c !important; color:#ccc !important; border-color:#3a4a6c !important; }
         body.dark #roleBadge.viewer { background:#4a1010; color:#f87171; }
         body.dark #roleBadge.editor { background:#0a2a4a; color:#60a5fa; }
         body.dark #roleBadge.admin  { background:#0a2a1a; color:#4ade80; }
+        body.dark #shiftLegend { background:var(--dm-panel) !important; border-color:var(--dm-border) !important; }
 
         /* Dark mode toggle button */
         #darkModeBtn { position:fixed; top:10px; right:120px; z-index:500; padding:5px 10px;
@@ -220,6 +217,45 @@
         .month-ready-badge { display:inline-block; background:#27ae60; color:white;
             font-size:9px; font-weight:bold; padding:1px 5px; border-radius:10px;
             margin-left:4px; vertical-align:middle; }
+
+        /* ── Print Layout ── */
+        @media print {
+            body { background:white !important; margin:0; font-size:11px; }
+            .no-print, #lockBtn, #darkModeBtn, #legendBtn, #jumpTodayBtn,
+            .panel, #statsPanel, #selectionBar, #monthReadyBanner,
+            button.btn-half-l, button.btn-half-r, button.btn-full { display:none !important; }
+            .table-wrapper { max-height:none; overflow:visible; border:none; }
+            table { page-break-inside:auto; }
+            tr { page-break-inside:avoid; }
+            th, td { font-size:10px !important; padding:3px 4px !important; }
+            h1::after { content:" — " attr(data-month); }
+        }
+
+        /* ── Shift Legend Panel ── */
+        #shiftLegend { display:none; position:fixed; bottom:60px; right:14px; z-index:400;
+            background:white; border:1px solid #ccc; border-radius:8px;
+            box-shadow:0 4px 12px rgba(0,0,0,0.2); padding:10px 12px;
+            font-size:11px; min-width:150px; }
+        #shiftLegend.visible { display:block; }
+        #shiftLegend h4 { margin:0 0 7px; font-size:12px; color:#333; }
+        .leg-item { display:flex; align-items:center; gap:6px; margin-bottom:4px; }
+        .leg-swatch { width:14px; height:14px; border-radius:3px; border:1px solid rgba(0,0,0,0.15); flex-shrink:0; }
+        #legendBtn { position:fixed; bottom:14px; right:14px; z-index:401; padding:7px 13px;
+            background:#34495e; color:white; border:none; border-radius:20px; cursor:pointer;
+            font-size:13px; box-shadow:0 2px 6px rgba(0,0,0,0.3); font-weight:bold; }
+        #legendBtn:hover { background:#2c3e50; }
+        @media (max-width:768px) { #legendBtn, #shiftLegend { display:none !important; } }
+
+        /* ── Worker Filter ── */
+        #workerFilter { padding:5px 9px; border:1px solid #ccc; border-radius:16px;
+            font-size:12px; width:140px; outline:none; }
+        #workerFilter:focus { border-color:#0056b3; }
+        .worker-col-hidden { display:none !important; }
+
+        /* ── Jump to Today ── */
+        #jumpTodayBtn { padding:5px 10px; background:#e74c3c; color:white; border:none;
+            border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold; }
+        #jumpTodayBtn:hover { background:#c0392b; }
         </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
@@ -230,12 +266,12 @@
 <!-- Init error bar — hidden unless onload crashes -->
 <div id="initErrorBar" style="display:none; background:#c0392b; color:white; padding:10px 16px; font-size:13px; font-weight:bold; position:fixed; top:0; left:0; right:0; z-index:9999; cursor:pointer;" onclick="this.style.display='none'">❌ Loading error — click to dismiss</div>
 
-<h1 id="pageTitle" class="no-print" style="display:inline-block; margin-right:16px;">Shift Planner V1</h1>
+<h1 id="pageTitle" class="no-print" style="display:inline-block; margin-right:16px;" data-month="">Shift Planner V2</h1>
 
 <!-- ═══ MOBILE VIEW ═══ -->
 <div id="mobileView">
     <div class="mob-header">
-        <h2>📅 Shift Planner V1</h2>
+        <h2>📅 Shift Planner V2</h2>
         <p id="mobMonthLabel">Loading...</p>
     </div>
     <div class="mob-month-nav">
@@ -1288,8 +1324,8 @@ function pushUndo() {
 }
 
 function updateUndoButtons() {
-    const uBtn = document.getElementById('undoBtn');
-    const rBtn = document.getElementById('redoBtn');
+    const uBtn = $('undoBtn');
+    const rBtn = $('redoBtn');
     if (uBtn) uBtn.disabled = undoStack.length === 0;
     if (rBtn) rBtn.disabled = redoStack.length === 0;
 }
@@ -1423,6 +1459,49 @@ function getHolidayName(dIndex) {
 // ─────────────────────────────────────────────────────────
 //  Init
 // ─────────────────────────────────────────────────────────
+// ─── Helpers (shorthand + utilities) ───────────────────────
+const $ = id => document.getElementById(id);
+const $$ = sel => document.querySelectorAll(sel);
+const show = id => $(id) && ($(id).style.display = 'block');
+const hide = id => $(id) && ($(id).style.display = 'none');
+const setOpacity = (ids, on) => ids.forEach(id => { const e=$(id); if(e) e.style.opacity = on?'1':'0.35'; });
+
+// ─── Shift Legend ──────────────────────────────────────────
+function toggleLegend() {
+    const p = $('shiftLegend');
+    if (p) p.classList.toggle('visible');
+}
+
+// ─── Worker Column Filter ──────────────────────────────────
+function filterWorkers(query) {
+    const q = query.trim().toLowerCase();
+    const heads = $$('#tableHead th[data-w-idx]');
+    const status = $('filterStatus');
+    let hidden = 0;
+    heads.forEach(th => {
+        const name = (th.dataset.wName || '').toLowerCase();
+        const col = parseInt(th.dataset.wIdx);
+        const show = !q || name.includes(q);
+        th.classList.toggle('worker-col-hidden', !show);
+        $$(`#tableBody td[data-w="${col}"], #tableFoot td[data-wf="${col}"]`).forEach(td => {
+            td.classList.toggle('worker-col-hidden', !show);
+        });
+        if (!show) hidden++;
+    });
+    if (status) status.textContent = hidden ? `(${hidden} hidden)` : '';
+}
+
+// ─── Jump to Today ─────────────────────────────────────────
+function jumpToToday() {
+    const today = new Date();
+    if (today.getFullYear() !== currentYear || today.getMonth()+1 !== currentMonth) {
+        alert('Today is not in the currently viewed month.'); return;
+    }
+    const d = today.getDate() - 1;
+    const row = document.querySelector(`tr[data-day="${d}"]`);
+    if (row) row.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
 window.onload = () => { try {
     allMonthsData = JSON.parse(localStorage.getItem('shiftPlannerAllMonthsV23')) || {};
     loadWorkerRoster();
@@ -1470,9 +1549,9 @@ window.onload = () => { try {
         localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
     }
 
-    if (!document.getElementById('monthPicker').value) {
+    if (!$('monthPicker').value) {
         const t = new Date();
-        document.getElementById('monthPicker').value =
+        $('monthPicker').value =
             `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}`;
     }
 
@@ -1500,10 +1579,10 @@ window.onload = () => { try {
 
     populateYearDropdown();
     const t = new Date();
-    const initKey = document.getElementById('monthPicker').value ||
+    const initKey = $('monthPicker').value ||
         `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}`;
     syncDropdownsToKey(initKey);
-    document.getElementById('monthPicker').value = initKey;
+    $('monthPicker').value = initKey;
     changeMonth(true);
     if (typeof initMobileView === 'function') initMobileView();
     if (currentLang === 'de') applyLang();
@@ -1523,18 +1602,12 @@ window.onload = () => { try {
     // Apply initial dim state for toggles (state is set by loadMonthData, but DOM
     // opacity needs one final pass after the page is fully rendered)
     requestAnimationFrame(() => {
-        ['wd13wrap','we13wrap'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.style.opacity = use13H ? '1' : '0.35';
-        });
-        ['wd6wrap','we6wrap'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.style.opacity = use6H ? '1' : '0.35';
-        });
+        setOpacity(['wd13wrap','we13wrap'], use13H);
+        setOpacity(['wd6wrap','we6wrap'], use6H);
     });
 } catch(e) {
     console.error('ShiftPlanner init error:', e);
-    const bar = document.getElementById('initErrorBar');
+    const bar = $('initErrorBar');
     if (bar) { bar.style.display='block'; bar.textContent='❌ Init error: '+e.message+' (line '+e.lineNumber+') — try clearing cache below or pressing F12 for details.'; }
 }
 };
@@ -1591,26 +1664,20 @@ function loadMonthData(monthKey) {
         dailyTargets = saved.dailyTargets || [];
         if (dailyTargets.length !== daysInMonth) initTargets();
 
-        if (saved.maxVac    !== undefined) document.getElementById('maxVacation').value    = saved.maxVac;
-        if (saved.maxConsec !== undefined) document.getElementById('maxConsecutive').value  = saved.maxConsec;
-        if (saved.minStaff  !== undefined) document.getElementById('minStaff').value        = saved.minStaff;
+        if (saved.maxVac    !== undefined) $('maxVacation').value    = saved.maxVac;
+        if (saved.maxConsec !== undefined) $('maxConsecutive').value  = saved.maxConsec;
+        if (saved.minStaff  !== undefined) $('minStaff').value        = saved.minStaff;
         if (saved.use13H !== undefined) {
             use13H = saved.use13H;
-            const chk = document.getElementById('toggle13H');
+            const chk = $('toggle13H');
             if (chk) chk.checked = use13H;
-            ['wd13wrap','we13wrap'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.opacity = use13H ? '1' : '0.35';
-            });
+            setOpacity(['wd13wrap','we13wrap'], use13H);
         }
         if (saved.use6H !== undefined) {
             use6H = saved.use6H;
-            const chk6 = document.getElementById('toggle6H');
+            const chk6 = $('toggle6H');
             if (chk6) chk6.checked = use6H;
-            ['wd6wrap','we6wrap'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.opacity = use6H ? '1' : '0.35';
-            });
+            setOpacity(['wd6wrap','we6wrap'], use6H);
         }
         if (saved.currentLang) {
             currentLang = saved.currentLang;
@@ -1632,8 +1699,8 @@ function loadMonthData(monthKey) {
         initTargets();
         // New month with no saved data — apply defaults
         use13H = false; use6H = false;
-        const chk13 = document.getElementById('toggle13H');
-        const chk6  = document.getElementById('toggle6H');
+        const chk13 = $('toggle13H');
+        const chk6  = $('toggle6H');
         if (chk13) chk13.checked = false;
         if (chk6)  chk6.checked  = false;
         ['wd13wrap','we13wrap'].forEach(id => {
@@ -1670,22 +1737,16 @@ function loadTestWorkers() {
 }
 
 function toggle13HShift() {
-    if (!requireAdmin("Toggle 13H")) { const chk=document.getElementById("toggle13H"); if(chk) chk.checked=use13H; return; }
-    use13H = document.getElementById('toggle13H').checked;
-    ['wd13wrap','we13wrap'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.opacity = use13H ? '1' : '0.35';
-    });
+    if (!requireAdmin("Toggle 13H")) { const chk=$("toggle13H"); if(chk) chk.checked=use13H; return; }
+    use13H = $('toggle13H').checked;
+    setOpacity(['wd13wrap','we13wrap'], use13H);
     saveData(); renderTable();
 }
 
 function toggle6HShift() {
-    if (!requireAdmin("Toggle 6H")) { const chk=document.getElementById("toggle6H"); if(chk) chk.checked=use6H; return; }
-    use6H = document.getElementById('toggle6H').checked;
-    ['wd6wrap','we6wrap'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.opacity = use6H ? '1' : '0.35';
-    });
+    if (!requireAdmin("Toggle 6H")) { const chk=$("toggle6H"); if(chk) chk.checked=use6H; return; }
+    use6H = $('toggle6H').checked;
+    setOpacity(['wd6wrap','we6wrap'], use6H);
     saveData(); renderTable();
 }
 
@@ -1702,9 +1763,9 @@ function saveMasterTargets() {
 }
 
 function saveData() {
-    const maxVac    = parseInt(document.getElementById('maxVacation').value)    || 0;
-    const maxConsec = parseInt(document.getElementById('maxConsecutive').value) || 5;
-    const minStaff  = parseInt(document.getElementById('minStaff').value)       || 0;
+    const maxVac    = parseInt($('maxVacation').value)    || 0;
+    const maxConsec = parseInt($('maxConsecutive').value) || 5;
+    const minStaff  = parseInt($('minStaff').value)       || 0;
     saveWorkerRoster();
     allMonthsData[currentMonthKey] = {
         workers, holidays, lssDays, dailyComments, dailyTargets,
@@ -1718,9 +1779,9 @@ function saveData() {
 }
 
 function populateYearDropdown(centerYear = null) {
-    const sel = document.getElementById('monthPickerYear');
+    const sel = $('monthPickerYear');
     if (!sel) return;
-    const selectedYear = parseInt(centerYear || sel.value || document.getElementById('monthPicker')?.value?.split('-')[0] || new Date().getFullYear(), 10);
+    const selectedYear = parseInt(centerYear || sel.value || $('monthPicker')?.value?.split('-')[0] || new Date().getFullYear(), 10);
     const years = new Set();
     for (let y = selectedYear - 10; y <= selectedYear + 10; y++) years.add(y);
     [...sel.options].forEach(o => { const v = parseInt(o.value,10); if (!isNaN(v)) years.add(v); });
@@ -1738,8 +1799,8 @@ function populateYearDropdown(centerYear = null) {
 function syncDropdownsToKey(key) {
     if (!key) return;
     const [y, m] = key.split('-').map(Number);
-    const mSel = document.getElementById('monthPickerMonth');
-    const ySel = document.getElementById('monthPickerYear');
+    const mSel = $('monthPickerMonth');
+    const ySel = $('monthPickerYear');
     if (mSel) mSel.value = m;
     // Ensure year is in dropdown
     if (ySel) {
@@ -1751,25 +1812,26 @@ function syncDropdownsToKey(key) {
         }
         ySel.value = y;
     }
-    document.getElementById('monthPicker').value = key;
+    $('monthPicker').value = key;
 }
 
 function changeMonthFromDropdowns() {
-    const m = document.getElementById('monthPickerMonth').value;
-    const y = document.getElementById('monthPickerYear').value;
+    const m = $('monthPickerMonth').value;
+    const y = $('monthPickerYear').value;
     if (!m || !y) return;
     const key = `${y}-${String(m).padStart(2,'0')}`;
-    document.getElementById('monthPicker').value = key;
+    $('monthPicker').value = key;
     changeMonth();
 }
 
 function changeMonth(isInit=false) {
     if (!isInit && workers.length>0) saveData();
-    currentMonthKey = document.getElementById('monthPicker').value;
+    currentMonthKey = $('monthPicker').value;
     if (!currentMonthKey) return;
     syncDropdownsToKey(currentMonthKey);
     [currentYear, currentMonth] = currentMonthKey.split('-').map(Number);
     daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+    const ptitle = $('pageTitle'); if (ptitle) ptitle.dataset.month = currentMonthKey;
     loadMonthData(currentMonthKey);
     saveData();
     renderTable();
@@ -1788,7 +1850,7 @@ let darkMode = false;
 function applyDarkMode(on) {
     darkMode = on;
     document.body.classList.toggle('dark', on);
-    const btn = document.getElementById('darkModeBtn');
+    const btn = $('darkModeBtn');
     if (btn) btn.textContent = on ? '☀️' : '🌙';
     try { localStorage.setItem('shiftPlannerDarkMode', on ? '1' : '0'); } catch(e) {}
 }
@@ -1808,7 +1870,7 @@ function loadDarkMode() {
 //  Push Notifications
 // ─────────────────────────────────────────────────────────
 function updateNotifBtn() {
-    const btn = document.getElementById('btnNotifPerm');
+    const btn = $('btnNotifPerm');
     if (!btn) return;
     if (!('Notification' in window)) {
         btn.textContent = '🔔 Notifications not supported';
@@ -1862,8 +1924,8 @@ function notifyNewVacationRequest(workerName, dayLabel, shiftType) {
 function updateMonthReadyUI() {
     const data     = allMonthsData[currentMonthKey];
     const isReady  = data && data.monthReady;
-    const banner   = document.getElementById('monthReadyBanner');
-    const btn      = document.getElementById('btnMonthReady');
+    const banner   = $('monthReadyBanner');
+    const btn      = $('btnMonthReady');
     if (banner) banner.classList.toggle('visible', !!isReady);
     if (btn) {
         btn.textContent  = isReady ? '🔄 Unmark Month as Ready' : '✅ Mark Month as Ready';
@@ -1965,53 +2027,53 @@ function updateDailyTarget(dIndex, type, value) {
 //  Workers — CRUD
 // ─────────────────────────────────────────────────────────
 function toggle22hOptions() {
-    const is22 = document.getElementById('workerContract').value === '22';
-    document.getElementById('row22h').style.display = is22 ? 'block' : 'none';
+    const is22 = $('workerContract').value === '22';
+    $('row22h').style.display = is22 ? 'block' : 'none';
 }
 
 function toggleImmoOptions() {
-    const isFixed = document.getElementById('workerImmo').value === 'Fixed';
-    document.getElementById('rowImmo').style.display = isFixed ? 'block' : 'none';
+    const isFixed = $('workerImmo').value === 'Fixed';
+    $('rowImmo').style.display = isFixed ? 'block' : 'none';
     toggleImmoRatio();
 }
 
 function toggleImmoRatio() {
-    const isMixed = document.getElementById('workerImmoPref').value === 'Mixed';
-    document.getElementById('rowImmoRatio').style.display = isMixed ? 'block' : 'none';
+    const isMixed = $('workerImmoPref').value === 'Mixed';
+    $('rowImmoRatio').style.display = isMixed ? 'block' : 'none';
 }
 
 function updateImmoRatioLabel() {
-    const pct = document.getElementById('workerImmoRatio').value;
-    document.getElementById('immoRatioLabel').textContent = `${pct}% ImE`;
+    const pct = $('workerImmoRatio').value;
+    $('immoRatioLabel').textContent = `${pct}% ImE`;
     document.querySelector('#rowImmoRatio small').textContent = `Remaining ${100 - pct}% will be ImL`;
 }
 
 function addWorkerFromForm() {
     if (!requireAdmin("Add Worker")) return;
-    const name = document.getElementById('workerName').value.toUpperCase();
+    const name = $('workerName').value.toUpperCase();
     if (!name) return alert('Please enter a worker name.');
     const fixedOff = [];
     document.querySelectorAll('#fixedOffCheckboxes input:checked').forEach(cb => fixedOff.push(parseInt(cb.value)));
-    const contract = document.getElementById('workerContract').value;
-    const immo     = document.getElementById('workerImmo').value;
+    const contract = $('workerContract').value;
+    const immo     = $('workerImmo').value;
     const fixed6HDay = contract === '22'
-        ? parseInt(document.getElementById('worker6HDay').value)
+        ? parseInt($('worker6HDay').value)
         : null;
     const immoShiftPref = immo === 'Fixed'
-        ? document.getElementById('workerImmoPref').value
+        ? $('workerImmoPref').value
         : null;
     const immoEarlyPct = (immo === 'Fixed' && immoShiftPref === 'Mixed')
-        ? parseInt(document.getElementById('workerImmoRatio').value)
+        ? parseInt($('workerImmoRatio').value)
         : null;
-    const sumMode = (document.getElementById('workerSummerMode') || {value:'none'}).value;
-    const sumWeek = sumMode === 'var2' ? parseInt((document.getElementById('workerSummerWeek') || {value:'0'}).value) : 0;
+    const sumMode = ($('workerSummerMode') || {value:'none'}).value;
+    const sumWeek = sumMode === 'var2' ? parseInt(($('workerSummerWeek') || {value:'0'}).value) : 0;
     const sumMonths = getSummerMonthsFromCheckboxes('wSum');
 
     workers.push({
         name,
-        system:   document.getElementById('workerSystem').value,
+        system:   $('workerSystem').value,
         contract,
-        pref:     document.getElementById('workerPref').value,
+        pref:     $('workerPref').value,
         immo,
         immoShiftPref,
         immoEarlyPct,
@@ -2023,7 +2085,7 @@ function addWorkerFromForm() {
         shifts:   Array(daysInMonth).fill('-'),
         requests: Array(daysInMonth).fill(false)
     });
-    document.getElementById('workerName').value = '';
+    $('workerName').value = '';
     saveData(); renderTable();
 }
 
@@ -2052,15 +2114,15 @@ function openEditModal(index) {
     editingWorkerIndex = index;
     const w = workers[index];
 
-    document.getElementById('editName').value         = w.name;
-    document.getElementById('editSystem').value       = w.system;
-    document.getElementById('editContract').value     = w.contract;
-    document.getElementById('editPref').value         = w.pref;
-    document.getElementById('editImmo').value         = w.immo;
-    document.getElementById('editImmoPref').value     = w.immoShiftPref  || 'Mixed';
-    document.getElementById('editImmoRatio').value    = w.immoEarlyPct   != null ? w.immoEarlyPct : 60;
-    document.getElementById('editImmoRatioLabel').textContent = (w.immoEarlyPct != null ? w.immoEarlyPct : 60) + '% ImE';
-    document.getElementById('edit6HDay').value        = w.fixed6HDay     != null ? w.fixed6HDay : 1;
+    $('editName').value         = w.name;
+    $('editSystem').value       = w.system;
+    $('editContract').value     = w.contract;
+    $('editPref').value         = w.pref;
+    $('editImmo').value         = w.immo;
+    $('editImmoPref').value     = w.immoShiftPref  || 'Mixed';
+    $('editImmoRatio').value    = w.immoEarlyPct   != null ? w.immoEarlyPct : 60;
+    $('editImmoRatioLabel').textContent = (w.immoEarlyPct != null ? w.immoEarlyPct : 60) + '% ImE';
+    $('edit6HDay').value        = w.fixed6HDay     != null ? w.fixed6HDay : 1;
 
     // Fixed days off checkboxes
     document.querySelectorAll('#editFixedOffCheckboxes input').forEach(cb => {
@@ -2071,31 +2133,31 @@ function openEditModal(index) {
     editToggle22h();
 
     // Summer schedule
-    const sm = document.getElementById('editSummerMode');
+    const sm = $('editSummerMode');
     if (sm) {
         sm.value = w.summerMode || 'none';
         editToggleSummer();
     }
-    const sw = document.getElementById('editSummerWeek');
+    const sw = $('editSummerWeek');
     if (sw) sw.value = w.summerWeekOffset != null ? w.summerWeekOffset : 0;
     setSummerMonthCheckboxes('editSum', w.summerMonths || [5,6,7,8]);
 
-    document.getElementById('editWorkerModal').style.display = 'block';
+    $('editWorkerModal').style.display = 'block';
 }
 
 function closeEditModal() {
     editingWorkerIndex = null;
-    document.getElementById('editWorkerModal').style.display = 'none';
+    $('editWorkerModal').style.display = 'none';
 }
 
 function editToggleSummer() {
-    const mode = document.getElementById('editSummerMode').value;
-    document.getElementById('editSummerWeekRow').style.display = mode === 'var2' ? 'block' : 'none';
+    const mode = $('editSummerMode').value;
+    $('editSummerWeekRow').style.display = mode === 'var2' ? 'block' : 'none';
 }
 
 function toggleWorkerSummer() {
-    const mode = document.getElementById('workerSummerMode').value;
-    const row = document.getElementById('workerSummerWeekRow');
+    const mode = $('workerSummerMode').value;
+    const row = $('workerSummerWeekRow');
     if (row) row.style.display = mode === 'var2' ? 'block' : 'none';
 }
 
@@ -2118,41 +2180,41 @@ function setSummerMonthCheckboxes(prefix, months) {
 }
 
 function editToggle22h() {
-    const is22 = document.getElementById('editContract').value === '22';
-    document.getElementById('editRow22h').style.display = is22 ? 'block' : 'none';
+    const is22 = $('editContract').value === '22';
+    $('editRow22h').style.display = is22 ? 'block' : 'none';
 }
 
 function editToggleImmo() {
-    const isFixed = document.getElementById('editImmo').value === 'Fixed';
-    document.getElementById('editRowImmo').style.display = isFixed ? 'block' : 'none';
+    const isFixed = $('editImmo').value === 'Fixed';
+    $('editRowImmo').style.display = isFixed ? 'block' : 'none';
     editToggleImmoRatio();
 }
 
 function editToggleImmoRatio() {
-    const isMixed = document.getElementById('editImmoPref').value === 'Mixed';
-    document.getElementById('editRowImmoRatio').style.display = isMixed ? 'block' : 'none';
+    const isMixed = $('editImmoPref').value === 'Mixed';
+    $('editRowImmoRatio').style.display = isMixed ? 'block' : 'none';
 }
 
 function saveEditWorker() {
     if (editingWorkerIndex === null) return;
     const w       = workers[editingWorkerIndex];
-    const contract = document.getElementById('editContract').value;
-    const immo     = document.getElementById('editImmo').value;
-    const immoPref = immo === 'Fixed' ? document.getElementById('editImmoPref').value : null;
+    const contract = $('editContract').value;
+    const immo     = $('editImmo').value;
+    const immoPref = immo === 'Fixed' ? $('editImmoPref').value : null;
     const immoRatio = (immo === 'Fixed' && immoPref === 'Mixed')
-        ? parseInt(document.getElementById('editImmoRatio').value)
+        ? parseInt($('editImmoRatio').value)
         : null;
     const fixed6HDay = contract === '22'
-        ? parseInt(document.getElementById('edit6HDay').value)
+        ? parseInt($('edit6HDay').value)
         : null;
     const fixedOff = [];
     document.querySelectorAll('#editFixedOffCheckboxes input:checked').forEach(cb => fixedOff.push(parseInt(cb.value)));
 
     // Apply all changes — shifts are preserved
-    w.name          = document.getElementById('editName').value.toUpperCase();
-    w.system        = document.getElementById('editSystem').value;
+    w.name          = $('editName').value.toUpperCase();
+    w.system        = $('editSystem').value;
     w.contract      = contract;
-    w.pref          = document.getElementById('editPref').value;
+    w.pref          = $('editPref').value;
     w.immo          = immo;
     w.immoShiftPref = immoPref;
     w.immoEarlyPct  = immoRatio;
@@ -2160,9 +2222,9 @@ function saveEditWorker() {
     w.fixedOff      = fixedOff;
 
     // Summer schedule
-    const sumMode = document.getElementById('editSummerMode').value;
+    const sumMode = $('editSummerMode').value;
     w.summerMode       = sumMode;
-    w.summerWeekOffset = sumMode === 'var2' ? parseInt(document.getElementById('editSummerWeek').value) : 0;
+    w.summerWeekOffset = sumMode === 'var2' ? parseInt($('editSummerWeek').value) : 0;
     w.summerMonths     = getSummerMonthsFromCheckboxes('editSum');
 
     closeEditModal();
@@ -2182,7 +2244,7 @@ function updateShift(wIndex, dIndex, value) {
     } else if (isPendingVacationShift(oldValue) && isVacationBase(stripPendingVacation(value))) { finalValue = stripPendingVacation(value); }
     pushUndo(); workers[wIndex].shifts[dIndex] = finalValue; saveData();
     renderTable();
-    if (document.getElementById('statsToggle') && document.getElementById('statsToggle').checked) renderStats();
+    if ($('statsToggle') && $('statsToggle').checked) renderStats();
 
     // ── Notifications ──
     const wasVacRequest = isPendingVacationShift(finalValue);
@@ -2248,7 +2310,7 @@ function toggleLSS(dIndex, el) {
     const isWE     = (dow===0||dow===6);
     const isHol    = isHoliday(dIndex);
     const dayLabel = `${dayNames[dow]} ${dIndex+1}.${currentMonth}.${currentYear}`;
-    document.getElementById('lssModalDayLabel').textContent =
+    $('lssModalDayLabel').textContent =
         `Day: ${dayLabel}${isWE?' (Weekend)':''}${isHol?' (Holiday)':''}`;
 
     // Build worker checkbox list
@@ -2268,8 +2330,8 @@ function toggleLSS(dIndex, el) {
             <input type="checkbox" id="lssChk_${i}" ${checked}> ${w.name}${badge}
         </label>`;
     });
-    document.getElementById('lssWorkerList').innerHTML = html || '<em style="color:#aaa;">No workers added yet.</em>';
-    document.getElementById('lssModal').style.display = 'block';
+    $('lssWorkerList').innerHTML = html || '<em style="color:#aaa;">No workers added yet.</em>';
+    $('lssModal').style.display = 'block';
 }
 
 function applyLSSModal() {
@@ -2278,7 +2340,7 @@ function applyLSSModal() {
     if (d === null) return;
     pushUndo();
     workers.forEach((w, i) => {
-        const chk = document.getElementById(`lssChk_${i}`);
+        const chk = $(`lssChk_${i}`);
         if (!chk) return;
         if (chk.checked) {
             w.shifts[d] = 'LSS';
@@ -2307,7 +2369,7 @@ function removeLSSModal() {
 }
 
 function closeLSSModal() {
-    document.getElementById('lssModal').style.display = 'none';
+    $('lssModal').style.display = 'none';
     lssModalDayIndex = null;
 }
 
@@ -2316,25 +2378,32 @@ function closeLSSModal() {
 // ─────────────────────────────────────────────────────────
 function openCustomHoursModal(wIndex, dIndex) {
     if (!requireEdit("Custom Hours")) return;
-    document.getElementById('cusWorkerIdx').value = wIndex; document.getElementById('cusDayIdx').value = dIndex;
+    $('cusWorkerIdx').value = wIndex; $('cusDayIdx').value = dIndex;
     const cur = workers[wIndex].shifts[dIndex]; const m = String(cur || '').match(/CUS-(\d{2}:\d{2})-(\d{2}:\d{2})(?:-(IR2|IR3|IR4))?$/);
-    document.getElementById('cusStartTime').value = m ? m[1] : '07:00'; document.getElementById('cusEndTime').value = m ? m[2] : '15:30'; const roomSel = document.getElementById('cusRoom'); if (roomSel) roomSel.value = m && m[3] ? m[3] : ''; updateCusOverlapInfo(); document.getElementById('customHoursModal').style.display = 'block';
+    $('cusStartTime').value = m ? m[1] : '07:00'; $('cusEndTime').value = m ? m[2] : '15:30'; const roomSel = $('cusRoom'); if (roomSel) roomSel.value = m && m[3] ? m[3] : ''; updateCusOverlapInfo(); $('customHoursModal').style.display = 'block';
 }
 
 function updateCusOverlapInfo() {
-    const s = document.getElementById('cusStartTime').value; const e = document.getElementById('cusEndTime').value; const room = (document.getElementById('cusRoom') || { value:'' }).value; if (!s || !e) return;
+    const s = $('cusStartTime').value; const e = $('cusEndTime').value; const room = ($('cusRoom') || { value:'' }).value; if (!s || !e) return;
     const fakeShift = `CUS-${s}-${e}${room ? '-' + room : ''}`; const ov = cusOverlap(fakeShift); const shM = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]); const ehM = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]); const hrs = ((ehM - shM) / 60).toFixed(1);
-    let info = `⏱ Duration: <strong>${hrs}h</strong>${room ? ` · <strong>${room}</strong>` : ''} · `; if (ov.star) info += `⭐ <strong>Spans both Early & Late</strong> — counted in <em>both</em> shift buckets`; else if (ov.early) info += `🌅 Counts as <strong>Early shift</strong>`; else info += `🌆 Counts as <strong>Late shift</strong>`; if (parseFloat(hrs) <= 0) info = `<span style="color:red;">⚠ End time must be after start time</span>`; document.getElementById('cusOverlapInfo').innerHTML = info;
+    let info = `⏱ Duration: <strong>${hrs}h</strong>${room ? ` · <strong>${room}</strong>` : ''} · `; if (ov.star) info += `⭐ <strong>Spans both Early & Late</strong> — counted in <em>both</em> shift buckets`; else if (ov.early) info += `🌅 Counts as <strong>Early shift</strong>`; else info += `🌆 Counts as <strong>Late shift</strong>`; if (parseFloat(hrs) <= 0) info = `<span style="color:red;">⚠ End time must be after start time</span>`; $('cusOverlapInfo').innerHTML = info;
 }
 
 function applyCustomHours() {
-    const wIndex = parseInt(document.getElementById('cusWorkerIdx').value); const dIndex = parseInt(document.getElementById('cusDayIdx').value); const s = document.getElementById('cusStartTime').value; const e = document.getElementById('cusEndTime').value; const room = (document.getElementById('cusRoom') || { value:'' }).value;
-    const shM = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]); const ehM = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]); if (ehM <= shM) { alert('End time must be after start time!'); return; }
-    pushUndo(); workers[wIndex].shifts[dIndex] = `CUS-${s}-${e}${room ? '-' + room : ''}`; closeCustomHoursModal(); saveData(); renderTable();
+    const wIndex = parseInt($('cusWorkerIdx').value);
+    const dIndex = parseInt($('cusDayIdx').value);
+    const s = $('cusStartTime').value, e = $('cusEndTime').value;
+    const room = ($('cusRoom') || { value:'' }).value;
+    const shM = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]);
+    const ehM = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]);
+    if (ehM <= shM) { alert('End time must be after start time!'); return; }
+    pushUndo();
+    workers[wIndex].shifts[dIndex] = `CUS-${s}-${e}${room ? '-' + room : ''}`;
+    closeCustomHoursModal(); saveData(); renderTable();
 }
 
 function closeCustomHoursModal() {
-    document.getElementById('customHoursModal').style.display = 'none';
+    $('customHoursModal').style.display = 'none';
 }
 
 // ─────────────────────────────────────────────────────────
@@ -2344,8 +2413,8 @@ function toggleSelectMode() {
     if (!selectMode && !requireEdit("Select Mode")) return;
     selectMode = !selectMode;
     selectedCells.clear();
-    const btn     = document.getElementById('selectModeBtn');
-    const bar     = document.getElementById('selectionBar');
+    const btn     = $('selectModeBtn');
+    const bar     = $('selectionBar');
     const wrapper = document.querySelector('.table-wrapper');
     if (selectMode) {
         btn.classList.add('active');
@@ -2359,7 +2428,7 @@ function toggleSelectMode() {
         wrapper.classList.remove('select-mode-active');
         document.querySelectorAll('td.selected-cell').forEach(td => td.classList.remove('selected-cell'));
     }
-    document.getElementById('selectionCount').textContent = 0;
+    $('selectionCount').textContent = 0;
 }
 
 function handleCellClick(e, wIndex, dIndex) {
@@ -2375,35 +2444,35 @@ function handleCellClick(e, wIndex, dIndex) {
         selectedCells.add(key);
         td.classList.add('selected-cell');
     }
-    document.getElementById('selectionCount').textContent = selectedCells.size;
+    $('selectionCount').textContent = selectedCells.size;
 }
 
 function applyBulkShift() {
     if (!requireEdit("Bulk Fill")) return;
     if (selectedCells.size===0) return alert('No cells selected!');
     pushUndo();
-    const shift = document.getElementById('bulkShiftSelect').value;
+    const shift = $('bulkShiftSelect').value;
     selectedCells.forEach(key => {
         const [w,d] = key.split('_').map(Number);
         workers[w].shifts[d] = shift;
     });
     selectedCells.clear();
-    document.getElementById('selectionCount').textContent = 0;
+    $('selectionCount').textContent = 0;
     saveData(); renderTable();
 }
 
 function clearSelection() {
     selectedCells.clear();
     document.querySelectorAll('td.selected-cell').forEach(td => td.classList.remove('selected-cell'));
-    document.getElementById('selectionCount').textContent = 0;
+    $('selectionCount').textContent = 0;
 }
 
 // ─────────────────────────────────────────────────────────
 //  Stats Panel
 // ─────────────────────────────────────────────────────────
 function toggleStatsPanel() {
-    const panel = document.getElementById('statsPanel');
-    if (document.getElementById('statsToggle').checked) {
+    const panel = $('statsPanel');
+    if ($('statsToggle').checked) {
         panel.classList.add('visible');
         renderStats();
     } else {
@@ -2412,8 +2481,8 @@ function toggleStatsPanel() {
 }
 
 function renderStats() {
-    const maxConsec = parseInt(document.getElementById('maxConsecutive').value) || 5;
-    document.getElementById('statsMonthLabel').textContent =
+    const maxConsec = parseInt($('maxConsecutive').value) || 5;
+    $('statsMonthLabel').textContent =
         new Date(currentYear, currentMonth-1, 1).toLocaleString('default', { month:'long', year:'numeric' });
 
     const expectedMonthHrs = (hrs) => {
@@ -2458,7 +2527,7 @@ function renderStats() {
         </tr>`;
     });
 
-    document.getElementById('statsContent').innerHTML = `
+    $('statsContent').innerHTML = `
         <table style="width:100%; border-collapse:collapse; white-space:nowrap;">
             <thead><tr>
                 <th style="text-align:left;">Worker</th><th>Contract</th>
@@ -2553,13 +2622,13 @@ function renderTableFoot() {
         latesHTML += `<td style="font-size:13px; font-weight:bold; color:#c0392b; line-height:1.3;">${detail}</small></span></td>`;
     });
     latesHTML += `<td colspan="${trailingCols}"></td></tr>`;
-    document.getElementById('tableFoot').innerHTML = footHTML + latesHTML;
+    $('tableFoot').innerHTML = footHTML + latesHTML;
 }
 
 function renderTable() {
     if (!currentYear) return;
-    const maxVac    = parseInt(document.getElementById('maxVacation').value)    || 0;
-    const maxConsec = parseInt(document.getElementById('maxConsecutive').value) || 5;
+    const maxVac    = parseInt($('maxVacation').value)    || 0;
+    const maxConsec = parseInt($('maxConsecutive').value) || 5;
 
     // ── Header ──
     const hdrDate = currentLang==='de' ? 'Datum' : 'Date';
@@ -2586,7 +2655,7 @@ function renderTable() {
             const dayLabel = ['Su','Mo','Tu','We','Th','Fr','Sa'][w.fixed6HDay] || 'Mo';
             c22note = `<br><span style="color:#27ae60; font-size:10px;">[${dayLabel}→6H]</span>`;
         }
-        headHTML += `<th>${w.name}
+        headHTML += `<th data-w-idx="${i}" data-w-name="${w.name}">${w.name}
             <button class="btn-delete-worker no-print" onclick="openEditModal(${i})" title="Edit worker" style="color:#0056b3;">✏️</button>
             <button class="btn-delete-worker no-print" onclick="deleteWorker(${i})" title="Delete worker">✖</button>
             <br><small>${w.system} ${w.contract}h${immoLbl}${c22note}</small></th>`;
@@ -2611,12 +2680,12 @@ function renderTable() {
         <th style="min-width:60px;">DF</th>
         <th style="min-width:70px; color:#c0392b;">Krank</th>
         <th>💬 Daily Comments${cmtReady() ? ' <span title=\'Comment sync ON\' style=\'color:#27ae60; font-size:10px;\'>●</span>' : ' <span title=\'Comment sync not configured — see 🐙 GitHub Sync\' style=\'color:#aaa; font-size:10px;\'>○</span>'}</th></tr>`;
-    document.getElementById('tableHead').innerHTML = headHTML;
+    $('tableHead').innerHTML = headHTML;
 
     // ── Body ──
     let bodyHTML = '';
     const streaks  = Array(workers.length).fill(0);
-    const minStaff = parseInt(document.getElementById('minStaff').value) || 0;
+    const minStaff = parseInt($('minStaff').value) || 0;
 
     for (let d=0; d<daysInMonth; d++) {
         const dateObj  = new Date(currentYear, currentMonth-1, d+1);
@@ -2626,7 +2695,7 @@ function renderTable() {
         const isLSS    = lssDays.includes(d);
         const rowClass = isHol ? 'holiday-row' : (isWE ? 'weekend' : isLSS ? 'lss-row' : '');
 
-        bodyHTML += `<tr class="${rowClass}">__DATECELL_${d}__`;
+        bodyHTML += `<tr class="${rowClass}" data-day="${d}">__DATECELL_${d}__`;
 
         let c8E=0,c8M=0,c8L=0,c13H=0,c6H=0,cImE=0,cImL=0,vCount=0,sickCount=0,workingCount=0,cFB=0,cPF=0,cDF=0,cKrank=0;
         const sickNames=[], vacNames=[], fbNames=[], pfNames=[], dfNames=[], krankNames=[];
@@ -2723,7 +2792,7 @@ function renderTable() {
                 else if (isLSS) cellBg = '#e8f8e8';
             }
 
-            bodyHTML += `<td data-cell="${cellKey}" class="${selClass}" onclick="handleCellClick(event,${wIndex},${d})" style="background-color:${cellBg};">
+            bodyHTML += `<td data-cell="${cellKey}" data-w="${wIndex}" class="${selClass}" onclick="handleCellClick(event,${wIndex},${d})" style="background-color:${cellBg};">
                 <select class="shift-select ${currentRole==='viewer' && viewerCanEditCell(shift) ? "viewer-vac-select" : ""} ${consecClass}" data-w="${wIndex}" data-d="${d}"
                     style="background-color:${cellBg}; ${textCol}"
                     onchange="updateShift(${wIndex},${d},this.value)">
@@ -2821,16 +2890,18 @@ function renderTable() {
                     oninput="updateComment(${d},this.value)">
             </td></tr>`;
     }
-    document.getElementById('tableBody').innerHTML = bodyHTML;
+    $('tableBody').innerHTML = bodyHTML;
 
     // ── Footer: Weekly Hours ──
     const ftLabel = currentLang==='de' ? 'Ca. Wochenstunden:' : 'Approx. Weekly Hours:';
     const wkLabel = currentLang==='de' ? '(Wo1|Wo2|Wo3|Wo4|Wo5)' : '(Wk1|Wk2|Wk3|Wk4|Wk5)';
     renderTableFoot();
+    // Re-apply worker filter if active
+    const wf = $('workerFilter'); if (wf && wf.value) filterWorkers(wf.value);
 
 
     // Refresh stats if visible
-    if (document.getElementById('statsToggle').checked) renderStats();
+    if ($('statsToggle').checked) renderStats();
     // Refresh mobile view if visible
     if (window.innerWidth <= 768 && typeof renderMobileView === 'function') {
         populateMobWorkerSel();
@@ -3482,24 +3553,24 @@ function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
     }
 }
 function openMonthDiff() {
-    const sel = document.getElementById('diffWorkerSelect');
+    const sel = $('diffWorkerSelect');
     sel.innerHTML = '<option value="">-- Select Worker --</option>';
     workers.forEach((w,i) => sel.innerHTML += `<option value="${w.name}">${w.name}</option>`);
 
     // Default month A = previous month, B = current
     const prev = new Date(currentYear, currentMonth-2, 1);
-    document.getElementById('diffMonthA').value =
+    $('diffMonthA').value =
         `${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}`;
-    document.getElementById('diffMonthB').value = currentMonthKey;
+    $('diffMonthB').value = currentMonthKey;
 
-    document.getElementById('diffContent').innerHTML = '<p style="color:#888; font-size:12px;">Select a worker and two months, then click Compare.</p>';
-    document.getElementById('monthDiffModal').style.display = 'block';
+    $('diffContent').innerHTML = '<p style="color:#888; font-size:12px;">Select a worker and two months, then click Compare.</p>';
+    $('monthDiffModal').style.display = 'block';
 }
 
 function renderMonthDiff() {
-    const wName  = document.getElementById('diffWorkerSelect').value;
-    const keyA   = document.getElementById('diffMonthA').value;
-    const keyB   = document.getElementById('diffMonthB').value;
+    const wName  = $('diffWorkerSelect').value;
+    const keyA   = $('diffMonthA').value;
+    const keyB   = $('diffMonthB').value;
 
     if (!wName)       return alert('Please select a worker.');
     if (!keyA||!keyB) return alert('Please select both months.');
@@ -3559,7 +3630,7 @@ function renderMonthDiff() {
         </tr>`;
     }
 
-    document.getElementById('diffContent').innerHTML = `
+    $('diffContent').innerHTML = `
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
             <div style="background:#f8f9fa; padding:10px; border-radius:6px; border:2px solid #3498db;">
                 <strong style="color:#2980b9;">${monthLabel(keyA)}</strong><br>
@@ -3602,7 +3673,7 @@ function renderMonthDiff() {
 //  AI Analysis
 // ─────────────────────────────────────────────────────────
 function runAIAnalysis() {
-    const maxConsec = parseInt(document.getElementById('maxConsecutive').value) || 5;
+    const maxConsec = parseInt($('maxConsecutive').value) || 5;
     let report = '';
 
     const latesData = workers
@@ -3778,8 +3849,8 @@ function runAIAnalysis() {
         report += `<p style="color:green;">✔️ No obvious swaps needed — schedule looks balanced!</p>`;
     }
 
-    document.getElementById('aiReportContent').innerHTML = report;
-    document.getElementById('aiModal').style.display = 'block';
+    $('aiReportContent').innerHTML = report;
+    $('aiModal').style.display = 'block';
 }
 
 // ─────────────────────────────────────────────────────────
@@ -3887,16 +3958,16 @@ function buildPersonalICS(w) {
 }
 
 function openPersonalModal() {
-    const sel = document.getElementById('personalWorkerSelect');
+    const sel = $('personalWorkerSelect');
     sel.innerHTML = '<option value="">-- Select Worker --</option>';
     workers.forEach((w,i) => sel.innerHTML += `<option value="${i}">${w.name}</option>`);
-    document.getElementById('personalTextArea').value = '';
-    document.getElementById('personalModal').style.display = 'block';
+    $('personalTextArea').value = '';
+    $('personalModal').style.display = 'block';
 }
 
 function generatePersonalText() {
-    const wIndex = document.getElementById('personalWorkerSelect').value;
-    if (wIndex === '') { document.getElementById('personalTextArea').value = ''; return; }
+    const wIndex = $('personalWorkerSelect').value;
+    if (wIndex === '') { $('personalTextArea').value = ''; return; }
     const w = workers[wIndex];
     const monthName = new Date(currentYear, currentMonth-1, 1).toLocaleString('default', { month:'long' });
     let text = `📅 ${w.name} — ${monthName} ${currentYear}\n${'='.repeat(36)}\n`;
@@ -3910,18 +3981,18 @@ function generatePersonalText() {
         const holMark = isHoliday(d) ? ' 🏖' : '';
         text += `${String(d+1).padStart(2,'0')}. ${dayNames[dow]}: ${label}${timeStr}${holMark}\n`;
     }
-    document.getElementById('personalTextArea').value = text;
+    $('personalTextArea').value = text;
 }
 
 function copyPersonalText() {
-    const ta = document.getElementById('personalTextArea');
+    const ta = $('personalTextArea');
     if (!ta.value) { alert('Please select a worker first!'); return; }
     navigator.clipboard ? navigator.clipboard.writeText(ta.value) : (ta.select(), document.execCommand('copy'));
     alert('✅ Schedule copied to clipboard!');
 }
 
 function downloadPersonalICS() {
-    const wIndex = document.getElementById('personalWorkerSelect').value;
+    const wIndex = $('personalWorkerSelect').value;
     if (wIndex === '') { alert('Please select a worker first!'); return; }
     const w = workers[wIndex];
     const ics = buildPersonalICS(w);
@@ -3936,11 +4007,11 @@ function downloadPersonalICS() {
 }
 
 function emailPersonalSchedule() {
-    const wIndex = document.getElementById('personalWorkerSelect').value;
+    const wIndex = $('personalWorkerSelect').value;
     if (wIndex === '') { alert('Please select a worker first!'); return; }
     const w       = workers[wIndex];
-    const email   = document.getElementById('personalEmail').value.trim();
-    const ta      = document.getElementById('personalTextArea');
+    const email   = $('personalEmail').value.trim();
+    const ta      = $('personalTextArea');
     if (!ta.value) generatePersonalText();
     const monthName = new Date(currentYear, currentMonth-1, 1).toLocaleString('default', { month:'long', year:'numeric' });
     const subject = encodeURIComponent(`Shift Schedule — ${w.name} — ${monthName}`);
@@ -4119,7 +4190,7 @@ function buildAnalysisSheet(de) {
     const ORANGE = '#D35400'; const PURPLE = '#6C3483'; const GREY   = '#555555';
     const BG_H   = '#2C3E50'; const BG_SEC = '#EBF5FB'; const BG_OK  = '#EAFAF1';
     const BG_ERR = '#FDEDEC'; const BG_WRN = '#FEF9E7';
-    const maxConsec = parseInt(document.getElementById('maxConsecutive')?.value) || 5;
+    const maxConsec = parseInt($('maxConsecutive')?.value) || 5;
 
     function addRow(cells, bg = null, opts = {}) {
         cells.forEach((v, c) => {
@@ -4614,7 +4685,7 @@ async function downloadExcelWithFormulas() {
     // ── Legend sheet ──
     // Column A: notes. Column D onward: shift code list (used as dropdown source).
     const legendRows = [
-        [de?'Schichtplaner V1 – Export mit Formeln':'Shift Planner V1 – Formula Export'],
+        [de?'Schichtplaner V1 – Export mit Formeln':'Shift Planner V2 – Formula Export'],
         [monthTitle], [''],
         [de?'Hinweise':'Notes'],
         [de?'• Plan: Hauptblatt. Wenn Dienstcodes geändert werden, berechnen sich Summen automatisch neu.':'• Plan: Main sheet. Changing a shift code in any cell immediately recalculates all totals.'],
@@ -5289,7 +5360,7 @@ function downloadAsHTML() {
         }
     } catch(e) {}
     // Remove this seed script after it runs so it doesn't re-seed on edits
-    var s = document.getElementById('__seed__');
+    var s = $('__seed__');
     if (s) s.parentNode.removeChild(s);
 })();
 <\/script>`;
@@ -5381,7 +5452,7 @@ function copyColorfulExcel() {
 // ─────────────────────────────────────────────────────────
 const T = {
   en: {
-    pageTitle:      'Shift Planner V1',
+    pageTitle:      'Shift Planner V2',
     langBtn:        '🌐 Deutsch',
     months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
     p1title:        '1. Setup & Action',
@@ -5443,7 +5514,7 @@ const T = {
     helpContent:    getHelpContent('en'),
   },
   de: {
-    pageTitle:      'Dienstplaner V1',
+    pageTitle:      'Dienstplaner V2',
     langBtn:        '🌐 English',
     months: ['Jänner','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
     p1title:        '1. Einrichtung & Aktionen',
@@ -5645,7 +5716,7 @@ function getFieldGuide(lang) {
 }
 
 function updateFieldGuide() {
-    const box = document.getElementById('fieldGuideBox');
+    const box = $('fieldGuideBox');
     if (box) box.innerHTML = getFieldGuide(currentLang);
 }
 
@@ -5741,7 +5812,7 @@ function applyLang() {
     });
 
     // Translate month dropdown
-    const mSel = document.getElementById('monthPickerMonth');
+    const mSel = $('monthPickerMonth');
     if (mSel && t.months) {
         const curVal = mSel.value;
         mSel.innerHTML = t.months.map((name,i) =>
@@ -5766,8 +5837,8 @@ async function sha256(str) {
 
 function applyLockState() {
     const body    = document.body;
-    const lockBtn = document.getElementById('lockBtn');
-    const badge   = document.getElementById('roleBadge');
+    const lockBtn = $('lockBtn');
+    const badge   = $('roleBadge');
 
     // Remove all role classes first
     body.classList.remove('app-locked', 'app-editor', 'app-admin');
@@ -5792,9 +5863,9 @@ function applyLockState() {
 
 function switchLoginTab(tab) {
     loginTab = tab;
-    const edBtn = document.getElementById('tabEditor');
-    const adBtn = document.getElementById('tabAdmin');
-    const desc  = document.getElementById('loginTabDesc');
+    const edBtn = $('tabEditor');
+    const adBtn = $('tabAdmin');
+    const desc  = $('loginTabDesc');
     if (tab === 'editor') {
         edBtn.style.background = '#0969da'; edBtn.style.color = 'white'; edBtn.style.borderColor = '#0969da';
         adBtn.style.background = 'white';   adBtn.style.color = '#555';  adBtn.style.borderColor = '#ddd';
@@ -5821,41 +5892,41 @@ function toggleLock() {
         return;
     }
     // Show login modal
-    document.getElementById('unlockInput').value = '';
-    document.getElementById('unlockError').style.display = 'none';
+    $('unlockInput').value = '';
+    $('unlockError').style.display = 'none';
     switchLoginTab(editorHash ? 'editor' : 'admin');
-    document.getElementById('unlockModal').style.display = 'block';
-    setTimeout(() => document.getElementById('unlockInput').focus(), 100);
+    $('unlockModal').style.display = 'block';
+    setTimeout(() => $('unlockInput').focus(), 100);
 }
 
 async function attemptUnlock() {
-    const input = document.getElementById('unlockInput').value;
+    const input = $('unlockInput').value;
     const hash  = await sha256(input);
-    const errEl = document.getElementById('unlockError');
+    const errEl = $('unlockError');
 
     if (loginTab === 'admin' && adminHash && hash === adminHash) {
         currentRole = 'admin';
         pwHash = adminHash; // compat
         applyLockState();
-        document.getElementById('unlockModal').style.display = 'none';
-        document.getElementById('unlockInput').value = '';
+        $('unlockModal').style.display = 'none';
+        $('unlockInput').value = '';
         errEl.style.display = 'none';
     } else if (loginTab === 'editor' && editorHash && hash === editorHash) {
         currentRole = 'editor';
         applyLockState();
-        document.getElementById('unlockModal').style.display = 'none';
-        document.getElementById('unlockInput').value = '';
+        $('unlockModal').style.display = 'none';
+        $('unlockInput').value = '';
         errEl.style.display = 'none';
     } else if (loginTab === 'admin' && adminHash && hash === editorHash) {
         // Typed editor password in admin tab - redirect
         errEl.textContent = '❌ That is the Editor password. Switch to the Editor tab.';
         errEl.style.display = 'block';
-        document.getElementById('unlockInput').value = '';
+        $('unlockInput').value = '';
     } else {
         errEl.textContent = '❌ Incorrect password. Try again.';
         errEl.style.display = 'block';
-        document.getElementById('unlockInput').value = '';
-        document.getElementById('unlockInput').focus();
+        $('unlockInput').value = '';
+        $('unlockInput').focus();
     }
 }
 
@@ -5876,10 +5947,10 @@ function openSetPasswordModal() {
     ['pw_admin1','pw_admin2','pw_editor1','pw_editor2'].forEach(id => {
         const el = document.getElementById(id); if (el) el.value = '';
     });
-    document.getElementById('setPwError').style.display = 'none';
-    document.getElementById('unlockModal').style.display = 'none';
-    document.getElementById('setPasswordModal').style.display = 'block';
-    setTimeout(() => { const el = document.getElementById('pw_admin1'); if(el) el.focus(); }, 100);
+    $('setPwError').style.display = 'none';
+    $('unlockModal').style.display = 'none';
+    $('setPasswordModal').style.display = 'block';
+    setTimeout(() => { const el = $('pw_admin1'); if(el) el.focus(); }, 100);
 }
 
 async function saveAllPasswords() {
@@ -5888,17 +5959,17 @@ async function saveAllPasswords() {
     const isFirstTimeSetup = !adminHash && !pwHash;
     if (!isFirstTimeSetup && !requireAdmin('Set Passwords')) return;
     if (!spConfig.siteUrl || !spConfig.folderPath || !spConfig.fileName) {
-        const err = document.getElementById('setPwError');
+        const err = $('setPwError');
         err.textContent = '⚠️ Connect to GitHub first (🐙 button).';
         err.style.display = 'block'; return;
     }
-    const err = document.getElementById('setPwError');
+    const err = $('setPwError');
     err.style.display = 'none';
 
-    const a1 = document.getElementById('pw_admin1').value;
-    const a2 = document.getElementById('pw_admin2').value;
-    const e1 = document.getElementById('pw_editor1').value;
-    const e2 = document.getElementById('pw_editor2').value;
+    const a1 = $('pw_admin1').value;
+    const a2 = $('pw_admin2').value;
+    const e1 = $('pw_editor1').value;
+    const e2 = $('pw_editor2').value;
 
     // Validate
     if (a1 && a1 !== a2) { err.textContent = '⚠️ Admin passwords do not match.'; err.style.display='block'; return; }
@@ -5920,7 +5991,7 @@ async function saveAllPasswords() {
         cfg.version = 2;
 
         await ghWriteFile(spCfgFile, JSON.stringify(cfg, null, 2));
-        document.getElementById('setPasswordModal').style.display = 'none';
+        $('setPasswordModal').style.display = 'none';
         const saved = [a1 ? 'Admin' : '', e1 ? 'Editor' : ''].filter(Boolean).join(' & ');
         alert(`✅ ${saved} password${saved.includes('&') ? 's' : ''} saved to GitHub!\n\nAll team members will receive the update automatically on next load.`);
     } catch(e) {
@@ -6046,35 +6117,35 @@ async function ghWriteFile(file, content, commitMsg) {
 }
 
 function openSPModal() {
-    document.getElementById('spSiteUrl').value    = spConfig.siteUrl    || '';
-    document.getElementById('spFolderPath').value = spConfig.folderPath || '';
-    document.getElementById('spFileName').value   = spConfig.fileName   || '';
-    document.getElementById('spAutoSync').checked = spConfig.autoSync   || false;
+    $('spSiteUrl').value    = spConfig.siteUrl    || '';
+    $('spFolderPath').value = spConfig.folderPath || '';
+    $('spFileName').value   = spConfig.fileName   || '';
+    $('spAutoSync').checked = spConfig.autoSync   || false;
     // Show current shared token (masked) in comment section
-    const cmtField = document.getElementById('cmtSharedToken');
+    const cmtField = $('cmtSharedToken');
     if (cmtField) cmtField.value = COMMENTS_SHARED_TOKEN || '';
-    const cmtEl = document.getElementById('cmtStatus');
+    const cmtEl = $('cmtStatus');
     if (cmtEl) cmtEl.style.display = 'none';
     // Pre-fill data password field
-    const dpEl = document.getElementById('spDataPwd');
+    const dpEl = $('spDataPwd');
     if (dpEl) dpEl.value = dataPassword || '';
-    const dpStatus = document.getElementById('spDataPwdStatus');
+    const dpStatus = $('spDataPwdStatus');
     if (dpStatus) dpStatus.style.display = 'none';
     spHideStatus();
-    document.getElementById('spModal').style.display = 'block';
+    $('spModal').style.display = 'block';
 }
 
 function closeSPModal() {
-    document.getElementById('spModal').style.display = 'none';
+    $('spModal').style.display = 'none';
 }
 
 function saveSPConfig() {
     // GitHub config can always be saved — it's needed for first-time setup
     spConfig = {
-        siteUrl:    document.getElementById('spSiteUrl').value.trim(),
-        folderPath: document.getElementById('spFolderPath').value.trim(),
-        fileName:   document.getElementById('spFileName').value.trim(),
-        autoSync:   document.getElementById('spAutoSync').checked
+        siteUrl:    $('spSiteUrl').value.trim(),
+        folderPath: $('spFolderPath').value.trim(),
+        fileName:   $('spFileName').value.trim(),
+        autoSync:   $('spAutoSync').checked
     };
     localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(spConfig));
     spShowModalStatus('✅ Settings saved!', '#e6ffe6', '#107c10');
@@ -6084,7 +6155,7 @@ function saveSPConfig() {
 }
 
 function spSetStatus(msg, bg, color) {
-    const bar = document.getElementById('spStatusBar');
+    const bar = $('spStatusBar');
     if (!bar) return;
     bar.textContent = msg;
     bar.style.background = bg;
@@ -6093,7 +6164,7 @@ function spSetStatus(msg, bg, color) {
 }
 
 function spShowModalStatus(msg, bg, color) {
-    const el = document.getElementById('spModalStatus');
+    const el = $('spModalStatus');
     if (!el) return;
     el.textContent = msg;
     el.style.background = bg;
@@ -6102,7 +6173,7 @@ function spShowModalStatus(msg, bg, color) {
 }
 
 function spHideStatus() {
-    const el = document.getElementById('spModalStatus');
+    const el = $('spModalStatus');
     if (el) el.style.display = 'none';
 }
 
@@ -6332,7 +6403,7 @@ async function spPush(silent = false) {
 // Admin saves the shared token — updates COMMENTS_SHARED_TOKEN in memory
 // and patches the HTML file in-repo so the token is baked in for all users.
 async function saveSharedCommentToken() {
-    const token = document.getElementById('cmtSharedToken').value.trim();
+    const token = $('cmtSharedToken').value.trim();
     if (!token) { cmtShowStatus('⚠️ Please paste a PAT first.', '#fff3cd', '#856404'); return; }
     if (!spConfig.siteUrl || !spConfig.folderPath) {
         cmtShowStatus('⚠️ Configure GitHub owner & repo in the settings above first.', '#fff3cd', '#856404');
@@ -6343,7 +6414,7 @@ async function saveSharedCommentToken() {
 }
 
 function cmtShowStatus(msg, bg, color) {
-    const el = document.getElementById('cmtStatus');
+    const el = $('cmtStatus');
     if (!el) return;
     el.textContent = msg;
     el.style.background = bg;
@@ -6412,7 +6483,7 @@ function resolveConflict(choice) {
     if (!_conflictPending) return;
     const { dayIndex, localVal, remoteVal, mergedData, token } = _conflictPending;
     _conflictPending = null;
-    document.getElementById('conflictModal').style.display = 'none';
+    $('conflictModal').style.display = 'none';
 
     if (choice === 'append') {
         mergedData[currentMonthKey][dayIndex] = [remoteVal, localVal].filter(Boolean).join(' / ');
@@ -6610,9 +6681,9 @@ function clearAppCache() {
 
 // Set / update the data encryption password from the sync modal
 function setDataPassword() {
-    const el  = document.getElementById('spDataPwd');
+    const el  = $('spDataPwd');
     const pwd = el ? el.value.trim() : '';
-    const statusEl = document.getElementById('spDataPwdStatus');
+    const statusEl = $('spDataPwdStatus');
     saveDataPassword(pwd);
     if (statusEl) {
         statusEl.textContent = pwd
@@ -6631,13 +6702,13 @@ function liveUpdatePAT(value) {
     const saved = JSON.parse(localStorage.getItem('shiftPlannerSPConfig') || '{}');
     saved.fileName = trimmed;
     localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(saved));
-    const status = document.getElementById('spFileNameStatus');
+    const status = $('spFileNameStatus');
     if (status) { status.style.display = trimmed ? 'inline' : 'none'; }
 }
 
 function liveUpdateEncryption(value) {
     saveDataPassword(value); // already handles localStorage
-    const statusEl = document.getElementById('spDataPwdStatus');
+    const statusEl = $('spDataPwdStatus');
     if (statusEl) {
         statusEl.textContent = value
             ? '✔ Encryption password applied — all future pushes will be encrypted.'
@@ -6655,7 +6726,7 @@ function liveUpdateCommentToken(value) {
     SHARED_COMMENT_TOKEN  = trimmed;
     COMMENTS_SHARED_TOKEN = trimmed;
     try { localStorage.setItem('shiftPlannerCmtToken', trimmed); } catch(e) {}
-    const status = document.getElementById('cmtTokenInputStatus');
+    const status = $('cmtTokenInputStatus');
     if (status) {
         status.style.display = 'inline';
         clearTimeout(status._t);
@@ -6690,7 +6761,7 @@ function openGHSyncOrSetup() {
 
 // ── Set / bake the shared comment token ──
 function setCommentToken() {
-    const tok = (document.getElementById('cmtTokenInput') || {value:''}).value.trim();
+    const tok = ($('cmtTokenInput') || {value:''}).value.trim();
     if (!tok) { alert('Please paste a PAT first.'); return; }
     SHARED_COMMENT_TOKEN = tok;
     COMMENTS_SHARED_TOKEN = tok; // keep both in sync
@@ -6718,7 +6789,7 @@ function initMobileView() {
 }
 
 function populateMobWorkerSel() {
-    const sel = document.getElementById('mobWorkerSel');
+    const sel = $('mobWorkerSel');
     if (!sel) return;
     const saved = localStorage.getItem('shiftPlannerMobWorker') || '';
     sel.innerHTML = '<option value="">— Select your name —</option>';
@@ -6752,9 +6823,9 @@ const MOB_SHIFT_LABELS = {
 };
 
 function renderMobileView() {
-    const navLabel = document.getElementById('mobNavLabel');
-    const header   = document.getElementById('mobMonthLabel');
-    const list     = document.getElementById('mobDayList');
+    const navLabel = $('mobNavLabel');
+    const header   = $('mobMonthLabel');
+    const list     = $('mobDayList');
     if (!navLabel || !list) return;
 
     const monthNames = ['January','February','March','April','May','June',
@@ -6763,7 +6834,7 @@ function renderMobileView() {
     navLabel.textContent = monthName;
     if (header) header.textContent = monthName;
 
-    const sel = document.getElementById('mobWorkerSel');
+    const sel = $('mobWorkerSel');
     const wIdx = sel ? parseInt(sel.value) : NaN;
 
     // Save selected worker name
@@ -6886,32 +6957,32 @@ function renderMobileView() {
 (function() {
     // Show setup popup on first visit (no GitHub config saved yet)
     function suShow() {
-        var el = document.getElementById('setupPopup');
+        var el = $('setupPopup');
         if (!el) return;
         // Pre-fill if already configured
         var saved = localStorage.getItem('shiftPlannerSPConfig');
         if (saved) {
             try {
                 var c = JSON.parse(saved);
-                var o = document.getElementById('su_owner');
-                var r = document.getElementById('su_repo');
+                var o = $('su_owner');
+                var r = $('su_repo');
                 if (o && c.siteUrl)    o.value = c.siteUrl;
                 if (r && c.folderPath) r.value = c.folderPath;
-                var dp = document.getElementById('su_datapwd');
+                var dp = $('su_datapwd');
                 var savedPwd = localStorage.getItem('shiftPlannerDataPwd');
                 if (dp && savedPwd) dp.value = savedPwd;
             } catch(e) {}
         }
         el.style.display = 'flex';
         setTimeout(function() {
-            var first = document.getElementById('su_owner');
+            var first = $('su_owner');
             if (first && !first.value) first.focus();
-            else { var t = document.getElementById('su_token'); if(t) t.focus(); }
+            else { var t = $('su_token'); if(t) t.focus(); }
         }, 100);
     }
 
     window.suDismiss = function() {
-        var el = document.getElementById('setupPopup');
+        var el = $('setupPopup');
         if (el) el.style.display = 'none';
     };
 
@@ -6928,12 +6999,12 @@ function renderMobileView() {
 
     // Test only — no save
     window.suTest = async function() {
-        var owner = (document.getElementById('su_owner').value || '').trim();
-        var repo  = (document.getElementById('su_repo').value  || '').trim();
-        var token = (document.getElementById('su_token').value || '').trim();
-        var err   = document.getElementById('su_error');
-        var stat  = document.getElementById('su_status');
-        var btn   = document.getElementById('su_test_btn');
+        var owner = ($('su_owner').value || '').trim();
+        var repo  = ($('su_repo').value  || '').trim();
+        var token = ($('su_token').value || '').trim();
+        var err   = $('su_error');
+        var stat  = $('su_status');
+        var btn   = $('su_test_btn');
         err.style.display = 'none'; stat.style.display = 'none';
         if (!owner || !repo) { err.textContent = 'Please enter your GitHub username and repository name.'; err.style.display = 'block'; return; }
         btn.textContent = 'Testing...'; btn.disabled = true;
@@ -6948,12 +7019,12 @@ function renderMobileView() {
     };
 
     window.suConnect = async function() {
-        var owner = (document.getElementById('su_owner').value || '').trim();
-        var repo  = (document.getElementById('su_repo').value  || '').trim();
-        var token = (document.getElementById('su_token').value || '').trim();
-        var err   = document.getElementById('su_error');
-        var stat  = document.getElementById('su_status');
-        var btn   = document.getElementById('su_btn');
+        var owner = ($('su_owner').value || '').trim();
+        var repo  = ($('su_repo').value  || '').trim();
+        var token = ($('su_token').value || '').trim();
+        var err   = $('su_error');
+        var stat  = $('su_status');
+        var btn   = $('su_btn');
         err.style.display = 'none'; stat.style.display = 'none';
         if (!owner || !repo) {
             err.textContent = 'Please enter your GitHub username and repository name.';
@@ -6966,7 +7037,7 @@ function renderMobileView() {
             var cfg = { siteUrl: owner, folderPath: repo, fileName: token, autoSync: false };
             localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(cfg));
             // Save data password
-            var dpwd = (document.getElementById('su_datapwd') || {value:''}).value.trim();
+            var dpwd = ($('su_datapwd') || {value:''}).value.trim();
             if (dpwd) localStorage.setItem('shiftPlannerDataPwd', dpwd);
             stat.textContent = 'Connected to ' + data.full_name + '! Loading config...';
             stat.style.display = 'block';
@@ -6978,7 +7049,7 @@ function renderMobileView() {
                 spConfig.fileName   = token;
             }
             // Apply data password to main app immediately
-            var dpwd2 = (document.getElementById('su_datapwd') || {value:''}).value.trim();
+            var dpwd2 = ($('su_datapwd') || {value:''}).value.trim();
             if (typeof saveDataPassword === 'function' && dpwd2) saveDataPassword(dpwd2);
             if (typeof spLoadConfig === 'function') spLoadConfig();
             if (typeof spSetStatus  === 'function') spSetStatus('🐙 ' + owner + '/' + repo + ' · Connected', '#f6f8fa', '#24292f');
@@ -6986,7 +7057,7 @@ function renderMobileView() {
                 suDismiss();
                 if (typeof spPull === 'function') spPull(true);
                 // Update sync button label to show connected
-                var btn2 = document.getElementById('btnSPSync');
+                var btn2 = $('btnSPSync');
                 if (btn2) btn2.textContent = '🐙 GitHub: ' + repo;
             }, 1200);
         } catch(e) {
@@ -7048,7 +7119,7 @@ function renderMobileView() {
 <script>
 (function(){
   function extInjectStyles(){
-    if(document.getElementById('ext-v3-style')) return;
+    if($('ext-v3-style')) return;
     const st = document.createElement('style');
     st.id = 'ext-v3-style';
     st.textContent = [
@@ -7072,7 +7143,7 @@ function renderMobileView() {
   }
 
   function ensureSelectModeButtonForViewer(){
-    const btn = document.getElementById('selectModeBtn');
+    const btn = $('selectModeBtn');
     if(!btn) return;
     btn.classList.remove('edit-only','admin-only');
     btn.style.display = 'inline-block';
@@ -7080,7 +7151,7 @@ function renderMobileView() {
 
   let bulkSelectFullHTML = '';
   function setBulkSelectOptionsByRole(){
-    const sel = document.getElementById('bulkShiftSelect');
+    const sel = $('bulkShiftSelect');
     if(!sel) return;
     if(!bulkSelectFullHTML) bulkSelectFullHTML = sel.innerHTML;
     if(window.currentRole === 'viewer' && !window.isEditMode){
@@ -7096,9 +7167,9 @@ function renderMobileView() {
 
   function updateSelectModeUI(){
     ensureSelectModeButtonForViewer();
-    const btn = document.getElementById('selectModeBtn');
-    const lbl = document.getElementById('selModeLabel');
-    const apply = document.getElementById('btnApplyBulk');
+    const btn = $('selectModeBtn');
+    const lbl = $('selModeLabel');
+    const apply = $('btnApplyBulk');
     if(btn) btn.textContent = window.selectMode
       ? ((window.currentRole === 'viewer' && !window.isEditMode) ? '🏖 Vacation Select ON' : '✔ Select Mode ON')
       : ((window.currentRole === 'viewer' && !window.isEditMode) ? '🏖 Request Vacation' : '⬜ Select Mode');
@@ -7108,8 +7179,8 @@ function renderMobileView() {
   }
 
   function ensureBadgeBar(){
-    if(document.getElementById('syncStatusBadgeBar')) return;
-    const roleBadge = document.getElementById('roleBadge');
+    if($('syncStatusBadgeBar')) return;
+    const roleBadge = $('roleBadge');
     if(!roleBadge || !roleBadge.parentNode) return;
     const bar = document.createElement('div');
     bar.id = 'syncStatusBadgeBar';
@@ -7119,7 +7190,7 @@ function renderMobileView() {
 
   function renderSyncStatusBadges(){
     ensureBadgeBar();
-    const bar = document.getElementById('syncStatusBadgeBar');
+    const bar = $('syncStatusBadgeBar');
     if(!bar) return;
     const ghReady = !!(window.spConfig && window.spConfig.siteUrl && window.spConfig.folderPath);
     const patReady = !!(window.spConfig && window.spConfig.fileName);
@@ -7135,8 +7206,8 @@ function renderMobileView() {
   }
 
   function ensureVacationRangePanel(){
-    if(document.getElementById('vacRangePanel')) return;
-    const clearBtn = document.getElementById('btnClearAll');
+    if($('vacRangePanel')) return;
+    const clearBtn = $('btnClearAll');
     if(!clearBtn || !clearBtn.parentNode) return;
     const panel = document.createElement('div');
     panel.id = 'vacRangePanel';
@@ -7159,14 +7230,14 @@ function renderMobileView() {
       + '<div class="viewer-only-select-note">Skips weekends, holidays and the worker\'s fixed days off.</div>'
       + '<div class="vac-range-result" id="vacRangeResult"></div>';
     clearBtn.insertAdjacentElement('afterend', panel);
-    document.getElementById('vacRangeApplyBtn').addEventListener('click', window.applyVacationRange);
-    const search = document.getElementById('vacRangeWorkerSearch');
+    $('vacRangeApplyBtn').addEventListener('click', window.applyVacationRange);
+    const search = $('vacRangeWorkerSearch');
     if(search) search.addEventListener('input', window.filterVacationWorkerSelect);
   }
 
   window.populateVacationRangeWorkerSelect = function(){
     ensureVacationRangePanel();
-    const sel = document.getElementById('vacRangeWorkerSelect');
+    const sel = $('vacRangeWorkerSelect');
     if(!sel) return;
     const current = sel.value;
     sel.innerHTML = '';
@@ -7181,8 +7252,8 @@ function renderMobileView() {
   };
 
   window.filterVacationWorkerSelect = function(){
-    const search = document.getElementById('vacRangeWorkerSearch');
-    const sel = document.getElementById('vacRangeWorkerSelect');
+    const search = $('vacRangeWorkerSearch');
+    const sel = $('vacRangeWorkerSelect');
     if(!sel) return;
     const term = ((search && search.value) || '').trim().toLowerCase();
     const current = sel.value;
@@ -7201,12 +7272,12 @@ function renderMobileView() {
   }
 
   window.applyVacationRange = function(){
-    const sel = document.getElementById('vacRangeWorkerSelect');
+    const sel = $('vacRangeWorkerSelect');
     const workerName = ((sel && sel.value) || '').trim().toUpperCase();
-    const start = document.getElementById('vacRangeStart') ? document.getElementById('vacRangeStart').value : '';
-    const end = document.getElementById('vacRangeEnd') ? document.getElementById('vacRangeEnd').value : '';
-    const vacType = document.getElementById('vacRangeType') ? document.getElementById('vacRangeType').value : 'Urlaub IR';
-    const res = document.getElementById('vacRangeResult');
+    const start = $('vacRangeStart') ? $('vacRangeStart').value : '';
+    const end = $('vacRangeEnd') ? $('vacRangeEnd').value : '';
+    const vacType = $('vacRangeType') ? $('vacRangeType').value : 'Urlaub IR';
+    const res = $('vacRangeResult');
     if(!workerName){ if(res) res.textContent = 'Please select a worker.'; return; }
     const wIndex = (window.workers || []).findIndex(function(w){ return (w.name || '').toUpperCase() === workerName; });
     if(wIndex === -1){ if(res) res.textContent = 'Worker not found in current list.'; return; }
@@ -7252,8 +7323,8 @@ function renderMobileView() {
     setBulkSelectOptionsByRole();
     window.selectMode = !window.selectMode;
     if(window.selectedCells && window.selectedCells.clear) window.selectedCells.clear();
-    const btn = document.getElementById('selectModeBtn');
-    const bar = document.getElementById('selectionBar');
+    const btn = $('selectModeBtn');
+    const bar = $('selectionBar');
     const wrapper = document.querySelector('.table-wrapper');
     if(window.selectMode){
       if(btn) btn.classList.add('active');
@@ -7265,7 +7336,7 @@ function renderMobileView() {
       if(wrapper) wrapper.classList.remove('select-mode-active');
       document.querySelectorAll('td.selected-cell').forEach(function(td){ td.classList.remove('selected-cell'); });
     }
-    const cnt = document.getElementById('selectionCount');
+    const cnt = $('selectionCount');
     if(cnt) cnt.textContent = 0;
     updateSelectModeUI();
   };
@@ -7275,7 +7346,7 @@ function renderMobileView() {
     const viewerMode = (window.currentRole === 'viewer' && !window.isEditMode);
     if(!viewerMode) return origApplyBulkShift.apply(this, arguments);
     if(!window.selectedCells || window.selectedCells.size === 0) return alert('No cells selected!');
-    const shift = document.getElementById('bulkShiftSelect') ? document.getElementById('bulkShiftSelect').value : '';
+    const shift = $('bulkShiftSelect') ? $('bulkShiftSelect').value : '';
     if(['Urlaub IR','Urlaub-ZA','U-Immo'].indexOf(shift) === -1) return alert('Viewers can only request U-IR, U-ZA or U-Immo in select mode.');
     let changed=0, skipped=0, pushed=false;
     window.selectedCells.forEach(function(key){
@@ -7288,7 +7359,7 @@ function renderMobileView() {
       changed++;
     });
     window.selectedCells.clear();
-    const cnt = document.getElementById('selectionCount');
+    const cnt = $('selectionCount');
     if(cnt) cnt.textContent = 0;
     window.saveData(); window.renderTable();
     alert('Vacation requests added to ' + changed + ' cell(s). Skipped ' + skipped + ' locked/occupied cell(s).');
@@ -7327,9 +7398,9 @@ function renderMobileView() {
   }
 
   function ensureOldPasswordFields(){
-    if(document.getElementById('pw_admin_old')) return;
-    const adminNew = document.getElementById('pw_admin1');
-    const editorNew = document.getElementById('pw_editor1');
+    if($('pw_admin_old')) return;
+    const adminNew = $('pw_admin1');
+    const editorNew = $('pw_editor1');
     if(!adminNew || !editorNew) return;
     const adminWrap = adminNew.closest('div[style*="background:#eaffea"]') || adminNew.parentNode.parentNode;
     const editorWrap = editorNew.closest('div[style*="background:#e8f4fc"]') || editorNew.parentNode.parentNode;
@@ -7388,5 +7459,24 @@ function renderMobileView() {
 })();
 </script>
 
+
+<!-- ── Shift Legend ── -->
+<button id="legendBtn" onclick="toggleLegend()" title="Toggle shift colour legend">🎨 Legend</button>
+<div id="shiftLegend">
+    <h4>Shift Colours</h4>
+    <div class="leg-item"><span class="leg-swatch" style="background:#cfe2f3;"></span>8E — Early (07–15)</div>
+    <div class="leg-item"><span class="leg-swatch" style="background:#f9cb9c;"></span>8M — Mid (10–20)</div>
+    <div class="leg-item"><span class="leg-swatch" style="background:#f4cccc;"></span>8L — Late (14–22)</div>
+    <div class="leg-item"><span class="leg-swatch" style="background:#ffe599;"></span>13H — Long (07–20)</div>
+    <div class="leg-item"><span class="leg-swatch" style="background:#d9ead3;"></span>6H — Short (07–13)</div>
+    <div class="leg-item"><span class="leg-swatch" style="background:#e8d5f5;"></span>ImE / ImL — Immo</div>
+    <div class="leg-item"><span class="leg-swatch" style="background:#b6d7a8;"></span>VAC — Approved vacation</div>
+    <div class="leg-item"><span class="leg-swatch" style="background:#ffe0b2;"></span>⏳ — Pending vacation</div>
+    <div class="leg-item"><span class="leg-swatch" style="background:#f5b7b1;"></span>SICK / Krank</div>
+    <div class="leg-item"><span class="leg-swatch" style="background:#e0e0e0;"></span>OFF / DF / -</div>
+    <div class="leg-item"><span class="leg-swatch" style="background:#aed6f1;"></span>FB / LSS / Offc</div>
+    <hr style="margin:6px 0; border-color:#eee;">
+    <small style="color:#888;">Click any cell dropdown to assign</small>
+</div>
 </body>
 </html>
