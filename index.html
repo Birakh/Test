@@ -6570,9 +6570,9 @@ async function cmtPull(silent = false) {
         return;
     }
     try {
-        const text = await ghReadFileWith('shiftplanner_comments.json', cmtToken());
-        if (text === null) return; // file doesn't exist yet — no comments to load
-
+        const raw = await ghReadFileWith('shiftplanner_comments.json', cmtToken());
+        if (raw === null) return; // file doesn't exist yet — no comments to load
+        const text = await decryptData(raw);
         const remote = JSON.parse(text);
 
         // Update live dailyComments for current month if present
@@ -6620,13 +6620,14 @@ function resolveConflict(choice) {
     // Update baseline with resolved value
     if (_baseComments) _baseComments[dayIndex] = mergedData[currentMonthKey][dayIndex];
 
-    // Now write the resolved data
+    // Now write the resolved data (encrypted if data password is set)
+    encryptData(JSON.stringify(mergedData, null, 2)).then(payload =>
     ghWriteFileWith(
         'shiftplanner_comments.json',
-        JSON.stringify(mergedData, null, 2),
+        payload,
         token,
         `Comments update · ${currentMonthKey} · ${new Date().toISOString()}`
-    ).then(() => {
+    )).then(() => {
         cmtShowStatus(`✅ Conflict resolved & saved (${new Date().toLocaleTimeString()})`, '#e6ffe6', '#107c10');
     }).catch(e => {
         cmtShowStatus(`❌ Save failed after resolving: ${e.message}`, '#ffe6e6', '#c0392b');
@@ -6643,8 +6644,8 @@ async function cmtPush(silent = false) {
         // ── Step 1: Read the LATEST version from GitHub ──
         let existing = {};
         try {
-            const text = await ghReadFileWith('shiftplanner_comments.json', cmtToken());
-            if (text) existing = JSON.parse(text);
+            const raw = await ghReadFileWith('shiftplanner_comments.json', cmtToken());
+            if (raw) existing = JSON.parse(await decryptData(raw));
         } catch(e) { /* file may not exist yet */ }
 
         // ── Step 2: Cell-level merge ──
@@ -6690,10 +6691,10 @@ async function cmtPush(silent = false) {
 
         existing[currentMonthKey] = merged;
 
-        // ── Step 3: Write merged result ──
+        // ── Step 3: Write merged result (encrypted if data password is set) ──
         await ghWriteFileWith(
             'shiftplanner_comments.json',
-            JSON.stringify(existing, null, 2),
+            await encryptData(JSON.stringify(existing, null, 2)),
             cmtToken(),
             `Comments update · ${currentMonthKey} · ${new Date().toISOString()}`
         );
