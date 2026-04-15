@@ -258,6 +258,7 @@
         #jumpTodayBtn:hover { background:#c0392b; }
         </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+<script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
@@ -389,11 +390,13 @@
         <button id="btnExcel"  class="btn-export btn-full" onclick="copyColorfulExcel()">📋 Copy Table (HTML → Excel)</button>
         <button id="btnXLSX" style="background:#0f766e; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#115e59'" onmouseout="this.style.background='#0f766e'" onclick="downloadExcelWithFormulas()">📥 Download Excel (.xlsx)</button>
         <button id="btnHTML"   style="background:#1e8449; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#196f3d'" onmouseout="this.style.background='#1e8449'" onclick="downloadAsHTML()">⬇️ Download as HTML</button>
-        <button id="btnSPSync" style="background:#24292f; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='#24292f'" onclick="openGHSyncOrSetup()">🐙 GitHub Sync</button>
+        <button id="btnSPSync" style="background:#24292f; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='#24292f'" onclick="openSyncModal('github')">🐙/☁️ Sync</button>
         <div style="display:flex; gap:4px; margin-top:4px;">
-            <button onclick="spPull('direct')" title="Pull latest data from GitHub — replaces local data immediately" style="flex:1; background:#0969da; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#0752b0'" onmouseout="this.style.background='#0969da'">⬇️ Pull</button>
-            <button onclick="spPush()" title="Push your changes to GitHub" style="flex:1; background:#1a7f37; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#156a2e'" onmouseout="this.style.background='#1a7f37'">⬆️ Push</button>
+            <button onclick="syncQuickPull()" title="Pull from active sync backend" style="flex:1; background:#0969da; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#0752b0'" onmouseout="this.style.background='#0969da'">⬇️ Pull</button>
+            <button onclick="syncQuickPush()" title="Push to active sync backend" style="flex:1; background:#1a7f37; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#156a2e'" onmouseout="this.style.background='#1a7f37'">⬆️ Push</button>
         </div>
+        <div id="azurePullPushRow" style="display:none;"></div>
+        <div id="azureStatusBar" style="display:none; margin-top:3px; padding:4px 7px; border-radius:3px; font-size:10px; font-weight:bold;"></div>
         <button onclick="clearAppCache()" style="background:#7f8c8d; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#6c7a7a'" onmouseout="this.style.background='#7f8c8d'">🗑️ Clear Cache</button>
         <div id="spStatusBar" style="display:none; margin-top:3px; padding:4px 7px; border-radius:3px; font-size:10px; font-weight:bold;"></div>
         <button id="btnDiff"   style="background:#2980b9; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onclick="openMonthDiff()">📆 Month Comparison</button>
@@ -910,139 +913,239 @@
 </div>
 
 <!-- GitHub Sync Modal -->
-<div id="spModal" class="modal">
-    <div class="modal-content" style="max-width:560px;">
-        <span class="close-btn" onclick="closeSPModal()">&times;</span>
-        <h2 style="color:#24292f;">🐙 GitHub Sync</h2>
+<div id="syncModal" class="modal">
+    <div class="modal-content" style="max-width:580px;">
+        <span class="close-btn" onclick="closeSyncModal()">&times;</span>
+        <h2 style="margin-bottom:12px;">🔄 Sync Settings</h2>
 
-        <!-- Setup section -->
-        <div style="background:#f6f8fa; border:1px solid #d0d7de; border-radius:6px; padding:12px; margin-bottom:12px; font-size:12px;">
-            <strong style="font-size:13px;">⚙️ Connection Settings</strong>
-            <div style="margin-top:8px; display:grid; gap:7px;">
-                <div>
-                    <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">GitHub Owner / Org</label>
-                    <input id="spSiteUrl" type="text" placeholder="e.g. myteam"
-                        style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
-                    <small style="color:#666;">Your GitHub username or organisation name</small>
-                </div>
-                <div>
-                    <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Repository Name</label>
-                    <input id="spFolderPath" type="text" placeholder="e.g. shift-planner"
-                        style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
-                    <small style="color:#666;">The repo where you host the GitHub Pages site</small>
-                </div>
-                <div>
-                    <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Personal Access Token (PAT)</label>
-                    <input id="spFileName" type="password" placeholder="ghp_xxxxxxxxxxxx"
-                        oninput="liveUpdatePAT(this.value)"
-                        style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
-                    <small id="spFileNameStatus" style="color:#1a7f37; display:none;">✔ PAT updated</small>
-                    <div id="patWriteWarn" style="display:none; margin-top:5px; padding:6px 8px; background:#fff3cd; border:1px solid #ffc107; border-radius:4px; font-size:11px; color:#856404;">
-                        ⚠️ <strong>Security notice:</strong> This PAT is stored in your browser's <code>localStorage</code> only — it is never embedded in the HTML file. However, any JavaScript running on this page can read <code>localStorage</code>. Use the minimum required scope (<em>Contents: Read &amp; Write</em>) and rotate the token regularly.
+        <!-- Tab bar -->
+        <div style="display:flex; border-bottom:2px solid #ddd; margin-bottom:14px;">
+            <button id="syncTabGH" onclick="switchSyncTab('github')"
+                style="flex:1; padding:9px 4px; border:none; border-bottom:3px solid #24292f; background:none;
+                       font-weight:bold; font-size:13px; cursor:pointer; color:#24292f;">🐙 GitHub</button>
+            <button id="syncTabAZ" onclick="switchSyncTab('azure')"
+                style="flex:1; padding:9px 4px; border:none; border-bottom:3px solid transparent; background:none;
+                       font-weight:bold; font-size:13px; cursor:pointer; color:#888;">☁️ Azure</button>
+        </div>
+
+        <!-- ══════════ GITHUB PANE ══════════ -->
+        <div id="syncPaneGH">
+
+            <!-- Connection Settings -->
+            <div style="background:#f6f8fa; border:1px solid #d0d7de; border-radius:6px; padding:12px; margin-bottom:12px; font-size:12px;">
+                <strong style="font-size:13px;">⚙️ Connection Settings</strong>
+                <div style="margin-top:8px; display:grid; gap:7px;">
+                    <div>
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">GitHub Owner / Org</label>
+                        <input id="spSiteUrl" type="text" placeholder="e.g. myteam"
+                            style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                        <small style="color:#666;">Your GitHub username or organisation name</small>
                     </div>
-                    <small style="color:#666;">
-                        Create at <strong>GitHub → Settings → Developer settings → Personal access tokens → Fine-grained</strong><br>
-                        Needs <em>Contents: Read &amp; Write</em> permission on this repo. Stored only in your browser's localStorage.
-                    </small>
+                    <div>
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Repository Name</label>
+                        <input id="spFolderPath" type="text" placeholder="e.g. shift-planner"
+                            style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                        <small style="color:#666;">The repo where you host the GitHub Pages site</small>
+                    </div>
+                    <div>
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Personal Access Token (PAT)</label>
+                        <input id="spFileName" type="password" placeholder="ghp_xxxxxxxxxxxx"
+                            oninput="liveUpdatePAT(this.value)"
+                            style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                        <small id="spFileNameStatus" style="color:#1a7f37; display:none;">✔ PAT updated</small>
+                        <div id="patWriteWarn" style="display:none; margin-top:5px; padding:6px 8px; background:#fff3cd; border:1px solid #ffc107; border-radius:4px; font-size:11px; color:#856404;">
+                            ⚠️ <strong>Security notice:</strong> This PAT is stored in your browser's <code>localStorage</code> only — it is never embedded in the HTML file. However, any JavaScript running on this page can read <code>localStorage</code>. Use the minimum required scope (<em>Contents: Read &amp; Write</em>) and rotate the token regularly.
+                        </div>
+                        <small style="color:#666;">
+                            Create at <strong>GitHub → Settings → Developer settings → Personal access tokens → Fine-grained</strong><br>
+                            Needs <em>Contents: Read &amp; Write</em> permission on this repo. Stored only in your browser's localStorage.
+                        </small>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <label style="font-size:11px; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                            <input type="checkbox" id="spAutoSync"> Auto-sync on load &amp; save
+                        </label>
+                    </div>
+                    <div style="border-top:1px solid #d0d7de; margin-top:10px; padding-top:10px;">
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">🗂️ Data Filename <small style="font-weight:normal; color:#888;">(obfuscate for public repos)</small></label>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <input id="spDataFileName" type="text" placeholder="shiftplanner_data.json"
+                                style="flex:1; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                            <button onclick="randomiseDataFile()" title="Generate random filename"
+                                style="padding:5px 8px; font-size:11px; background:#34495e; color:white; border:none; border-radius:4px; cursor:pointer; white-space:nowrap;">🎲 Randomise</button>
+                        </div>
+                        <small style="color:#666;">Rename to something unpredictable so bots can't find it in your public repo.</small>
+                    </div>
+                    <div style="margin-top:8px;">
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">🗂️ Comments Filename</label>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <input id="spCmtFileName" type="text" placeholder="shiftplanner_comments.json"
+                                style="flex:1; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                            <button onclick="randomiseCmtFile()" title="Generate random filename"
+                                style="padding:5px 8px; font-size:11px; background:#34495e; color:white; border:none; border-radius:4px; cursor:pointer; white-space:nowrap;">🎲 Randomise</button>
+                        </div>
+                    </div>
+                    <div style="margin-top:10px; background:#f0fff4; border:1px solid #a9dfbf; border-radius:5px; padding:9px;">
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:3px;">🔑 Internal Security Token <small style="font-weight:normal; color:#555;">(two-factor encryption)</small></label>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <input id="spInternalToken" type="text" placeholder="Not set — click Generate"
+                                style="flex:1; padding:6px; font-size:11px; font-family:monospace; border:1px solid #aaa; border-radius:4px; background:#fffff0;">
+                            <button onclick="generateInternalToken()"
+                                style="padding:5px 8px; font-size:11px; background:#27ae60; color:white; border:none; border-radius:4px; cursor:pointer; white-space:nowrap;">⚡ Generate</button>
+                        </div>
+                        <small style="color:#555; display:block; margin-top:4px;">Baked into HTML at download time. Real key = typed password + this token. Generate once, re-download &amp; publish.</small>
+                    </div>
                 </div>
+                <button onclick="saveSPConfig()" style="margin-top:10px; background:#24292f; color:white; border:none; padding:6px 16px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">💾 Save Settings</button>
+                <button onclick="openSetPasswordModal()" style="margin-top:10px; margin-left:8px; background:#8e44ad; color:white; border:none; padding:6px 14px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">🔑 Change Password</button>
+            </div>
+
+            <!-- How it works -->
+            <div style="background:#fffbe6; border:1px solid #ffe58f; border-radius:6px; padding:10px; margin-bottom:12px; font-size:11px; line-height:1.7;">
+                <strong>📋 One-time setup:</strong><br>
+                1. Create (or use your existing) GitHub repo — the same one hosting the GitHub Pages site.<br>
+                2. Each team member creates their own PAT with <em>Contents: Read &amp; Write</em> permission, enters it here, and saves.<br>
+                3. The planner saves <code>shiftplanner_data.json</code> and <code>shiftplanner_config.json</code> directly in the repo root.<br>
+                4. Everyone accesses the same shared schedule via the GitHub Pages link. ✅
+            </div>
+
+            <!-- Status -->
+            <div id="spModalStatus" style="display:none; padding:8px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;"></div>
+
+            <!-- Action buttons -->
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button onclick="spPull()" style="flex:1; background:#0969da; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">⬇️ Pull from GitHub</button>
+                <button onclick="spPush()" style="flex:1; background:#1a7f37; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">⬆️ Push to GitHub</button>
+                <button onclick="spTestConnection()" style="background:#605e5c; color:white; border:none; padding:10px 14px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">🔌 Test</button>
+            </div>
+            <div style="margin-top:12px; padding:8px; background:#f8f8f8; border-radius:4px; font-size:11px; color:#555;">
+                <strong>Pull</strong> = download the shared version from GitHub into your local session.<br>
+                <strong>Push</strong> = upload your current session to GitHub so all colleagues see it.<br>
+                ⚠️ Last push wins — coordinate with your team or use auto-sync.
+            </div>
+
+            <!-- Data Encryption -->
+            <div style="margin-top:12px; background:#fff8e1; border:1px solid #ffe082; border-radius:6px; padding:12px; font-size:12px;">
+                <strong style="font-size:13px; color:#856404;">🔐 Data Encryption Password</strong>
+                <p style="font-size:11px; color:#555; margin:6px 0 8px 0;">
+                    All JSON files are AES-encrypted with this shared team password. Every team member must enter the same password to read the schedule. Leave blank to disable encryption.
+                </p>
                 <div style="display:flex; gap:8px; align-items:center;">
-                    <label style="font-size:11px; cursor:pointer; display:flex; align-items:center; gap:5px;">
-                        <input type="checkbox" id="spAutoSync"> Auto-sync on load &amp; save
-                    </label>
+                    <input id="spDataPwd" type="password" placeholder="Enter team data password"
+                        oninput="liveUpdateEncryption(this.value)"
+                        style="flex:1; padding:7px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
                 </div>
-            </div>
-            <button onclick="saveSPConfig()" style="margin-top:10px; background:#24292f; color:white; border:none; padding:6px 16px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">💾 Save Settings</button>
-            <button onclick="openSetPasswordModal()" style="margin-top:10px; margin-left:8px; background:#8e44ad; color:white; border:none; padding:6px 14px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">🔑 Change Password</button>
-        </div>
-
-        <!-- How it works -->
-        <div style="background:#fffbe6; border:1px solid #ffe58f; border-radius:6px; padding:10px; margin-bottom:12px; font-size:11px; line-height:1.7;">
-            <strong>📋 One-time setup:</strong><br>
-            1. Create (or use your existing) GitHub repo — the same one hosting the GitHub Pages site.<br>
-            2. Each team member creates their own PAT with <em>Contents: Read &amp; Write</em> permission, enters it here, and saves.<br>
-            3. The planner saves <code>shiftplanner_data.json</code> and <code>shiftplanner_config.json</code> directly in the repo root.<br>
-            4. Everyone accesses the same shared schedule via the GitHub Pages link. ✅
-        </div>
-
-        <!-- Status -->
-        <div id="spModalStatus" style="display:none; padding:8px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;"></div>
-
-        <!-- Action buttons -->
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button onclick="spPull()" style="flex:1; background:#0969da; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">⬇️ Pull from GitHub</button>
-            <button onclick="spPush()" style="flex:1; background:#1a7f37; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">⬆️ Push to GitHub</button>
-            <button onclick="spTestConnection()" style="background:#605e5c; color:white; border:none; padding:10px 14px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">🔌 Test</button>
-        </div>
-
-        <div style="margin-top:12px; padding:8px; background:#f8f8f8; border-radius:4px; font-size:11px; color:#555;">
-            <strong>Pull</strong> = download the shared version from GitHub into your local session.<br>
-            <strong>Push</strong> = upload your current session to GitHub so all colleagues see it.<br>
-            ⚠️ Last push wins — coordinate with your team or use auto-sync (which pulls before pushing).
-        </div>
-
-        <!-- Data Encryption section -->
-        <div style="margin-top:12px; background:#fff8e1; border:1px solid #ffe082; border-radius:6px; padding:12px; font-size:12px;">
-            <strong style="font-size:13px; color:#856404;">🔐 Data Encryption Password</strong>
-            <p style="font-size:11px; color:#555; margin:6px 0 8px 0;">
-                All JSON files are AES-encrypted with this shared team password. Every team member must enter the same password to read the schedule. Leave blank to disable encryption.
-            </p>
-            <div style="display:flex; gap:8px; align-items:center;">
-                <input id="spDataPwd" type="password" placeholder="Enter team data password"
-                    oninput="liveUpdateEncryption(this.value)"
-                    style="flex:1; padding:7px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
-            </div>
-            <div id="spDataPwdStatus" style="display:none; margin-top:6px; font-size:11px;"></div>
-            <small style="color:#888; display:block; margin-top:5px;">Applied immediately as you type. Saved in this browser only. Share the password verbally with your team — never via chat or email.</small>
-        </div>
-
-        <!-- Comment Sync section -->
-        <div style="margin-top:14px; background:#f0fff4; border:1px solid #a9dfbf; border-radius:6px; padding:12px; font-size:12px;">
-            <strong style="font-size:13px;">💬 Comments Sync</strong>
-            <p style="font-size:11px; color:#555; margin:6px 0 8px 0;">
-                Comments are stored in <code>shiftplanner_comments.json</code> in the repo.<br>
-                Viewers write comments using a <strong>shared token</strong> — they need zero setup once the admin sets it below.
-            </p>
-            <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:4px; padding:8px; margin-bottom:8px;">
-                <strong style="font-size:11px;">⚙️ Admin: Set shared comment token (once)</strong><br>
-                <small style="color:#555;">Paste a PAT with Contents: Read &amp; Write. All viewers will use this token automatically to post comments.</small>
-                <div style="margin-top:6px;">
-                    <input id="cmtTokenInput" type="password" placeholder="ghp_... or github_pat_..."
-                        oninput="liveUpdateCommentToken(this.value)"
-                        style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
-                    <small id="cmtTokenInputStatus" style="color:#1a7f37; display:none;">✔ Comment token updated in memory</small>
-                </div>
-                <small style="color:#888; font-size:10px;">Applied immediately as you type. After setting: download HTML (⬇️ button) and commit to repo — then all users get it automatically.</small>
+                <div id="spDataPwdStatus" style="display:none; margin-top:6px; font-size:11px;"></div>
+                <small style="color:#888; display:block; margin-top:5px;">Applied immediately as you type. Saved in this browser only. Share the password verbally — never via chat or email.</small>
             </div>
 
-            <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:4px; padding:8px; margin-bottom:10px; font-size:11px;">
-                <strong>⚙️ One-time admin setup:</strong><br>
-                1. Create a fine-grained PAT with <em>Contents: Read &amp; Write</em> on this repo<br>
-                2. Paste it into the <strong>Shared Comments Token</strong> field below and click Save<br>
-                3. Download the HTML (⬇️ button) and commit it to your repo — the token is now baked in<br>
-                4. Done! All users who open the page can read/write comments automatically ✅
-            </div>
-
-            <div style="margin-bottom:8px;">
-                <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Shared Comments Token (PAT)</label>
-                <input id="cmtSharedToken" type="password" placeholder="ghp_xxxxxxxxxxxx (paste once, then re-download HTML)"
-                    style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
-                <div style="margin-top:5px; padding:6px 8px; background:#ffeaea; border:1px solid #f5c6cb; border-radius:4px; font-size:11px; color:#721c24;">
-                        🔴 <strong>Write-capable PAT warning:</strong> This token is <strong>baked into the HTML file</strong> and distributed to every user. Anyone who views the page source can read it. <strong>Never paste a write-capable PAT here</strong> unless you accept that all users can push to your repo. Use a dedicated read-only or comments-only scoped token whenever possible.
+            <!-- Comment Sync -->
+            <div style="margin-top:14px; background:#f0fff4; border:1px solid #a9dfbf; border-radius:6px; padding:12px; font-size:12px;">
+                <strong style="font-size:13px;">💬 Comments Sync</strong>
+                <p style="font-size:11px; color:#555; margin:6px 0 8px 0;">
+                    Comments are stored in <code>shiftplanner_comments.json</code> in the repo.<br>
+                    Viewers write comments using a <strong>shared token</strong> — they need zero setup once the admin sets it below.
+                </p>
+                <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:4px; padding:8px; margin-bottom:8px;">
+                    <strong style="font-size:11px;">⚙️ Admin: Set shared comment token (once)</strong><br>
+                    <small style="color:#555;">Paste a PAT with Contents: Read &amp; Write. All viewers will use this token automatically to post comments.</small>
+                    <div style="margin-top:6px;">
+                        <input id="cmtTokenInput" type="password" placeholder="ghp_... or github_pat_..."
+                            oninput="liveUpdateCommentToken(this.value)"
+                            style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                        <small id="cmtTokenInputStatus" style="color:#1a7f37; display:none;">✔ Comment token updated in memory</small>
                     </div>
-                <small style="color:#666;">This token is embedded in the HTML file itself — not stored in localStorage. It can be read-only or read-write.</small>
+                    <small style="color:#888; font-size:10px;">Applied immediately as you type. After setting: download HTML (⬇️ button) and commit to repo.</small>
+                </div>
+                <div style="margin-bottom:8px;">
+                    <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Shared Comments Token (PAT)</label>
+                    <input id="cmtSharedToken" type="password" placeholder="ghp_xxxxxxxxxxxx (paste once, then re-download HTML)"
+                        style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                    <div style="margin-top:5px; padding:6px 8px; background:#ffeaea; border:1px solid #f5c6cb; border-radius:4px; font-size:11px; color:#721c24;">
+                        🔴 <strong>Write-capable PAT warning:</strong> This token is <strong>baked into the HTML file</strong> and distributed to every user. Anyone who views the page source can read it. Use a dedicated read-only or comments-only scoped token whenever possible.
+                    </div>
+                    <small style="color:#666;">This token is embedded in the HTML file itself — not stored in localStorage.</small>
+                </div>
+                <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                    <button onclick="saveSharedCommentToken()" style="background:#27ae60; color:white; border:none; padding:6px 14px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">💾 Save Token</button>
+                    <button onclick="cmtPull()" style="background:#0969da; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">⬇️ Pull Comments</button>
+                    <button onclick="cmtPush()" style="background:#1a7f37; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">⬆️ Push Comments</button>
+                    <button onclick="cmtTest()" style="background:#605e5c; color:white; border:none; padding:6px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">🔌 Test</button>
+                </div>
+                <div id="cmtStatus" style="display:none; margin-top:8px; padding:6px 10px; border-radius:4px; font-size:11px;"></div>
+                <p style="font-size:10px; color:#888; margin:8px 0 0 0;">
+                    💡 The shared token is embedded in the HTML — it will be visible in the page source. Use a fine-grained token scoped only to this repo. Rotate it anytime by repeating the setup above.
+                </p>
+            </div>
+        </div><!-- end syncPaneGH -->
+
+        <!-- ══════════ AZURE PANE ══════════ -->
+        <div id="syncPaneAZ" style="display:none;">
+
+            <!-- Login state banner -->
+            <div id="azureLoginBanner" style="background:#fff4e5; border:1px solid #f0a500; border-radius:6px; padding:10px 12px; margin-bottom:12px; font-size:12px; display:flex; align-items:center; gap:10px;">
+                <span id="azureLoginLabel" style="flex:1;">🔐 Not signed in to Microsoft</span>
+                <button onclick="azureSignIn()" id="btnAzureLogin" style="background:#0078d4; color:white; border:none; padding:6px 14px; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer;">Sign in</button>
+                <button onclick="azureSignOut()" id="btnAzureLogout" style="display:none; background:#c83232; color:white; border:none; padding:6px 10px; border-radius:4px; font-size:12px; cursor:pointer;">Sign out</button>
             </div>
 
-            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-                <button onclick="saveSharedCommentToken()" style="background:#27ae60; color:white; border:none; padding:6px 14px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">💾 Save Token</button>
-                <button onclick="cmtPull()" style="background:#0969da; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">⬇️ Pull Comments</button>
-                <button onclick="cmtPush()" style="background:#1a7f37; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">⬆️ Push Comments</button>
-                <button onclick="cmtTest()" style="background:#605e5c; color:white; border:none; padding:6px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">🔌 Test</button>
+            <!-- Connection Settings -->
+            <div style="background:#f0f6ff; border:1px solid #b3d1f7; border-radius:6px; padding:12px; margin-bottom:12px; font-size:12px;">
+                <strong style="font-size:13px;">⚙️ Azure Connection Settings</strong>
+                <div style="margin-top:8px; display:grid; gap:7px;">
+                    <div>
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Azure Tenant ID</label>
+                        <input id="azTenantId" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                            style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px; font-family:monospace;">
+                        <small style="color:#666;">Found in Microsoft Entra ID → Overview</small>
+                    </div>
+                    <div>
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Azure App (Client) ID</label>
+                        <input id="azClientId" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                            style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px; font-family:monospace;">
+                        <small style="color:#666;">App registration → Overview → Application (client) ID</small>
+                    </div>
+                    <div>
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Storage Account Name</label>
+                        <input id="azStorageAccount" type="text" placeholder="mystorageaccount"
+                            style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                        <small style="color:#666;">The storage account hosting your blob container</small>
+                    </div>
+                    <div>
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Container Name</label>
+                        <input id="azContainer" type="text" placeholder="shiftplanner-data"
+                            style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                        <small style="color:#666;">Blob container where data files are stored (must be private)</small>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <label style="font-size:11px; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                            <input type="checkbox" id="azAutoSync"> Auto-sync on load &amp; save
+                        </label>
+                    </div>
+                </div>
+                <button onclick="saveAzureConfig()" style="margin-top:10px; background:#0078d4; color:white; border:none; padding:6px 16px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">💾 Save Settings</button>
+                <button onclick="azureTestConnection()" style="margin-top:10px; margin-left:8px; background:#605e5c; color:white; border:none; padding:6px 14px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">🔌 Test Connection</button>
             </div>
-            <div id="cmtStatus" style="display:none; margin-top:8px; padding:6px 10px; border-radius:4px; font-size:11px;"></div>
-            <p style="font-size:10px; color:#888; margin:8px 0 0 0;">
-                💡 The shared token is embedded in the HTML — it will be visible in the page source. Use a <em>fine-grained token scoped only to this repo</em> to limit exposure. Rotate it anytime by repeating the setup above.
-            </p>
-        </div>
+
+            <!-- How it works -->
+            <div style="background:#fffbe6; border:1px solid #ffe58f; border-radius:6px; padding:10px; margin-bottom:12px; font-size:11px; line-height:1.7;">
+                <strong>📋 One-time admin setup:</strong><br>
+                1. <strong>Entra ID → App registrations</strong> — create app, redirect URI = this page URL, enable SPA + ID tokens.<br>
+                2. <strong>Storage Account</strong> — create private container → IAM → assign users <em>Storage Blob Data Contributor</em>.<br>
+                3. <strong>CORS</strong> on storage account — origin = this page URL, methods = GET PUT DELETE, headers = *.<br>
+                4. Enter Tenant ID, Client ID, Storage Account, Container above → Save → Sign in. ✅
+            </div>
+
+            <!-- Status -->
+            <div id="azureModalStatus" style="display:none; padding:8px 10px; border-radius:4px; font-size:12px; margin-bottom:10px;"></div>
+
+            <!-- Action buttons -->
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button onclick="azurePull()" style="flex:1; background:#0078d4; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">⬇️ Pull from Azure</button>
+                <button onclick="azurePush()" style="flex:1; background:#005a9e; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">⬆️ Push to Azure</button>
+            </div>
+        </div><!-- end syncPaneAZ -->
+
     </div>
 </div>
 
@@ -1238,12 +1341,13 @@ const _fromHex = h => new Uint8Array(h.match(/.{2}/g).map(b => parseInt(b,16)));
 const _toB64  = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
 const _fromB64 = s  => Uint8Array.from(atob(s), c => c.charCodeAt(0));
 
-// Derive a 256-bit AES-GCM key from a password + salt via PBKDF2 (200k iterations, SHA-256)
+// Derive a 256-bit AES-GCM key from a password + salt via PBKDF2 (600k iterations, SHA-256)
+// The password passed in is already the composite key (typed password + baked internal token)
 async function _deriveKey(password, salt) {
     const km = await crypto.subtle.importKey(
         'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
     return crypto.subtle.deriveKey(
-        { name: 'PBKDF2', salt, iterations: 200000, hash: 'SHA-256' },
+        { name: 'PBKDF2', salt, iterations: 600000, hash: 'SHA-256' },
         km, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
 }
 
@@ -1252,9 +1356,10 @@ async function _deriveKey(password, salt) {
 async function encryptData(plainText) {
     if (!dataPassword) return plainText;
     try {
-        const salt = crypto.getRandomValues(new Uint8Array(16));
-        const iv   = crypto.getRandomValues(new Uint8Array(12));
-        const key  = await _deriveKey(dataPassword, salt);
+        const salt      = crypto.getRandomValues(new Uint8Array(16));
+        const iv        = crypto.getRandomValues(new Uint8Array(12));
+        const composite = dataPassword + (SP_INTERNAL_TOKEN || '');
+        const key       = await _deriveKey(composite, salt);
         const enc  = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key,
                          new TextEncoder().encode(plainText));
         return JSON.stringify({ v: 2, salt: _toHex(salt), iv: _toHex(iv), data: _toB64(enc) });
@@ -1269,7 +1374,8 @@ async function decryptData(text) {
         // ── v2: AES-GCM + PBKDF2 ──
         if (obj && obj.v === 2 && obj.salt && obj.iv && obj.data) {
             if (!dataPassword) throw new Error('Data is encrypted — enter the data password first.');
-            const key = await _deriveKey(dataPassword, _fromHex(obj.salt));
+            const composite = dataPassword + (SP_INTERNAL_TOKEN || '');
+            const key = await _deriveKey(composite, _fromHex(obj.salt));
             const dec = await crypto.subtle.decrypt(
                 { name: 'AES-GCM', iv: _fromHex(obj.iv) }, key, _fromB64(obj.data));
             return new TextDecoder().decode(dec);
@@ -1334,7 +1440,13 @@ let isEditMode  = false;
 let pwHash      = null;   // kept for compat — now = adminHash
 let adminHash   = null; // __BAKE_ADMIN_HASH__
 let editorHash  = null; // __BAKE_EDITOR_HASH__
-let spCfgFile   = 'shiftplanner_config.json';
+let spCfgFile        = 'shiftplanner_config.json';
+let spDataFile       = 'shiftplanner_data.json';    // __BAKE_DATA_FILE__ — randomisable via Settings
+let spCmtFile        = 'shiftplanner_comments.json'; // __BAKE_CMT_FILE__  — randomisable via Settings
+// Two-factor encryption: real key = PBKDF2(typedPassword + SP_INTERNAL_TOKEN)
+// SP_INTERNAL_TOKEN is baked into the HTML at download-time so an attacker with only
+// the JSON data file cannot brute-force the password without also having the HTML file.
+let SP_INTERNAL_TOKEN = ''; // __BAKE_INTERNAL_TOKEN__
 let loginTab    = 'editor'; // which tab is active in login modal
 
 // Select-mode state
@@ -1558,7 +1670,14 @@ window.onload = () => { try {
 
     // Load GitHub config
     const savedSPCfg = localStorage.getItem('shiftPlannerSPConfig');
-    if (savedSPCfg) { try { spConfig = { ...spConfig, ...JSON.parse(savedSPCfg) }; } catch(e){} }
+    if (savedSPCfg) {
+        try {
+            spConfig = { ...spConfig, ...JSON.parse(savedSPCfg) };
+            if (spConfig.dataFile)      spDataFile        = spConfig.dataFile;
+            if (spConfig.cmtFile)       spCmtFile         = spConfig.cmtFile;
+            if (spConfig.internalToken) SP_INTERNAL_TOKEN = spConfig.internalToken;
+        } catch(e){}
+    }
     // Load saved comment token
     try {
         const savedCmt = localStorage.getItem('shiftPlannerCmtToken');
@@ -1790,12 +1909,27 @@ function toggle13HShift() {
     if (!requireAdmin("Toggle 13H")) { const chk=$("toggle13H"); if(chk) chk.checked=use13H; return; }
     use13H = $('toggle13H').checked;
     setOpacity(['wd13wrap','we13wrap'], use13H);
+    // If 13H is turned off, 6H must also be disabled — they are coupled
+    if (!use13H && use6H) {
+        use6H = false;
+        const chk6 = $('toggle6H');
+        if (chk6) chk6.checked = false;
+        setOpacity(['wd6wrap','we6wrap'], false);
+        alert('ℹ️ 6H has been automatically disabled because it requires 13H to be active.');
+    }
     saveData(); renderTable();
 }
 
 function toggle6HShift() {
     if (!requireAdmin("Toggle 6H")) { const chk=$("toggle6H"); if(chk) chk.checked=use6H; return; }
-    use6H = $('toggle6H').checked;
+    const chk6 = $('toggle6H');
+    if (chk6 && chk6.checked && !use13H) {
+        // 6H requires 13H — the high/low alternation is needed to stay within the 40h contract
+        alert('⚠️ 6H shifts require the 13H option to also be enabled.\n\nThe 6H half-day only works together with 13H because the high/low week alternation is what keeps the weekly average at 40 hours.\n\nPlease enable 13H first.');
+        chk6.checked = false;
+        return;
+    }
+    use6H = chk6 ? chk6.checked : false;
     setOpacity(['wd6wrap','we6wrap'], use6H);
     saveData(); renderTable();
 }
@@ -1826,6 +1960,7 @@ function saveData() {
     localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
     // Auto-push to GitHub if configured
     if (spConfig.autoSync && spConfig.siteUrl) spPush(true);
+    azureAutoPushIfEnabled();
 }
 
 function populateYearDropdown(centerYear = null) {
@@ -3321,17 +3456,41 @@ function autoGenerate() {
             // How many shifts to fill this week
             let wkShifts = 0;
             if (worker.system==='New') {
-                const isHigh = ((w+wIndex)%2!==0);
-                const targetW = isHigh
-                    ? (contractHrs===40?43:contractHrs===32?35:contractHrs===24?27:contractHrs)
-                    : (contractHrs===40?37:contractHrs===32?29:contractHrs===24?21:contractHrs);
-                const mandatory = (use13H&&contractHrs>=24?13:0) + (use6H&&contractHrs>=24&&isHigh?6:0);
-                wkShifts = Math.max(0, Math.floor((targetW - prefilled - mandatory) / 8));
-                // Add mandatory 13H/6H to pool
                 let wkPool = [];
-                if (use13H && contractHrs>=24) wkPool.push('13H');
-                if (use6H  && contractHrs>=24 && isHigh) wkPool.push('6H');
-                for (let i=0;i<wkShifts;i++) wkPool.push('8H-ANY');
+
+                if (use13H && contractHrs >= 24) {
+                    // ── 13H mode: high/low alternation keeps weekly average at 40h ──
+                    // High week: 43h → 13H + 6H + 3×8H = 43h
+                    // Low  week: 37h → 13H       + 3×8H = 37h   (avg = 40h across two weeks)
+                    // This alternation is intentional — do NOT replace with availableSlots here.
+                    const isHigh   = ((w + wIndex) % 2 !== 0);
+                    const targetW  = isHigh
+                        ? (contractHrs===40?43:contractHrs===32?35:contractHrs===24?27:contractHrs)
+                        : (contractHrs===40?37:contractHrs===32?29:contractHrs===24?21:contractHrs);
+                    const mandatory = 13 + (use6H && contractHrs>=24 && isHigh ? 6 : 0);
+                    wkShifts = Math.max(0, Math.floor((targetW - prefilled - mandatory) / 8));
+                    wkPool.push('13H');
+                    if (use6H && contractHrs>=24 && isHigh) wkPool.push('6H');
+
+                } else {
+                    // ── Normal mode (no 13H): fill every available Mon-Fri slot ──
+                    // Count actual empty workdays in this chunk so no day is skipped.
+                    const fixOff = worker.fixedOff || [];
+                    let availableSlots = 0;
+                    for (let d2=startDay; d2<endDay; d2++) {
+                        const dow2 = new Date(currentYear, currentMonth-1, d2+1).getDay();
+                        if (dow2!==0 && dow2!==6 && !isHoliday(d2) && !fixOff.includes(dow2)
+                            && worker.shifts[d2]==='-') availableSlots++;
+                    }
+                    // No mandatory deduction here — 6H is only valid when 13H is also on
+                    // (enforced by the UI toggle guard), so this branch is always 6H-free.
+                    wkShifts = Math.min(
+                        availableSlots,
+                        Math.max(0, Math.floor((contractHrs - prefilled) / 8))
+                    );
+                }
+
+                for (let i=0; i<wkShifts; i++) wkPool.push('8H-ANY');
                 // ── Monthly budget drawdown — not a per-week re-estimate ──
                 // We know exactly how many 8L and 8M this worker needs for the whole month
                 // (computed in Step 3.5). Each week we take a proportional slice of what's left.
@@ -5435,6 +5594,16 @@ function downloadAsHTML() {
     // Bake password hashes using exact sentinel markers — immune to minification or variable reordering
     const ADMIN_SENTINEL  = 'let adminHash   = null; // __BAKE_ADMIN_HASH__';
     const EDITOR_SENTINEL = 'let editorHash  = null; // __BAKE_EDITOR_HASH__';
+    // Bake data/comment filenames and internal token so downloaded file is self-contained
+    const DATA_SENTINEL    = "let spDataFile       = 'shiftplanner_data.json';    // __BAKE_DATA_FILE__ — randomisable via Settings";
+    const CMT_SENTINEL     = "let spCmtFile        = 'shiftplanner_comments.json'; // __BAKE_CMT_FILE__  — randomisable via Settings";
+    const TOKEN_SENTINEL   = "let SP_INTERNAL_TOKEN = ''; // __BAKE_INTERNAL_TOKEN__";
+    if (html.includes(DATA_SENTINEL))
+        html = html.replace(DATA_SENTINEL, `let spDataFile       = '${spDataFile}';    // __BAKE_DATA_FILE__`);
+    if (html.includes(CMT_SENTINEL))
+        html = html.replace(CMT_SENTINEL, `let spCmtFile        = '${spCmtFile}'; // __BAKE_CMT_FILE__`);
+    if (SP_INTERNAL_TOKEN && html.includes(TOKEN_SENTINEL))
+        html = html.replace(TOKEN_SENTINEL, `let SP_INTERNAL_TOKEN = '${SP_INTERNAL_TOKEN}'; // __BAKE_INTERNAL_TOKEN__`);
     if (adminHash && html.includes(ADMIN_SENTINEL)) {
         html = html.replace(ADMIN_SENTINEL, 'let adminHash   = ' + JSON.stringify(adminHash) + '; // __BAKE_ADMIN_HASH__');
     } else if (adminHash) {
@@ -5919,7 +6088,7 @@ async function pbkdf2LoginHash(password, saltHex) {
     const km = await crypto.subtle.importKey(
         'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
     const bits = await crypto.subtle.deriveBits(
-        { name: 'PBKDF2', salt, iterations: 200000, hash: 'SHA-256' }, km, 256);
+        { name: 'PBKDF2', salt, iterations: 600000, hash: 'SHA-256' }, km, 256);
     return _toHex(salt) + ':' + _toHex(new Uint8Array(bits));
 }
 
@@ -6260,37 +6429,28 @@ async function ghWriteFile(file, content, commitMsg) {
     return result;
 }
 
-function openSPModal() {
-    $('spSiteUrl').value    = spConfig.siteUrl    || '';
-    $('spFolderPath').value = spConfig.folderPath || '';
-    $('spFileName').value   = spConfig.fileName   || '';
-    $('spAutoSync').checked = spConfig.autoSync   || false;
-    // Show current shared token (masked) in comment section
-    const cmtField = $('cmtSharedToken');
-    if (cmtField) cmtField.value = COMMENTS_SHARED_TOKEN || '';
-    const cmtEl = $('cmtStatus');
-    if (cmtEl) cmtEl.style.display = 'none';
-    // Pre-fill data password field
-    const dpEl = $('spDataPwd');
-    if (dpEl) dpEl.value = dataPassword || '';
-    const dpStatus = $('spDataPwdStatus');
-    if (dpStatus) dpStatus.style.display = 'none';
-    spHideStatus();
-    $('spModal').style.display = 'block';
-}
+// openSPModal() — replaced by openSyncModal() shim above
 
-function closeSPModal() {
-    $('spModal').style.display = 'none';
-}
+// closeSPModal() — handled by shim
 
 function saveSPConfig() {
     // GitHub config can always be saved — it's needed for first-time setup
+    const dataFileVal  = ($('spDataFileName').value.trim() || 'shiftplanner_data.json');
+    const cmtFileVal   = ($('spCmtFileName').value.trim()  || 'shiftplanner_comments.json');
+    const tokenVal     = ($('spInternalToken').value.trim() || '');
     spConfig = {
-        siteUrl:    $('spSiteUrl').value.trim(),
-        folderPath: $('spFolderPath').value.trim(),
-        fileName:   $('spFileName').value.trim(),
-        autoSync:   $('spAutoSync').checked
+        siteUrl:       $('spSiteUrl').value.trim(),
+        folderPath:    $('spFolderPath').value.trim(),
+        fileName:      $('spFileName').value.trim(),
+        autoSync:      $('spAutoSync').checked,
+        dataFile:      dataFileVal,
+        cmtFile:       cmtFileVal,
+        internalToken: tokenVal,
     };
+    // Apply in-memory immediately
+    spDataFile = dataFileVal;
+    spCmtFile  = cmtFileVal;
+    if (tokenVal) SP_INTERNAL_TOKEN = tokenVal;
     localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(spConfig));
     spShowModalStatus('✅ Settings saved!', '#e6ffe6', '#107c10');
     spSetStatus(`🐙 GitHub configured · Not yet synced`, '#f6f8fa', '#24292f');
@@ -6356,7 +6516,7 @@ async function spPull(silent = false) {
     if (!isDirect && !silent) spShowModalStatus('⬇️ Pulling from GitHub...', '#f6f8fa', '#24292f');
     if (isDirect) spSetStatus('⬇️ Pulling…', '#f6f8fa', '#24292f');
     try {
-        const text = await ghReadFile('shiftplanner_data.json');
+        const text = await ghReadFile(spDataFile);
         if (text === null) {
             if (!silent) spShowModalStatus('ℹ️ No shared file found yet. Push your data first to create it.', '#fff3cd', '#856404');
             if (isDirect) spSetStatus('ℹ️ No data on GitHub yet', '#fff3cd', '#856404');
@@ -6417,7 +6577,7 @@ async function spPush(silent = false) {
             // Step 1: Read the latest state from GitHub (also refreshes the SHA cache)
             let remoteAll = {};
             try {
-                const text = await ghReadFile('shiftplanner_data.json');
+                const text = await ghReadFile(spDataFile);
                 if (text) remoteAll = JSON.parse(text);
             } catch(e) { /* file may not exist yet */ }
 
@@ -6482,7 +6642,7 @@ async function spPush(silent = false) {
 
             // Step 3: Write the merged result
             const payload = JSON.stringify(remoteAll, null, 2);
-            await ghWriteFile('shiftplanner_data.json', payload, `Vacation request · ${currentMonthKey} · ${new Date().toISOString()}`);
+            await ghWriteFile(spDataFile, payload, `Vacation request · ${currentMonthKey} · ${new Date().toISOString()}`);
 
             // Step 4: Update shift baseline to the merged state
             if (!_baseShifts) _baseShifts = {};
@@ -6503,7 +6663,7 @@ async function spPush(silent = false) {
         //  EDITOR / ADMIN PATH — full push with SHA conflict guard
         // ════════════════════════════════════════════════════════
         const payload = JSON.stringify(allMonthsData, null, 2);
-        await ghWriteFile('shiftplanner_data.json', payload, `Shift Planner update · ${new Date().toISOString()}`);
+        await ghWriteFile(spDataFile, payload, `Shift Planner update · ${new Date().toISOString()}`);
 
         // Update shift baseline to what we just pushed
         if (!_baseShifts) _baseShifts = {};
@@ -6594,7 +6754,7 @@ async function cmtPull(silent = false) {
         return;
     }
     try {
-        const raw = await ghReadFileWith('shiftplanner_comments.json', cmtToken());
+        const raw = await ghReadFileWith(spCmtFile, cmtToken());
         if (raw === null) return; // file doesn't exist yet — no comments to load
         const text = await decryptData(raw);
         const remote = JSON.parse(text);
@@ -6647,7 +6807,7 @@ function resolveConflict(choice) {
     // Now write the resolved data (encrypted if data password is set)
     encryptData(JSON.stringify(mergedData, null, 2)).then(payload =>
     ghWriteFileWith(
-        'shiftplanner_comments.json',
+        spCmtFile,
         payload,
         token,
         `Comments update · ${currentMonthKey} · ${new Date().toISOString()}`
@@ -6668,7 +6828,7 @@ async function cmtPush(silent = false) {
         // ── Step 1: Read the LATEST version from GitHub ──
         let existing = {};
         try {
-            const raw = await ghReadFileWith('shiftplanner_comments.json', cmtToken());
+            const raw = await ghReadFileWith(spCmtFile, cmtToken());
             if (raw) existing = JSON.parse(await decryptData(raw));
         } catch(e) { /* file may not exist yet */ }
 
@@ -6717,7 +6877,7 @@ async function cmtPush(silent = false) {
 
         // ── Step 3: Write merged result (encrypted if data password is set) ──
         await ghWriteFileWith(
-            'shiftplanner_comments.json',
+            spCmtFile,
             await encryptData(JSON.stringify(existing, null, 2)),
             cmtToken(),
             `Comments update · ${currentMonthKey} · ${new Date().toISOString()}`
@@ -6840,6 +7000,333 @@ function setDataPassword() {
 }
 
 // ── Live-update helpers — apply settings immediately as user types ──
+
+// ══════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// 🔄 Unified Sync Modal — tab controller
+// ══════════════════════════════════════════════════════
+let _activeSyncTab = 'github';
+
+function switchSyncTab(tab) {
+    _activeSyncTab = tab;
+    const paneGH = $('syncPaneGH'), paneAZ = $('syncPaneAZ');
+    const tabGH  = $('syncTabGH'),  tabAZ  = $('syncTabAZ');
+    if (!paneGH || !paneAZ) return;
+    paneGH.style.display = tab === 'github' ? '' : 'none';
+    paneAZ.style.display = tab === 'azure'  ? '' : 'none';
+    if (tabGH) {
+        tabGH.style.borderBottomColor = tab === 'github' ? '#24292f' : 'transparent';
+        tabGH.style.color             = tab === 'github' ? '#24292f' : '#888';
+        tabGH.style.fontWeight        = tab === 'github' ? 'bold' : 'normal';
+    }
+    if (tabAZ) {
+        tabAZ.style.borderBottomColor = tab === 'azure' ? '#0078d4' : 'transparent';
+        tabAZ.style.color             = tab === 'azure' ? '#0078d4' : '#888';
+        tabAZ.style.fontWeight        = tab === 'azure' ? 'bold' : 'normal';
+    }
+    if (tab === 'github') _populateGHPane();
+    if (tab === 'azure')  _populateAZPane();
+}
+
+function _populateGHPane() {
+    if ($('spSiteUrl'))       $('spSiteUrl').value       = spConfig.siteUrl    || '';
+    if ($('spFolderPath'))    $('spFolderPath').value    = spConfig.folderPath || '';
+    if ($('spFileName'))      $('spFileName').value      = spConfig.fileName   || '';
+    if ($('spAutoSync'))      $('spAutoSync').checked    = spConfig.autoSync   || false;
+    if ($('spDataFileName'))  $('spDataFileName').value  = spConfig.dataFile   || spDataFile  || 'shiftplanner_data.json';
+    if ($('spCmtFileName'))   $('spCmtFileName').value   = spConfig.cmtFile    || spCmtFile   || 'shiftplanner_comments.json';
+    if ($('spInternalToken')) $('spInternalToken').value = spConfig.internalToken || SP_INTERNAL_TOKEN || '';
+    const dpEl = $('spDataPwd');
+    if (dpEl) dpEl.value = dataPassword || '';
+    const cmtField = $('cmtSharedToken');
+    if (cmtField) cmtField.value = COMMENTS_SHARED_TOKEN || '';
+    if (spConfig.fileName) { const w = $('patWriteWarn'); if (w) w.style.display = 'block'; }
+}
+
+function _populateAZPane() {
+    loadAzureConfig();
+    if ($('azTenantId'))       $('azTenantId').value       = azureConfig.tenantId       || '';
+    if ($('azClientId'))       $('azClientId').value       = azureConfig.clientId       || '';
+    if ($('azStorageAccount')) $('azStorageAccount').value = azureConfig.storageAccount || '';
+    if ($('azContainer'))      $('azContainer').value      = azureConfig.container      || 'shiftplanner-data';
+    if ($('azAutoSync'))       $('azAutoSync').checked     = azureConfig.autoSync       || false;
+    const msalInst = _getMsal();
+    if (msalInst) {
+        const accounts = msalInst.getAllAccounts();
+        if (accounts.length) { _azureAccount = accounts[0]; _updateAzureLoginUI(true); }
+        else _updateAzureLoginUI(false);
+    } else _updateAzureLoginUI(false);
+}
+
+function openSyncModal(tab) {
+    $('syncModal').style.display = 'block';
+    switchSyncTab(tab || _activeSyncTab || 'github');
+}
+
+function closeSyncModal() { $('syncModal').style.display = 'none'; }
+
+function syncQuickPull() {
+    if (_activeSyncTab === 'azure' && azureConfig.storageAccount) azurePull();
+    else spPull('direct');
+}
+function syncQuickPush() {
+    if (_activeSyncTab === 'azure' && azureConfig.storageAccount) azurePush();
+    else spPush();
+}
+
+// Back-compat shims
+function openSPModal()    { openSyncModal('github'); }
+function closeSPModal()   { closeSyncModal(); }
+function openAzureModal() { openSyncModal('azure'); }
+function closeAzureModal(){ closeSyncModal(); }
+
+// ══════════════════════════════════════════════════════
+// ☁️  Azure Blob Sync — additive module, independent of GitHub Sync
+// ══════════════════════════════════════════════════════════════════
+
+let azureConfig = { tenantId:'', clientId:'', storageAccount:'', container:'shiftplanner-data', autoSync:false };
+let _msalInstance  = null;
+let _azureAccount  = null;
+
+// ── Persist / load Azure config ──
+function loadAzureConfig() {
+    try {
+        const s = localStorage.getItem('shiftPlannerAzureConfig');
+        if (s) azureConfig = { ...azureConfig, ...JSON.parse(s) };
+    } catch(e) {}
+}
+function persistAzureConfig() {
+    try { localStorage.setItem('shiftPlannerAzureConfig', JSON.stringify(azureConfig)); } catch(e) {}
+}
+
+// ── MSAL initialisation (lazy — only when tenantId + clientId are set) ──
+function _getMsal() {
+    if (_msalInstance) return _msalInstance;
+    if (!azureConfig.tenantId || !azureConfig.clientId) return null;
+    _msalInstance = new msal.PublicClientApplication({
+        auth: {
+            clientId:   azureConfig.clientId,
+            authority:  'https://login.microsoftonline.com/' + azureConfig.tenantId,
+            redirectUri: window.location.href.split('?')[0].split('#')[0]
+        },
+        cache: { cacheLocation: 'localStorage', storeAuthStateInCookie: false }
+    });
+    return _msalInstance;
+}
+
+// ── Acquire access token for Azure Storage (silent → popup fallback) ──
+async function _azureGetToken() {
+    const msalInst = _getMsal();
+    if (!msalInst) throw new Error('Azure not configured — enter Tenant ID and Client ID first.');
+    const accounts = msalInst.getAllAccounts();
+    if (!accounts.length) throw new Error('Not signed in — click Sign in first.');
+    _azureAccount = accounts[0];
+    const req = { scopes: ['https://storage.azure.com/user_impersonation'], account: _azureAccount };
+    try {
+        const r = await msalInst.acquireTokenSilent(req);
+        return r.accessToken;
+    } catch(e) {
+        const r = await msalInst.acquireTokenPopup(req);
+        return r.accessToken;
+    }
+}
+
+// ── Sign in / out ──
+async function azureSignIn() {
+    const msalInst = _getMsal();
+    if (!msalInst) { azureShowStatus('⚠️ Save Tenant ID and Client ID first.', '#fff3cd', '#856404'); return; }
+    try {
+        const r = await msalInst.loginPopup({ scopes: ['User.Read', 'https://storage.azure.com/user_impersonation'] });
+        _azureAccount = r.account;
+        _updateAzureLoginUI(true);
+        azureShowStatus('✅ Signed in as ' + _azureAccount.username, '#e6ffe6', '#1a7f37');
+    } catch(e) { azureShowStatus('❌ Sign-in failed: ' + e.message, '#ffeaea', '#c0392b'); }
+}
+
+async function azureSignOut() {
+    const msalInst = _getMsal();
+    if (msalInst && _azureAccount) {
+        await msalInst.logoutPopup({ account: _azureAccount });
+    }
+    _azureAccount = null;
+    _updateAzureLoginUI(false);
+    azureShowStatus('👋 Signed out.', '#f6f8fa', '#555');
+}
+
+function _updateAzureLoginUI(loggedIn) {
+    const label   = $('azureLoginLabel');
+    const btnIn   = $('btnAzureLogin');
+    const btnOut  = $('btnAzureLogout');
+    const ppRow   = $('azurePullPushRow');
+    if (label)  label.textContent = loggedIn ? '✅ Signed in as ' + (_azureAccount ? _azureAccount.username : '') : '🔐 Not signed in to Microsoft';
+    if (btnIn)  btnIn.style.display  = loggedIn ? 'none'  : 'inline-block';
+    if (btnOut) btnOut.style.display = loggedIn ? 'inline-block' : 'none';
+    if (ppRow)  ppRow.style.display  = loggedIn ? 'flex'  : 'none';
+}
+
+// ── Blob REST helpers ──
+function _blobUrl(filename) {
+    const acc = azureConfig.storageAccount;
+    const ctr = azureConfig.container || 'shiftplanner-data';
+    return `https://${acc}.blob.core.windows.net/${ctr}/${filename}`;
+}
+
+async function _azureRead(filename) {
+    const token = await _azureGetToken();
+    const res   = await fetch(_blobUrl(filename), {
+        headers: { 'Authorization': 'Bearer ' + token, 'x-ms-version': '2020-10-02' }
+    });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error('Azure read failed: ' + res.status + ' ' + res.statusText);
+    return await res.text();
+}
+
+async function _azureWrite(filename, content) {
+    const token = await _azureGetToken();
+    const res   = await fetch(_blobUrl(filename), {
+        method: 'PUT',
+        headers: {
+            'Authorization':    'Bearer ' + token,
+            'x-ms-version':     '2020-10-02',
+            'x-ms-blob-type':   'BlockBlob',
+            'Content-Type':     'application/json'
+        },
+        body: content
+    });
+    if (!res.ok) throw new Error('Azure write failed: ' + res.status + ' ' + res.statusText);
+}
+
+// ── Pull — reads data blob, decrypts, loads into app ──
+async function azurePull() {
+    azureShowStatus('⏳ Pulling from Azure…', '#e6f3ff', '#0969da');
+    try {
+        const raw  = await _azureRead(spDataFile);
+        if (!raw)  { azureShowStatus('⚠️ No data file found in Azure — push first.', '#fff3cd', '#856404'); return; }
+        const text = await decryptData(raw);
+        const obj  = JSON.parse(text);
+        Object.keys(obj).forEach(k => {
+            if (k.startsWith('__')) { allMonthsData[k] = obj[k]; return; }
+            allMonthsData[k] = obj[k];
+        });
+        localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
+        if (allMonthsData.__workerRoster) workerRoster = allMonthsData.__workerRoster.workers || [];
+        renderMonth();
+        azureShowStatus('✅ Pulled from Azure · ' + new Date().toLocaleTimeString(), '#e6ffe6', '#1a7f37');
+        localStorage.setItem('shiftPlannerAzureLastSync', new Date().toISOString());
+    } catch(e) { azureShowStatus('❌ Pull failed: ' + e.message, '#ffeaea', '#c0392b'); }
+}
+
+// ── Push — encrypts current data, writes to blob ──
+async function azurePush(silent) {
+    if (!silent) azureShowStatus('⏳ Pushing to Azure…', '#e6f3ff', '#0969da');
+    try {
+        allMonthsData.__workerRoster = { workers: workerRoster };
+        const payload = await encryptData(JSON.stringify(allMonthsData));
+        await _azureWrite(spDataFile, payload);
+        if (!silent) azureShowStatus('✅ Pushed to Azure · ' + new Date().toLocaleTimeString(), '#e6ffe6', '#1a7f37');
+        localStorage.setItem('shiftPlannerAzureLastSync', new Date().toISOString());
+        _setAzureStatusBar('☁️ Azure synced · ' + new Date().toLocaleTimeString());
+    } catch(e) {
+        if (!silent) azureShowStatus('❌ Push failed: ' + e.message, '#ffeaea', '#c0392b');
+        else _setAzureStatusBar('⚠️ Azure push failed — check connection.');
+    }
+}
+
+// ── Test connection ──
+async function azureTestConnection() {
+    azureShowStatus('🔌 Testing connection…', '#f0f6ff', '#0078d4');
+    try {
+        await _azureGetToken();
+        azureShowStatus('✅ Connection OK — token acquired successfully.', '#e6ffe6', '#1a7f37');
+    } catch(e) { azureShowStatus('❌ Connection failed: ' + e.message, '#ffeaea', '#c0392b'); }
+}
+
+// ── Config save / load / modal open-close ──
+function saveAzureConfig() {
+    azureConfig.tenantId        = ($('azTenantId').value        || '').trim();
+    azureConfig.clientId        = ($('azClientId').value        || '').trim();
+    azureConfig.storageAccount  = ($('azStorageAccount').value  || '').trim();
+    azureConfig.container       = ($('azContainer').value       || 'shiftplanner-data').trim();
+    azureConfig.autoSync        = $('azAutoSync').checked;
+    persistAzureConfig();
+    _msalInstance = null; // force re-init with new config
+    azureShowStatus('✅ Azure settings saved.', '#e6ffe6', '#1a7f37');
+}
+
+// openAzureModal() — handled by shim
+
+// closeAzureModal() — replaced by closeSyncModal() shim above
+
+function azureShowStatus(msg, bg, color) {
+    const el = $('azureModalStatus');
+    if (!el) return;
+    el.textContent = msg; el.style.background = bg; el.style.color = color;
+    el.style.display = 'block';
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.style.display = 'none'; }, 6000);
+}
+
+function _setAzureStatusBar(msg) {
+    const el = $('azureStatusBar');
+    if (!el) return;
+    el.textContent = msg; el.style.background = '#e6f3ff'; el.style.color = '#0078d4';
+    el.style.display = 'block';
+}
+
+// ── Auto-push hook: called alongside existing spPush auto-push points ──
+function azureAutoPushIfEnabled() {
+    if (azureConfig.autoSync && azureConfig.storageAccount && _azureAccount) azurePush(true);
+}
+
+// ── Init on page load ──
+document.addEventListener('DOMContentLoaded', () => {
+    loadAzureConfig();
+    if (azureConfig.storageAccount && azureConfig.tenantId) {
+        const lastSync = localStorage.getItem('shiftPlannerAzureLastSync');
+        _setAzureStatusBar('☁️ Azure configured' + (lastSync ? ' · Last: ' + new Date(lastSync).toLocaleTimeString() : ' · Not yet synced'));
+        $('azurePullPushRow') && ($('azurePullPushRow').style.display = 'none'); // shown only after sign-in
+        // Check for existing MSAL session
+        const msalInst = _getMsal();
+        if (msalInst) {
+            msalInst.handleRedirectPromise().then(() => {
+                const accounts = msalInst.getAllAccounts();
+                if (accounts.length) {
+                    _azureAccount = accounts[0];
+                    _updateAzureLoginUI(true);
+                    if (azureConfig.autoSync) azurePull();
+                }
+            }).catch(() => {});
+        }
+    }
+});
+
+// ── Security helpers ──
+function _randomFilename(prefix) {
+    const rand = Array.from(crypto.getRandomValues(new Uint8Array(6)))
+        .map(b => b.toString(16).padStart(2,'0')).join('');
+    return `${prefix}_${rand}.json`;
+}
+function randomiseDataFile() {
+    const name = _randomFilename('sp');
+    const el = $('spDataFileName');
+    if (el) { el.value = name; el.style.background = '#fffff0'; }
+}
+function randomiseCmtFile() {
+    const name = _randomFilename('sc');
+    const el = $('spCmtFileName');
+    if (el) { el.value = name; el.style.background = '#fffff0'; }
+}
+function generateInternalToken() {
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+        .map(b => b.toString(16).padStart(2,'0')).join('');
+    const el = $('spInternalToken');
+    if (el) {
+        el.value = token;
+        el.style.background = '#e6ffe6';
+        setTimeout(() => { el.style.background = '#fffff0'; }, 1200);
+    }
+}
+
 function liveUpdatePAT(value) {
     const trimmed = value.trim();
     spConfig.fileName = trimmed;
