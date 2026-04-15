@@ -942,10 +942,18 @@
                         <small style="color:#666;">Your GitHub username or organisation name</small>
                     </div>
                     <div>
-                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Repository Name</label>
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">GitHub Pages Repository <small style="font-weight:normal; color:#888;">(hosts the app HTML)</small></label>
                         <input id="spFolderPath" type="text" placeholder="e.g. shift-planner"
                             style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
-                        <small style="color:#666;">The repo where you host the GitHub Pages site</small>
+                        <small style="color:#666;">The <strong>public</strong> repo that hosts the GitHub Pages site.</small>
+                    </div>
+                    <div style="background:#eaf4ff; border:1px solid #a8d4f5; border-radius:5px; padding:9px;">
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">🔒 Private Data Repository <small style="font-weight:normal; color:#555;">(stores shift data)</small></label>
+                        <input id="spDataRepo" type="text" placeholder="e.g. shift-planner-data  (leave blank = use Pages repo)"
+                            style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
+                        <small style="color:#555; display:block; margin-top:3px;">
+                            Optional but recommended. Create a <strong>separate private repo</strong> and enter its name here. All JSON data files (shifts, comments, config) will be saved there — keeping user data out of your public Pages repo. Leave blank to use the Pages repo (legacy behaviour).
+                        </small>
                     </div>
                     <div>
                         <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Personal Access Token (PAT)</label>
@@ -1002,11 +1010,12 @@
 
             <!-- How it works -->
             <div style="background:#fffbe6; border:1px solid #ffe58f; border-radius:6px; padding:10px; margin-bottom:12px; font-size:11px; line-height:1.7;">
-                <strong>📋 One-time setup:</strong><br>
-                1. Create (or use your existing) GitHub repo — the same one hosting the GitHub Pages site.<br>
-                2. Each team member creates their own PAT with <em>Contents: Read &amp; Write</em> permission, enters it here, and saves.<br>
-                3. The planner saves <code>shiftplanner_data.json</code> and <code>shiftplanner_config.json</code> directly in the repo root.<br>
-                4. Everyone accesses the same shared schedule via the GitHub Pages link. ✅
+                <strong>📋 Recommended two-repo setup:</strong><br>
+                1. <strong>Public Pages repo</strong> — hosts <code>index.html</code> (the app). Set in <em>GitHub Pages Repository</em> above.<br>
+                2. <strong>Private data repo</strong> — stores JSON files (shifts, comments, passwords). Set in <em>🔒 Private Data Repository</em> above.<br>
+                3. Create a PAT with <em>Contents: Read &amp; Write</em> on the <strong>private data repo</strong>. Each team member enters their own PAT here.<br>
+                4. Everyone opens the app via the GitHub Pages link — data is automatically read from (and saved to) the private repo. ✅<br>
+                <span style="color:#856404;"><strong>ℹ️ Legacy:</strong></span> Leave <em>Private Data Repository</em> blank to store data in the Pages repo (single-repo mode, same as before).
             </div>
 
             <!-- Status -->
@@ -1327,7 +1336,7 @@ let currentLang = 'en'; // 'en' or 'de'
 
 // GitHub sync config (stored separately in localStorage, not per-month)
 // owner = GitHub username/org, repo = repository name, token = PAT (personal per user)
-let spConfig = { siteUrl:'', folderPath:'', fileName:'', autoSync:false };
+let spConfig = { siteUrl:'', folderPath:'', fileName:'', autoSync:false, dataRepo:'' };
 
 // ── Data Encryption ──
 // All JSON files stored on GitHub are AES-encrypted with this shared password.
@@ -6339,8 +6348,14 @@ async function spLoadConfig() {
 //    fileName   → GitHub PAT (personal access token)
 // ─────────────────────────────────────────────────────────
 
+// Returns the repo used for DATA files (shift JSON, comments, config).
+// Uses the dedicated private data repo if configured; falls back to the
+// GitHub Pages repo so existing single-repo setups continue to work.
+function _dataRepo() {
+    return (spConfig.dataRepo && spConfig.dataRepo.trim()) ? spConfig.dataRepo.trim() : spConfig.folderPath;
+}
 function ghApiUrl(file) {
-    return `https://api.github.com/repos/${spConfig.siteUrl}/${spConfig.folderPath}/contents/${file}`;
+    return `https://api.github.com/repos/${spConfig.siteUrl}/${_dataRepo()}/contents/${file}`;
 }
 
 function ghHeaders() {
@@ -6375,7 +6390,7 @@ async function ghReadFile(file) {
         }
     }
     // Fallback: unauthenticated raw URL (public repos, no PAT) — no SHA available
-    const owner = spConfig.siteUrl, repo = spConfig.folderPath;
+    const owner = spConfig.siteUrl, repo = _dataRepo();
     if (owner && repo) {
         try {
             const rawUrl = 'https://raw.githubusercontent.com/' + owner + '/' + repo + '/main/' + file + '?t=' + Date.now();
@@ -6441,6 +6456,7 @@ function saveSPConfig() {
     spConfig = {
         siteUrl:       $('spSiteUrl').value.trim(),
         folderPath:    $('spFolderPath').value.trim(),
+        dataRepo:      ($('spDataRepo') ? $('spDataRepo').value.trim() : ''),
         fileName:      $('spFileName').value.trim(),
         autoSync:      $('spAutoSync').checked,
         dataFile:      dataFileVal,
@@ -6454,6 +6470,8 @@ function saveSPConfig() {
     localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(spConfig));
     spShowModalStatus('✅ Settings saved!', '#e6ffe6', '#107c10');
     spSetStatus(`🐙 GitHub configured · Not yet synced`, '#f6f8fa', '#24292f');
+    // Refresh status chips immediately after config change
+    if (typeof window._renderSyncStatusBadges === 'function') window._renderSyncStatusBadges();
     // Immediately load the password hash from GitHub with the new config
     spLoadConfig();
 }
@@ -6465,6 +6483,8 @@ function spSetStatus(msg, bg, color) {
     bar.style.background = bg;
     bar.style.color = color;
     bar.style.display = 'block';
+    // Keep the status-chip bar in sync whenever the sync status changes
+    if (typeof window._renderSyncStatusBadges === 'function') window._renderSyncStatusBadges();
 }
 
 function spShowModalStatus(msg, bg, color) {
@@ -6489,16 +6509,32 @@ async function spTestConnection() {
     }
     spShowModalStatus('🔌 Testing connection...', '#f6f8fa', '#24292f');
     try {
-        const r = await fetch(
+        const pagesR = await fetch(
             `https://api.github.com/repos/${spConfig.siteUrl}/${spConfig.folderPath}`,
             { headers: ghHeaders() }
         );
-        if (r.status === 401) throw new Error('Invalid token — check your PAT.');
-        if (r.status === 403) throw new Error('Forbidden — token lacks repo access.');
-        if (r.status === 404) throw new Error('Repo not found — check owner/repo name.');
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const data = await r.json();
-        spShowModalStatus(`✅ Connected to: ${data.full_name} (${data.private ? 'private' : 'public'})`, '#e6ffe6', '#107c10');
+        if (pagesR.status === 401) throw new Error('Invalid token — check your PAT.');
+        if (pagesR.status === 403) throw new Error('Forbidden — token lacks repo access.');
+        if (pagesR.status === 404) throw new Error('Pages repo not found — check owner/repo name.');
+        if (!pagesR.ok) throw new Error(`HTTP ${pagesR.status}`);
+        const pagesData = await pagesR.json();
+        // If a separate data repo is configured, test that too
+        const dr = spConfig.dataRepo && spConfig.dataRepo.trim();
+        if (dr) {
+            const dataR = await fetch(
+                `https://api.github.com/repos/${spConfig.siteUrl}/${dr}`,
+                { headers: ghHeaders() }
+            );
+            if (dataR.status === 404) throw new Error(`Data repo "${dr}" not found — check the name.`);
+            if (!dataR.ok) throw new Error(`Data repo HTTP ${dataR.status}`);
+            const dataData = await dataR.json();
+            spShowModalStatus(
+                `✅ Pages repo: ${pagesData.full_name} (${pagesData.private ? 'private' : 'public'}) · ` +
+                `Data repo: ${dataData.full_name} (${dataData.private ? '🔒 private' : 'public'})`,
+                '#e6ffe6', '#107c10');
+        } else {
+            spShowModalStatus(`✅ Connected to: ${pagesData.full_name} (${pagesData.private ? 'private' : 'public'}) · ℹ️ No separate data repo set`, '#e6ffe6', '#107c10');
+        }
     } catch(e) {
         spShowModalStatus(`❌ Connection failed: ${e.message}`, '#ffe6e6', '#c0392b');
     }
@@ -6912,7 +6948,7 @@ async function cmtTest() {
     cmtShowStatus('🔌 Testing...', '#f6f8fa', '#24292f');
     try {
         const r = await fetch(
-            `https://api.github.com/repos/${spConfig.siteUrl}/${spConfig.folderPath}`,
+            `https://api.github.com/repos/${spConfig.siteUrl}/${_dataRepo()}`,
             { headers: { 'Accept':'application/vnd.github+json', 'Authorization':`Bearer ${cmtToken()}`, 'X-GitHub-Api-Version':'2022-11-28' } }
         );
         if (r.status === 401) throw new Error('Invalid token');
@@ -6936,7 +6972,7 @@ function scheduleCommentSync() {
 // (so comments can use the shared token, shift data uses personal PAT)
 
 async function ghReadFileWith(file, token) {
-    const url = `https://api.github.com/repos/${spConfig.siteUrl}/${spConfig.folderPath}/contents/${file}`;
+    const url = `https://api.github.com/repos/${spConfig.siteUrl}/${_dataRepo()}/contents/${file}`;
     const r = await fetch(url, {
         headers: { 'Accept':'application/vnd.github+json', 'Authorization':`Bearer ${token}`, 'X-GitHub-Api-Version':'2022-11-28' }
     });
@@ -6950,7 +6986,7 @@ async function ghReadFileWith(file, token) {
 }
 
 async function ghWriteFileWith(file, content, token, commitMsg) {
-    const url = `https://api.github.com/repos/${spConfig.siteUrl}/${spConfig.folderPath}/contents/${file}`;
+    const url = `https://api.github.com/repos/${spConfig.siteUrl}/${_dataRepo()}/contents/${file}`;
     const hdrs = { 'Accept':'application/vnd.github+json', 'Authorization':`Bearer ${token}`, 'X-GitHub-Api-Version':'2022-11-28', 'Content-Type':'application/json' };
     // ── Use cached SHA — do NOT re-fetch (that would bypass conflict detection) ──
     const sha = window._shaCache && window._shaCache[file];
@@ -7031,6 +7067,7 @@ function switchSyncTab(tab) {
 function _populateGHPane() {
     if ($('spSiteUrl'))       $('spSiteUrl').value       = spConfig.siteUrl    || '';
     if ($('spFolderPath'))    $('spFolderPath').value    = spConfig.folderPath || '';
+    if ($('spDataRepo'))      $('spDataRepo').value      = spConfig.dataRepo   || '';
     if ($('spFileName'))      $('spFileName').value      = spConfig.fileName   || '';
     if ($('spAutoSync'))      $('spAutoSync').checked    = spConfig.autoSync   || false;
     if ($('spDataFileName'))  $('spDataFileName').value  = spConfig.dataFile   || spDataFile  || 'shiftplanner_data.json';
@@ -7353,6 +7390,8 @@ function liveUpdateEncryption(value) {
         clearTimeout(statusEl._t);
         statusEl._t = setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
     }
+    // Refresh encryption chip immediately
+    if (typeof window._renderSyncStatusBadges === 'function') window._renderSyncStatusBadges();
 }
 
 function liveUpdateCommentToken(value) {
@@ -7554,9 +7593,17 @@ function renderMobileView() {
                     style="width:100%; box-sizing:border-box; padding:9px; font-size:14px; border:2px solid #ddd; border-radius:6px;">
             </div>
             <div>
-                <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:3px;">Repository Name</label>
+                <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:3px;">GitHub Pages Repository <small style="font-weight:normal; color:#888;">(hosts the app)</small></label>
                 <input id="su_repo" type="text" placeholder="e.g. shift-planner"
                     style="width:100%; box-sizing:border-box; padding:9px; font-size:14px; border:2px solid #ddd; border-radius:6px;">
+            </div>
+            <div style="background:#eaf4ff; border:1px solid #a8d4f5; border-radius:6px; padding:10px;">
+                <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:3px; color:#0550ae;">🔒 Private Data Repository <small style="font-weight:normal; color:#888;">— recommended</small></label>
+                <input id="su_datarepo" type="text" placeholder="e.g. shift-planner-data  (leave blank = same as Pages repo)"
+                    style="width:100%; box-sizing:border-box; padding:9px; font-size:14px; border:2px solid #ddd; border-radius:6px;">
+                <div style="font-size:11px; color:#555; margin-top:5px; line-height:1.5;">
+                    Separate <strong>private</strong> repo for shift data. Keeps staff data out of your public Pages repo. Leave blank to use the Pages repo.
+                </div>
             </div>
             <div style="background:#f0fff4; border:1px solid #a9dfbf; border-radius:6px; padding:10px;">
                 <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:3px; color:#1a7f37;">Personal Access Token (PAT) <span style="font-weight:normal; color:#888;">— optional for viewers</span></label>
@@ -7601,8 +7648,10 @@ function renderMobileView() {
                 var c = JSON.parse(saved);
                 var o = $('su_owner');
                 var r = $('su_repo');
+                var dr = $('su_datarepo');
                 if (o && c.siteUrl)    o.value = c.siteUrl;
                 if (r && c.folderPath) r.value = c.folderPath;
+                if (dr && c.dataRepo)  dr.value = c.dataRepo;
                 var dp = $('su_datapwd');
                 var savedPwd = sessionStorage.getItem('shiftPlannerDataPwd')
                            || localStorage.getItem('shiftPlannerDataPwd');
@@ -7635,19 +7684,25 @@ function renderMobileView() {
 
     // Test only — no save
     window.suTest = async function() {
-        var owner = ($('su_owner').value || '').trim();
-        var repo  = ($('su_repo').value  || '').trim();
-        var token = ($('su_token').value || '').trim();
-        var err   = $('su_error');
-        var stat  = $('su_status');
-        var btn   = $('su_test_btn');
+        var owner    = ($('su_owner').value    || '').trim();
+        var repo     = ($('su_repo').value     || '').trim();
+        var dataRepo = ($('su_datarepo') ? ($('su_datarepo').value || '') : '').trim();
+        var token    = ($('su_token').value    || '').trim();
+        var err  = $('su_error');
+        var stat = $('su_status');
+        var btn  = $('su_test_btn');
         err.style.display = 'none'; stat.style.display = 'none';
         if (!owner || !repo) { err.textContent = 'Please enter your GitHub username and repository name.'; err.style.display = 'block'; return; }
         btn.textContent = 'Testing...'; btn.disabled = true;
         try {
             var data = await suCheckRepo(owner, repo, token);
-            stat.textContent = '✅ Connection OK — ' + data.full_name + (data.private ? ' (private)' : ' (public)') + '. Ready to connect.';
-            stat.style.display = 'block';
+            var msg = '✅ Pages repo OK — ' + data.full_name + (data.private ? ' (private)' : ' (public)');
+            if (dataRepo) {
+                var ddata = await suCheckRepo(owner, dataRepo, token);
+                msg += ' · Data repo OK — ' + ddata.full_name + (ddata.private ? ' (🔒 private)' : ' (public)');
+            }
+            msg += '. Ready to connect.';
+            stat.textContent = msg; stat.style.display = 'block';
         } catch(e) {
             err.textContent = '❌ ' + e.message; err.style.display = 'block';
         }
@@ -7655,12 +7710,13 @@ function renderMobileView() {
     };
 
     window.suConnect = async function() {
-        var owner = ($('su_owner').value || '').trim();
-        var repo  = ($('su_repo').value  || '').trim();
-        var token = ($('su_token').value || '').trim();
-        var err   = $('su_error');
-        var stat  = $('su_status');
-        var btn   = $('su_btn');
+        var owner    = ($('su_owner').value    || '').trim();
+        var repo     = ($('su_repo').value     || '').trim();
+        var dataRepo = ($('su_datarepo') ? ($('su_datarepo').value || '') : '').trim();
+        var token    = ($('su_token').value    || '').trim();
+        var err  = $('su_error');
+        var stat = $('su_status');
+        var btn  = $('su_btn');
         err.style.display = 'none'; stat.style.display = 'none';
         if (!owner || !repo) {
             err.textContent = 'Please enter your GitHub username and repository name.';
@@ -7669,33 +7725,35 @@ function renderMobileView() {
         btn.textContent = 'Connecting...'; btn.disabled = true;
         try {
             var data = await suCheckRepo(owner, repo, token);
-            // Save GitHub config
-            var cfg = { siteUrl: owner, folderPath: repo, fileName: token, autoSync: false };
+            // Save GitHub config — include dataRepo
+            var cfg = { siteUrl: owner, folderPath: repo, dataRepo: dataRepo, fileName: token, autoSync: false };
             localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(cfg));
             // Save data password — use saveDataPassword so it goes to sessionStorage only
             var dpwd = ($('su_datapwd') || {value:''}).value.trim();
             if (dpwd && typeof saveDataPassword === 'function') saveDataPassword(dpwd);
             else if (dpwd) sessionStorage.setItem('shiftPlannerDataPwd', dpwd);
-            stat.textContent = 'Connected to ' + data.full_name + '! Loading config...';
+            var label = dataRepo ? (repo + ' + 🔒' + dataRepo) : repo;
+            stat.textContent = 'Connected to ' + data.full_name + (dataRepo ? ' (data → ' + dataRepo + ')' : '') + '! Loading config...';
             stat.style.display = 'block';
             btn.textContent = 'Connected!';
             // Tell the main app about the new config
             if (typeof spConfig !== 'undefined') {
                 spConfig.siteUrl    = owner;
                 spConfig.folderPath = repo;
+                spConfig.dataRepo   = dataRepo;
                 spConfig.fileName   = token;
             }
             // Apply data password to main app immediately
             var dpwd2 = ($('su_datapwd') || {value:''}).value.trim();
             if (typeof saveDataPassword === 'function' && dpwd2) saveDataPassword(dpwd2);
             if (typeof spLoadConfig === 'function') spLoadConfig();
-            if (typeof spSetStatus  === 'function') spSetStatus('🐙 ' + owner + '/' + repo + ' · Connected', '#f6f8fa', '#24292f');
+            if (typeof spSetStatus  === 'function') spSetStatus('🐙 ' + owner + '/' + label + ' · Connected', '#f6f8fa', '#24292f');
             setTimeout(function() {
                 suDismiss();
                 if (typeof spPull === 'function') spPull(true);
                 // Update sync button label to show connected
                 var btn2 = $('btnSPSync');
-                if (btn2) btn2.textContent = '🐙 GitHub: ' + repo;
+                if (btn2) btn2.textContent = '🐙 GitHub: ' + label;
             }, 1200);
         } catch(e) {
             err.textContent = e.message;
@@ -7841,6 +7899,10 @@ function renderMobileView() {
       + '<span class="status-chip ' + (rosterCount ? 'chip-ok' : 'chip-off') + '">👥 Roster ' + rosterCount + '</span>'
       + '<span class="status-chip ' + (lastSync ? 'chip-ok' : 'chip-off') + '">' + (lastSync ? '🕒 ' + lastSync : '🕒 Not synced yet') + '</span>';
   }
+  // Expose globally so spSetStatus, saveSPConfig, liveUpdateEncryption etc. can call it
+  window._renderSyncStatusBadges = renderSyncStatusBadges;
+  // Fallback: refresh every 5 s so the bar never stays stale even if no render events fire
+  setInterval(renderSyncStatusBadges, 5000);
 
   function ensureVacationRangePanel(){
     if($('vacRangePanel')) return;
