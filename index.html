@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://alcdn.msauth.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://login.microsoftonline.com https://*.blob.core.windows.net; img-src 'self' data:; frame-ancestors 'none';">
     <title>Shift Planner V2</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 20px; font-size: 13px; }
@@ -1632,6 +1633,8 @@ function getHolidayName(dIndex) {
 // ─────────────────────────────────────────────────────────
 // ─── Helpers (shorthand + utilities) ───────────────────────
 const $ = id => document.getElementById(id);
+// Escape user-supplied strings before injecting into innerHTML to prevent XSS
+const escHtml = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const $$ = sel => document.querySelectorAll(sel);
 const show = id => $(id) && ($(id).style.display = 'block');
 const hide = id => $(id) && ($(id).style.display = 'none');
@@ -1681,12 +1684,24 @@ window.onload = () => { try {
     const savedSPCfg = localStorage.getItem('shiftPlannerSPConfig');
     if (savedSPCfg) {
         try {
-            spConfig = { ...spConfig, ...JSON.parse(savedSPCfg) };
+            const parsed = JSON.parse(savedSPCfg);
+            // SECURITY: migrate legacy PAT stored in localStorage → sessionStorage
+            if (parsed.fileName) {
+                try { sessionStorage.setItem('shiftPlannerPAT', parsed.fileName); } catch(e) {}
+                delete parsed.fileName;
+                localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(parsed));
+            }
+            spConfig = { ...spConfig, ...parsed };
             if (spConfig.dataFile)      spDataFile        = spConfig.dataFile;
             if (spConfig.cmtFile)       spCmtFile         = spConfig.cmtFile;
             if (spConfig.internalToken) SP_INTERNAL_TOKEN = spConfig.internalToken;
         } catch(e){}
     }
+    // Restore PAT from sessionStorage (never from localStorage after migration above)
+    try {
+        const savedPAT = sessionStorage.getItem('shiftPlannerPAT');
+        if (savedPAT) spConfig.fileName = savedPAT;
+    } catch(e) {}
     // Load saved comment token
     try {
         const savedCmt = localStorage.getItem('shiftPlannerCmtToken');
@@ -1967,8 +1982,8 @@ function saveData() {
     };
     allMonthsData.__workerRoster = { workers: workerRoster };
     localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
-    // Auto-push to GitHub if configured
-    if (spConfig.autoSync && spConfig.siteUrl) spPush(true);
+    // Auto-push to GitHub if configured, online, and no sync already in progress
+    if (spConfig.autoSync && spConfig.siteUrl && navigator.onLine && !_spSyncing) spPush(true);
     azureAutoPushIfEnabled();
 }
 
@@ -2148,10 +2163,10 @@ function toggleMonthReady() {
             `ready-${currentMonthKey}`
         );
         // Push to GitHub so other users see it on next pull
-        if (spConfig.autoSync && spConfig.siteUrl) spPush(true);
+        if (spConfig.autoSync && spConfig.siteUrl && navigator.onLine && !_spSyncing) spPush(true);
         alert(`✅ ${monthName} marked as READY.\nAll users with notifications enabled will be alerted when they next sync.`);
     } else {
-        if (spConfig.autoSync && spConfig.siteUrl) spPush(true);
+        if (spConfig.autoSync && spConfig.siteUrl && navigator.onLine && !_spSyncing) spPush(true);
     }
 }
 
@@ -3788,7 +3803,7 @@ function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
 function openMonthDiff() {
     const sel = $('diffWorkerSelect');
     sel.innerHTML = '<option value="">-- Select Worker --</option>';
-    workers.forEach((w,i) => sel.innerHTML += `<option value="${w.name}">${w.name}</option>`);
+    workers.forEach((w,i) => sel.innerHTML += `<option value="${escHtml(w.name)}">${escHtml(w.name)}</option>`);
 
     // Default month A = previous month, B = current
     const prev = new Date(currentYear, currentMonth-2, 1);
@@ -4193,7 +4208,7 @@ function buildPersonalICS(w) {
 function openPersonalModal() {
     const sel = $('personalWorkerSelect');
     sel.innerHTML = '<option value="">-- Select Worker --</option>';
-    workers.forEach((w,i) => sel.innerHTML += `<option value="${i}">${w.name}</option>`);
+    workers.forEach((w,i) => sel.innerHTML += `<option value="${i}">${escHtml(w.name)}</option>`);
     $('personalTextArea').value = '';
     $('personalModal').style.display = 'block';
 }
@@ -5646,7 +5661,7 @@ function downloadAsHTML() {
 function copyColorfulExcel() {
     let html = "<table border='1' style='font-family:Arial,sans-serif; font-size:12px; border-collapse:collapse;'>";
     html += `<tr><th>Date</th><th>Holiday?</th><th>LSS?</th>`;
-    workers.forEach(w => html += `<th>${w.name} (${w.contract}h)</th>`);
+    workers.forEach(w => html += `<th>${escHtml(w.name)} (${escHtml(w.contract)}h)</th>`);
     html += `<th>8E</th><th>8M</th><th>8L</th>${use13H?'<th>13H</th>':''}${use6H?'<th>6H</th>':''}<th>ImE</th><th>ImL</th><th>Total</th><th>Sick (names)</th><th>Vacation (names)</th><th>Comments</th></tr>`;
 
     for (let d=0; d<daysInMonth; d++) {
@@ -6366,26 +6381,44 @@ function ghHeaders() {
     };
 }
 
+// ── Sync lock — prevents concurrent push/pull races ──
+let _spSyncing = false;
+function _acquireSyncLock(op) {
+    if (_spSyncing) throw new Error(`Sync already in progress — please wait before ${op}.`);
+    _spSyncing = true;
+}
+function _releaseSyncLock() { _spSyncing = false; }
+
+// ── Thin fetch wrapper: offline check + 429 rate-limit handling ──
+async function ghFetch(url, opts = {}) {
+    if (!navigator.onLine) throw new Error('You appear to be offline. Check your connection and try again.');
+    const r = await fetch(url, opts);
+    if (r.status === 429) {
+        const retry = r.headers.get('Retry-After');
+        throw new Error(`GitHub rate limit reached.${retry ? ` Try again in ${retry}s.` : ' Try again in a minute.'}`);
+    }
+    if (r.status === 401) throw new Error('GitHub token rejected (401). Re-enter your PAT in Sync Settings.');
+    if (r.status === 403) throw new Error('GitHub access forbidden (403). Check your PAT has Contents: Read & Write permission.');
+    return r;
+}
+
 // SHA cache — stores the last-known SHA for each file so writes can detect conflicts
 if (!window._shaCache) window._shaCache = {};
 
 // Read a file from GitHub → returns decoded text or null if not found
 async function ghReadFile(file) {
-    // Always fetch via API first so we capture the SHA for conflict detection
     if (spConfig.fileName) {
         try {
-            const r = await fetch(ghApiUrl(file), { headers: ghHeaders() });
+            const r = await ghFetch(ghApiUrl(file), { headers: ghHeaders() });
             if (r.ok) {
                 const data = await r.json();
-                // ── Cache SHA for conflict detection ──
                 window._shaCache[file] = data.sha;
                 const text = decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
                 return await decryptData(text);
             }
             if (r.status === 404) return null;
-            // non-404 error → fall through to raw URL attempt
         } catch(e) {
-            if (e.message && (e.message.includes('encrypted') || e.message.includes('password'))) throw e;
+            if (e.message && (e.message.includes('encrypted') || e.message.includes('password') || e.message.includes('rate limit') || e.message.includes('offline') || e.message.includes('token') || e.message.includes('forbidden'))) throw e;
             /* fall through to raw URL */
         }
     }
@@ -6422,7 +6455,7 @@ async function ghWriteFile(file, content, commitMsg) {
     };
     if (sha) body.sha = sha;
 
-    const r = await fetch(ghApiUrl(file), {
+    const r = await ghFetch(ghApiUrl(file), {
         method: 'PUT',
         headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
@@ -6467,7 +6500,10 @@ function saveSPConfig() {
     spDataFile = dataFileVal;
     spCmtFile  = cmtFileVal;
     if (tokenVal) SP_INTERNAL_TOKEN = tokenVal;
-    localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(spConfig));
+    localStorage.setItem('shiftPlannerSPConfig', JSON.stringify({ ...spConfig, fileName: undefined }));
+    // PAT lives in sessionStorage only — never in localStorage
+    try { if (tokenVal) sessionStorage.setItem('shiftPlannerPAT', tokenVal);
+          else sessionStorage.removeItem('shiftPlannerPAT'); } catch(e) {}
     spShowModalStatus('✅ Settings saved!', '#e6ffe6', '#107c10');
     spSetStatus(`🐙 GitHub configured · Not yet synced`, '#f6f8fa', '#24292f');
     // Refresh status chips immediately after config change
@@ -6549,6 +6585,10 @@ async function spPull(silent = false) {
         if (!silent) spShowModalStatus('⚠️ Please configure GitHub owner and repo first.', '#fff3cd', '#856404');
         return;
     }
+    try { _acquireSyncLock('pulling'); } catch(e) {
+        if (!silent) spShowModalStatus(`⏳ ${e.message}`, '#fff3cd', '#856404');
+        return;
+    }
     if (!isDirect && !silent) spShowModalStatus('⬇️ Pulling from GitHub...', '#f6f8fa', '#24292f');
     if (isDirect) spSetStatus('⬇️ Pulling…', '#f6f8fa', '#24292f');
     try {
@@ -6590,6 +6630,8 @@ async function spPull(silent = false) {
         const msg = `❌ Pull failed: ${e.message}`;
         if (!silent) spShowModalStatus(msg, '#ffe6e6', '#c0392b');
         spSetStatus(`⚠️ GitHub pull failed`, '#fff3cd', '#856404');
+    } finally {
+        _releaseSyncLock();
     }
 }
 
@@ -6599,6 +6641,10 @@ async function spPull(silent = false) {
 async function spPush(silent = false) {
     if (!spConfig.siteUrl || !spConfig.folderPath || !spConfig.fileName) {
         if (!silent) spShowModalStatus('⚠️ Please configure GitHub settings first.', '#fff3cd', '#856404');
+        return;
+    }
+    try { _acquireSyncLock('pushing'); } catch(e) {
+        if (!silent) spShowModalStatus(`⏳ ${e.message}`, '#fff3cd', '#856404');
         return;
     }
     if (!silent) spShowModalStatus('⬆️ Pushing to GitHub...', '#f6f8fa', '#24292f');
@@ -6731,6 +6777,8 @@ async function spPush(silent = false) {
             if (!silent) spShowModalStatus(`❌ Push failed: ${e.message}`, '#ffe6e6', '#c0392b');
             spSetStatus(`⚠️ GitHub push failed`, '#fff3cd', '#856404');
         }
+    } finally {
+        _releaseSyncLock();
     }
 }
 
@@ -6973,10 +7021,13 @@ function scheduleCommentSync() {
 
 async function ghReadFileWith(file, token) {
     const url = `https://api.github.com/repos/${spConfig.siteUrl}/${_dataRepo()}/contents/${file}`;
+    if (!navigator.onLine) throw new Error('You appear to be offline. Check your connection and try again.');
     const r = await fetch(url, {
         headers: { 'Accept':'application/vnd.github+json', 'Authorization':`Bearer ${token}`, 'X-GitHub-Api-Version':'2022-11-28' }
     });
     if (r.status === 404) return null;
+    if (r.status === 429) { const rt = r.headers.get('Retry-After'); throw new Error(`GitHub rate limit reached.${rt ? ` Try again in ${rt}s.` : ' Try again shortly.'}`); }
+    if (r.status === 401) throw new Error('GitHub token rejected (401). Check the shared comment token in Sync Settings.');
     if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
     const data = await r.json();
     // ── Cache SHA for conflict detection ──
@@ -6993,12 +7044,9 @@ async function ghWriteFileWith(file, content, token, commitMsg) {
     const body = { message: commitMsg || `Update · ${new Date().toISOString()}`, content: btoa(unescape(encodeURIComponent(content))) };
     if (sha) body.sha = sha;
     const r = await fetch(url, { method:'PUT', headers: hdrs, body: JSON.stringify(body) });
-    // ── Conflict: file was updated by someone else since our last read ──
-    if (r.status === 409 || r.status === 422) {
-        const err = new Error('CONFLICT');
-        err.isConflict = true;
-        throw err;
-    }
+    if (r.status === 409 || r.status === 422) { const err = new Error('CONFLICT'); err.isConflict = true; throw err; }
+    if (r.status === 429) { const rt = r.headers.get('Retry-After'); throw new Error(`GitHub rate limit reached.${rt ? ` Try again in ${rt}s.` : ' Try again shortly.'}`); }
+    if (r.status === 401) throw new Error('GitHub token rejected (401). Check the shared comment token in Sync Settings.');
     if (!r.ok) throw new Error(`GitHub write ${r.status}: ${await r.text()}`);
     const result = await r.json();
     // Update SHA cache
@@ -7016,6 +7064,9 @@ function clearAppCache() {
         k.startsWith('shiftPlanner') || k.startsWith('SHARED_COMMENT')
     );
     keys.forEach(k => localStorage.removeItem(k));
+    // Also clear sessionStorage secrets
+    try { sessionStorage.removeItem('shiftPlannerPAT'); } catch(e) {}
+    try { sessionStorage.removeItem('shiftPlannerDataPwd'); } catch(e) {}
     alert(`✅ Cleared ${keys.length} cached item(s).\n\nReloading page...`);
     location.reload();
 }
@@ -7068,7 +7119,11 @@ function _populateGHPane() {
     if ($('spSiteUrl'))       $('spSiteUrl').value       = spConfig.siteUrl    || '';
     if ($('spFolderPath'))    $('spFolderPath').value    = spConfig.folderPath || '';
     if ($('spDataRepo'))      $('spDataRepo').value      = spConfig.dataRepo   || '';
-    if ($('spFileName'))      $('spFileName').value      = spConfig.fileName   || '';
+    if ($('spFileName')) {
+        // PAT lives in sessionStorage — not in spConfig in memory after the security fix
+        const pat = (function(){ try { return sessionStorage.getItem('shiftPlannerPAT') || spConfig.fileName || ''; } catch(e){ return spConfig.fileName || ''; } })();
+        $('spFileName').value = pat;
+    }
     if ($('spAutoSync'))      $('spAutoSync').checked    = spConfig.autoSync   || false;
     if ($('spDataFileName'))  $('spDataFileName').value  = spConfig.dataFile   || spDataFile  || 'shiftplanner_data.json';
     if ($('spCmtFileName'))   $('spCmtFileName').value   = spConfig.cmtFile    || spCmtFile   || 'shiftplanner_comments.json';
@@ -7367,13 +7422,11 @@ function generateInternalToken() {
 function liveUpdatePAT(value) {
     const trimmed = value.trim();
     spConfig.fileName = trimmed;
-    // Persist — same place saveSPConfig writes
-    const saved = JSON.parse(localStorage.getItem('shiftPlannerSPConfig') || '{}');
-    saved.fileName = trimmed;
-    localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(saved));
+    // PAT stays in sessionStorage only — removed from localStorage for security
+    try { if (trimmed) sessionStorage.setItem('shiftPlannerPAT', trimmed);
+          else sessionStorage.removeItem('shiftPlannerPAT'); } catch(e) {}
     const status = $('spFileNameStatus');
     if (status) { status.style.display = trimmed ? 'inline' : 'none'; }
-    // Show security warning whenever a PAT is present
     const warn = $('patWriteWarn');
     if (warn) { warn.style.display = trimmed ? 'block' : 'none'; }
 }
@@ -7422,7 +7475,9 @@ function openGHSyncOrSetup() {
                 if (c.siteUrl && c.folderPath) {
                     spConfig.siteUrl    = c.siteUrl;
                     spConfig.folderPath = c.folderPath;
-                    spConfig.fileName   = c.fileName;
+                    // Restore PAT from sessionStorage (never localStorage)
+                    const pat = sessionStorage.getItem('shiftPlannerPAT');
+                    if (pat) spConfig.fileName = pat;
                     openSPModal();
                     return;
                 }
@@ -7725,9 +7780,11 @@ function renderMobileView() {
         btn.textContent = 'Connecting...'; btn.disabled = true;
         try {
             var data = await suCheckRepo(owner, repo, token);
-            // Save GitHub config — include dataRepo
-            var cfg = { siteUrl: owner, folderPath: repo, dataRepo: dataRepo, fileName: token, autoSync: false };
+            // Save GitHub config — PAT (token) stays in sessionStorage, not localStorage
+            var cfg = { siteUrl: owner, folderPath: repo, dataRepo: dataRepo, autoSync: false };
             localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(cfg));
+            try { if (token) sessionStorage.setItem('shiftPlannerPAT', token);
+                  else sessionStorage.removeItem('shiftPlannerPAT'); } catch(e) {}
             // Save data password — use saveDataPassword so it goes to sessionStorage only
             var dpwd = ($('su_datapwd') || {value:''}).value.trim();
             if (dpwd && typeof saveDataPassword === 'function') saveDataPassword(dpwd);
@@ -7893,6 +7950,7 @@ function renderMobileView() {
     const rosterCount = (window.workerRoster && window.workerRoster.length) || (window.workers && window.workers.length) || 0;
     const lastSync = localStorage.getItem('shiftPlannerSPLastSync');
     bar.innerHTML = ''
+      + (!navigator.onLine ? '<span class="status-chip chip-warn">📵 Offline</span>' : '')
       + '<span class="status-chip ' + (ghReady ? 'chip-ok' : 'chip-off') + '">' + (ghReady ? '🐙 GitHub Ready' : '🐙 GitHub Not Set') + '</span>'
       + '<span class="status-chip ' + (patReady ? 'chip-ok' : 'chip-warn') + '">' + (patReady ? '✅ PAT Saved' : '⚠️ Add PAT') + '</span>'
       + '<span class="status-chip ' + (encryptionOn ? 'chip-ok' : 'chip-warn') + '">' + (encryptionOn ? '🔐 Encryption On' : '🔓 Encryption Off') + '</span>'
@@ -7903,6 +7961,9 @@ function renderMobileView() {
   window._renderSyncStatusBadges = renderSyncStatusBadges;
   // Fallback: refresh every 5 s so the bar never stays stale even if no render events fire
   setInterval(renderSyncStatusBadges, 5000);
+  // Instantly reflect going offline/online in the chip bar
+  window.addEventListener('online',  renderSyncStatusBadges);
+  window.addEventListener('offline', renderSyncStatusBadges);
 
   function ensureVacationRangePanel(){
     if($('vacRangePanel')) return;
