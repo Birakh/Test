@@ -4697,15 +4697,14 @@ function buildExcelExportConfig() {
         ...(use6H  ? [{ label: '6H',      key: 'c6H'   }] : []),
         { label: 'ImE',                   key: 'cImE'  },
         { label: 'ImL',                   key: 'cImL'  },
-        { label: de ? 'Arbeitend'       : 'Working',   key: 'work'    },
-        { label: de ? 'Urlaub'          : 'Vacation',  key: 'vac'     },
-        { label: de ? 'Krank (SICK)'    : 'Sick',      key: 'sick'    },
-        { label: 'FB',                                 key: 'fb'      },
-        { label: 'PF',                                 key: 'pf'      },
-        { label: 'DF',                                 key: 'df'      },
-        { label: 'Krank',                              key: 'krank'   },
-        { label: de ? 'Abwesenheit ges.': 'Absence Total', key: 'absence' },
-        { label: de ? 'Kommentare'      : 'Comments',  key: 'comments'},
+        { label: de ? 'Arbeitend'       : 'Working',         key: 'work'    },
+        { label: de ? 'Urlaub'          : 'Vacation',        key: 'vac'     },
+        { label: 'FB',                                        key: 'fb'      },
+        { label: 'PF',                                        key: 'pf'      },
+        { label: 'DF',                                        key: 'df'      },
+        { label: de ? 'Krank'           : 'Sick (SICK)',      key: 'sick'    }, // single column — was duplicated as 'krank'
+        { label: de ? 'Abwesenheit ges.': 'Absence Total',   key: 'absence' },
+        { label: de ? 'Kommentare'      : 'Comments',         key: 'comments'},
         // Room assignment columns — auto-filled with worker names per shift
         { label: de ? 'IR2 Früh'   : 'IR2 Early', key: 'ir2_e' },
         { label: 'IR2 M',                          key: 'ir2_m' },
@@ -4725,15 +4724,23 @@ function buildExcelExportConfig() {
 //  Download as HTML (with embedded data for SharePoint)
 // ─────────────────────────────────────────────────────────
 async function downloadExcelWithFormulas() {
-    if (typeof XLSX === 'undefined') { alert(currentLang==='de' ? 'Die Excel-Bibliothek konnte nicht geladen werden.' : 'The Excel library could not be loaded. Please reload the page and try again.'); return; }
+    const de  = currentLang === 'de';
+    if (typeof XLSX === 'undefined') {
+        alert(de ? 'Die Excel-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden.' : 'The Excel library could not be loaded. Please reload the page and try again.');
+        return;
+    }
+    if (!workers || workers.length === 0) {
+        alert(de ? 'Keine Mitarbeiter vorhanden. Bitte zuerst Mitarbeiter hinzufügen.' : 'No workers found. Please add workers before exporting.');
+        return;
+    }
+    if (!daysInMonth || daysInMonth < 1) {
+        alert(de ? 'Kein Monat ausgewählt.' : 'No month selected.');
+        return;
+    }
     const cfg = buildExcelExportConfig();
     const wb  = XLSX.utils.book_new();
-    const de  = currentLang === 'de';
     const monthTitle = new Date(currentYear, currentMonth-1, 1).toLocaleString(de?'de-DE':'en-US', { month:'long', year:'numeric' });
 
-    // ── Use module-level xlsCssToRgb / xlsFill / xlsCellStyle helpers ──
-    // (defined above — no need to redefine them here)
-    const cssToRgb  = xlsCssToRgb;
     const cellStyle = xlsCellStyle;
 
     // ── Colours ──
@@ -4904,7 +4911,10 @@ async function downloadExcelWithFormulas() {
         // Worker range for this day on the Plan sheet, e.g. "E7:F7"
         const wFirst = excelCol(cfg.workerStartCol);
         const wLast  = excelCol(cfg.workerStartCol + Math.max(workers.length - 1, 0));
-        const wRng   = `${wFirst}${excelRow}:${wLast}${excelRow}`;
+        // Only build a range if there are workers — single worker = single-cell ref
+        const wRng   = workers.length > 1
+            ? `${wFirst}${excelRow}:${wLast}${excelRow}`
+            : workers.length === 1 ? `${wFirst}${excelRow}` : null;
 
         cfg.summary.forEach((s, idx) => {
             const planCol  = cfg.summaryStartCol + idx;
@@ -4913,6 +4923,12 @@ async function downloadExcelWithFormulas() {
 
             if (s.key === 'comments') {
                 planWs[planAddr] = { t:'s', v: dailyComments[d]||'', s: planWs[planAddr]?.s || xlsCellStyle('#'+COMMENT_BG, { border:true, align:'left' }) };
+                return;
+            }
+
+            // If no workers, write zero and skip formula
+            if (!wRng) {
+                planWs[planAddr] = { t:'n', v: 0, s: baseStyle };
                 return;
             }
 
@@ -4943,9 +4959,9 @@ async function downloadExcelWithFormulas() {
                 case 'df':    f = ci(wRng,'DF'); break;
                 case 'krank': f = ci(wRng,'SICK'); break;
                 case 'absence': {
-                    // SUM of the vac, fb, pf, df, krank summary columns on this same row
+                    // SUM of vac, fb, pf, df, sick columns on this same row
                     const col = k => excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key===k));
-                    f = `SUM(${col('vac')}${excelRow},${col('fb')}${excelRow},${col('pf')}${excelRow},${col('df')}${excelRow},${col('krank')}${excelRow})`;
+                    f = `SUM(${col('vac')}${excelRow},${col('fb')}${excelRow},${col('pf')}${excelRow},${col('df')}${excelRow},${col('sick')}${excelRow})`;
                     break;
                 }
                 default: f = null;
