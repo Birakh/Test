@@ -1339,6 +1339,21 @@ let currentLang = 'en'; // 'en' or 'de'
 // owner = GitHub username/org, repo = repository name, token = PAT (personal per user)
 let spConfig = { siteUrl:'', folderPath:'', fileName:'', autoSync:false, dataRepo:'' };
 
+// ─── BAKED CONFIG (admin fills this in before deploying) ───────────────────────
+// Set these once before pushing to GitHub Pages.
+// Users will only see a PAT + password prompt — no repo fields needed.
+// Leave all values as empty strings '' to use the normal full setup flow.
+const BAKED_CONFIG = {
+    owner:    '',   // e.g. 'myorg'
+    pagesRepo:'',   // e.g. 'shift-planner'
+    dataRepo: '',   // e.g. 'shift-planner-data'  (leave '' to use pagesRepo)
+    // Optional: bake in the shared comment token (read-only viewers need no PAT at all)
+    sharedToken: '',
+    // Optional: bake in the data password (everyone shares this — only do this for low-sensitivity data)
+    dataPwd: '',
+};
+// ──────────────────────────────────────────────────────────────────────────────
+
 // ── Data Encryption ──
 // All JSON files stored on GitHub are AES-encrypted with this shared password.
 // Everyone who can access the app needs to know it. Completely separate from
@@ -1679,6 +1694,19 @@ function jumpToToday() {
 window.onload = () => { try {
     allMonthsData = JSON.parse(localStorage.getItem('shiftPlannerAllMonthsV23')) || {};
     loadWorkerRoster();
+
+    // Apply baked config (admin pre-fills these before deploying)
+    if (window.BAKED_CONFIG) {
+        if (BAKED_CONFIG.owner)       spConfig.siteUrl    = BAKED_CONFIG.owner;
+        if (BAKED_CONFIG.pagesRepo)   spConfig.folderPath = BAKED_CONFIG.pagesRepo;
+        if (BAKED_CONFIG.dataRepo)    spConfig.dataRepo   = BAKED_CONFIG.dataRepo;
+        if (BAKED_CONFIG.sharedToken) {
+            try { if (!localStorage.getItem('shiftPlannerCmtToken')) localStorage.setItem('shiftPlannerCmtToken', BAKED_CONFIG.sharedToken); } catch(e){}
+        }
+        if (BAKED_CONFIG.dataPwd) {
+            if (typeof saveDataPassword === 'function') saveDataPassword(BAKED_CONFIG.dataPwd);
+        }
+    }
 
     // Load GitHub config
     const savedSPCfg = localStorage.getItem('shiftPlannerSPConfig');
@@ -7638,26 +7666,28 @@ function renderMobileView() {
     <div style="background:white; border-radius:12px; padding:30px; max-width:460px; width:92%; box-shadow:0 8px 32px rgba(0,0,0,0.35);">
         <div style="text-align:center; margin-bottom:18px;">
             <div style="font-size:38px;">🐙</div>
-            <h2 style="margin:6px 0 0 0; color:#24292f; font-size:19px;">Connect to GitHub</h2>
-            <p style="color:#666; font-size:12px; margin:6px 0 0 0;">Enter your details once — saved in this browser only.</p>
+            <h2 id="su_heading" style="margin:6px 0 0 0; color:#24292f; font-size:19px;">Connect to GitHub</h2>
+            <p id="su_subtext" style="color:#666; font-size:12px; margin:6px 0 0 0;">Enter your details once — saved in this browser only.</p>
         </div>
         <div style="display:grid; gap:10px;">
-            <div>
-                <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:3px;">GitHub Username / Org</label>
-                <input id="su_owner" type="text" placeholder="e.g. myusername"
-                    style="width:100%; box-sizing:border-box; padding:9px; font-size:14px; border:2px solid #ddd; border-radius:6px;">
-            </div>
-            <div>
-                <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:3px;">GitHub Pages Repository <small style="font-weight:normal; color:#888;">(hosts the app)</small></label>
-                <input id="su_repo" type="text" placeholder="e.g. shift-planner"
-                    style="width:100%; box-sizing:border-box; padding:9px; font-size:14px; border:2px solid #ddd; border-radius:6px;">
-            </div>
-            <div style="background:#eaf4ff; border:1px solid #a8d4f5; border-radius:6px; padding:10px;">
-                <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:3px; color:#0550ae;">🔒 Private Data Repository <small style="font-weight:normal; color:#888;">— recommended</small></label>
-                <input id="su_datarepo" type="text" placeholder="e.g. shift-planner-data  (leave blank = same as Pages repo)"
-                    style="width:100%; box-sizing:border-box; padding:9px; font-size:14px; border:2px solid #ddd; border-radius:6px;">
-                <div style="font-size:11px; color:#555; margin-top:5px; line-height:1.5;">
-                    Separate <strong>private</strong> repo for shift data. Keeps staff data out of your public Pages repo. Leave blank to use the Pages repo.
+            <div id="su_repo_section">
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:3px;">GitHub Username / Org</label>
+                    <input id="su_owner" type="text" placeholder="e.g. myusername"
+                        style="width:100%; box-sizing:border-box; padding:9px; font-size:14px; border:2px solid #ddd; border-radius:6px;">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:3px;">GitHub Pages Repository <small style="font-weight:normal; color:#888;">(hosts the app)</small></label>
+                    <input id="su_repo" type="text" placeholder="e.g. shift-planner"
+                        style="width:100%; box-sizing:border-box; padding:9px; font-size:14px; border:2px solid #ddd; border-radius:6px;">
+                </div>
+                <div style="background:#eaf4ff; border:1px solid #a8d4f5; border-radius:6px; padding:10px;">
+                    <label style="font-size:12px; font-weight:bold; display:block; margin-bottom:3px; color:#0550ae;">🔒 Private Data Repository <small style="font-weight:normal; color:#888;">— recommended</small></label>
+                    <input id="su_datarepo" type="text" placeholder="e.g. shift-planner-data  (leave blank = same as Pages repo)"
+                        style="width:100%; box-sizing:border-box; padding:9px; font-size:14px; border:2px solid #ddd; border-radius:6px;">
+                    <div style="font-size:11px; color:#555; margin-top:5px; line-height:1.5;">
+                        Separate <strong>private</strong> repo for shift data. Keeps staff data out of your public Pages repo. Leave blank to use the Pages repo.
+                    </div>
                 </div>
             </div>
             <div style="background:#f0fff4; border:1px solid #a9dfbf; border-radius:6px; padding:10px;">
@@ -7696,7 +7726,10 @@ function renderMobileView() {
     function suShow() {
         var el = $('setupPopup');
         if (!el) return;
-        // Pre-fill if already configured
+        var bc = window.BAKED_CONFIG || {};
+        var isBaked = !!(bc.owner && bc.pagesRepo);
+
+        // Pre-fill fields from saved config or baked config
         var saved = localStorage.getItem('shiftPlannerSPConfig');
         if (saved) {
             try {
@@ -7707,17 +7740,44 @@ function renderMobileView() {
                 if (o && c.siteUrl)    o.value = c.siteUrl;
                 if (r && c.folderPath) r.value = c.folderPath;
                 if (dr && c.dataRepo)  dr.value = c.dataRepo;
-                var dp = $('su_datapwd');
-                var savedPwd = sessionStorage.getItem('shiftPlannerDataPwd')
-                           || localStorage.getItem('shiftPlannerDataPwd');
-                if (dp && savedPwd) dp.value = savedPwd;
             } catch(e) {}
         }
+        if (isBaked) {
+            // Override with baked values
+            var o2 = $('su_owner'); if (o2) o2.value = bc.owner;
+            var r2 = $('su_repo');  if (r2) r2.value = bc.pagesRepo;
+            var dr2 = $('su_datarepo'); if (dr2) dr2.value = bc.dataRepo || '';
+        }
+        var dp = $('su_datapwd');
+        var savedPwd = sessionStorage.getItem('shiftPlannerDataPwd')
+                    || (bc.dataPwd || '');
+        if (dp && savedPwd) dp.value = savedPwd;
+
+        // Restore PAT from sessionStorage
+        var pat = sessionStorage.getItem('shiftPlannerPAT') || '';
+        var tok = $('su_token'); if (tok && pat) tok.value = pat;
+
+        // If fully baked and dataPwd is also baked, skip the popup entirely for viewers
+        if (isBaked && bc.dataPwd && pat) {
+            suConnect(); // auto-connect silently
+            return;
+        }
+
+        // Collapse repo fields when baked — users only need PAT + password
+        var repoSection = $('su_repo_section');
+        if (repoSection) repoSection.style.display = isBaked ? 'none' : '';
+        var heading = $('su_heading');
+        if (heading) heading.textContent = isBaked
+            ? '🔑 Enter your access credentials'
+            : '🐙 Connect to GitHub';
+        var subtext = $('su_subtext');
+        if (subtext) subtext.style.display = isBaked ? 'none' : '';
+
         el.style.display = 'flex';
         setTimeout(function() {
-            var first = $('su_owner');
-            if (first && !first.value) first.focus();
-            else { var t = $('su_token'); if(t) t.focus(); }
+            var t = $('su_token');
+            if (t && !t.value) t.focus();
+            else { var dp2 = $('su_datapwd'); if(dp2 && !dp2.value) dp2.focus(); }
         }, 100);
     }
 
@@ -7829,6 +7889,326 @@ function renderMobileView() {
         if (saved) { try { var c = JSON.parse(saved); hasCfg = !!(c.siteUrl && c.folderPath); } catch(e){} }
         if (!hasCfg) suShow();
     }, 700);
+})();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SETUP WIZARD  +  12-HOUR LOCK SCREEN
+     ══════════════════════════════════════════════════════════════ -->
+<style>
+#spWizard,#spLock{position:fixed;inset:0;z-index:19999;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,0.82);backdrop-filter:blur(4px);}
+#spWizard.sp-vis,#spLock.sp-vis{display:flex;}
+.spW-card{background:#fff;border-radius:16px;padding:36px 32px 28px;max-width:500px;width:94%;box-shadow:0 16px 48px rgba(0,0,0,0.35);position:relative;}
+.spW-step{display:none;}.spW-step.active{display:block;}
+.spW-logo{text-align:center;font-size:44px;margin-bottom:4px;}
+.spW-title{text-align:center;font-size:20px;font-weight:700;color:#1e293b;margin:0 0 4px;}
+.spW-sub{text-align:center;font-size:13px;color:#64748b;margin:0 0 22px;}
+.spW-progress{display:flex;gap:6px;justify-content:center;margin-bottom:24px;}
+.spW-dot{width:8px;height:8px;border-radius:50%;background:#e2e8f0;transition:background .3s;}
+.spW-dot.done{background:#22c55e;}.spW-dot.active{background:#3b82f6;}
+.spW-field{margin-bottom:14px;}
+.spW-field label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;}
+.spW-field input{width:100%;box-sizing:border-box;padding:10px 12px;font-size:14px;border:1.5px solid #d1d5db;border-radius:8px;outline:none;transition:border-color .2s;}
+.spW-field input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+.spW-field small{display:block;font-size:11px;color:#6b7280;margin-top:4px;line-height:1.5;}
+.spW-hint{background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 12px;font-size:12px;color:#0369a1;line-height:1.6;margin-bottom:16px;}
+.spW-warn{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;line-height:1.6;margin-bottom:16px;}
+.spW-btns{display:flex;gap:8px;margin-top:18px;}
+.spW-btn{flex:1;padding:11px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;}
+.spW-btn:hover{opacity:.88;}
+.spW-btn.primary{background:#3b82f6;color:#fff;}
+.spW-btn.success{background:#22c55e;color:#fff;}
+.spW-btn.ghost{background:#f1f5f9;color:#374151;flex:0.5;}
+.spW-err{display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:8px 12px;font-size:12px;color:#dc2626;margin-top:10px;}
+/* Lock screen */
+.spL-card{background:#fff;border-radius:16px;padding:40px 32px;max-width:360px;width:94%;box-shadow:0 16px 48px rgba(0,0,0,0.4);text-align:center;}
+.spL-icon{font-size:52px;margin-bottom:8px;}
+.spL-title{font-size:20px;font-weight:700;color:#1e293b;margin:0 0 4px;}
+.spL-sub{font-size:13px;color:#64748b;margin:0 0 24px;}
+.spL-input{width:100%;box-sizing:border-box;padding:12px;font-size:16px;border:2px solid #e2e8f0;border-radius:10px;text-align:center;letter-spacing:2px;outline:none;transition:border-color .2s;}
+.spL-input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+.spL-btn{width:100%;margin-top:12px;padding:13px;background:#3b82f6;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;}
+.spL-btn:hover{background:#2563eb;}
+.spL-err{display:none;color:#dc2626;font-size:13px;margin-top:10px;}
+.spL-hint{font-size:11px;color:#94a3b8;margin-top:16px;}
+</style>
+
+<!-- WIZARD -->
+<div id="spWizard">
+ <div class="spW-card">
+  <div class="spW-progress">
+   <div class="spW-dot active" id="spWd1"></div>
+   <div class="spW-dot" id="spWd2"></div>
+   <div class="spW-dot" id="spWd3"></div>
+  </div>
+
+  <!-- Step 1: GitHub repos -->
+  <div class="spW-step active" id="spWs1">
+   <div class="spW-logo">🐙</div>
+   <h2 class="spW-title">Welcome — one-time setup<br><span style="font-size:14px;font-weight:500;color:#64748b;">Willkommen — Einmalige Einrichtung</span></h2>
+   <p class="spW-sub">Where should the app save its data? / <em>Wo sollen die Daten gespeichert werden?</em></p>
+   <div class="spW-hint">💡 You need two GitHub repos: one <strong>public</strong> for the app (GitHub Pages), one <strong>private</strong> for shift data. Create the private repo first if you haven't already.<br><em>Du benötigst zwei GitHub-Repos: eines <strong>öffentlich</strong> für die App (GitHub Pages), eines <strong>privat</strong> für die Schichtdaten. Erstelle das private Repo zuerst, falls noch nicht vorhanden.</em></div>
+   <div class="spW-field">
+    <label>GitHub Username or Organisation / <em>GitHub-Benutzername oder Organisation</em></label>
+    <input id="wz_owner" type="text" placeholder="e.g. myorg" autocomplete="off">
+   </div>
+   <div class="spW-field">
+    <label>Public Pages Repo <small style="font-weight:normal;color:#9ca3af;">(hosts this file / <em>hostet diese Datei</em>)</small></label>
+    <input id="wz_pages" type="text" placeholder="e.g. shift-planner" autocomplete="off">
+   </div>
+   <div class="spW-field">
+    <label>Private Data Repo <small style="font-weight:normal;color:#9ca3af;">(stores schedules / <em>speichert Schichtpläne</em>)</small></label>
+    <input id="wz_data" type="text" placeholder="e.g. shift-planner-data" autocomplete="off">
+    <small>Leave blank to store data in the Pages repo (less secure). / <em>Leer lassen, um Daten im Pages-Repo zu speichern (weniger sicher).</em></small>
+   </div>
+   <div id="spW_err1" class="spW-err"></div>
+   <div class="spW-btns">
+    <button class="spW-btn primary" onclick="spWizNext(1)">Next / <em>Weiter</em> →</button>
+   </div>
+  </div>
+
+  <!-- Step 2: Tokens & encryption -->
+  <div class="spW-step" id="spWs2">
+   <div class="spW-logo">🔑</div>
+   <h2 class="spW-title">Access tokens<br><span style="font-size:14px;font-weight:500;color:#64748b;">Zugriffstoken</span></h2>
+   <p class="spW-sub">How should the app read and write data? / <em>Wie soll die App Daten lesen und schreiben?</em></p>
+   <div class="spW-field">
+    <label>Personal Access Token (PAT) <small style="font-weight:normal;color:#9ca3af;">— for editors/admins / <em>für Bearbeiter/Admins</em></small></label>
+    <input id="wz_pat" type="password" placeholder="ghp_… (Contents: Read & Write on data repo)" autocomplete="off">
+    <small>Viewers can leave this blank — they'll use the shared read token below. / <em>Nur-Leser können dies leer lassen — sie nutzen den gemeinsamen Token unten.</em></small>
+   </div>
+   <div class="spW-field">
+    <label>Shared Read Token <small style="font-weight:normal;color:#9ca3af;">— optional, for all viewers / <em>optional, für alle Leser</em></small></label>
+    <input id="wz_shared" type="password" placeholder="ghp_… (Contents: Read only)" autocomplete="off">
+    <small>Baked in so viewers never need to set anything up. / <em>Eingebettet, sodass Leser nichts einrichten müssen.</em></small>
+   </div>
+   <div class="spW-field">
+    <label>🔐 Data Encryption Password <small style="font-weight:normal;color:#9ca3af;">— shared across team / <em>gemeinsam im Team</em></small></label>
+    <input id="wz_enc" type="password" placeholder="Team password — everyone uses the same one / Teampasswort" autocomplete="off">
+    <small>Encrypts all data in the private repo. Everyone must use the same password. / <em>Verschlüsselt alle Daten im privaten Repo. Alle müssen dasselbe Passwort verwenden.</em></small>
+   </div>
+   <div id="spW_err2" class="spW-err"></div>
+   <div class="spW-btns">
+    <button class="spW-btn ghost" onclick="spWizBack(2)">← Back / <em>Zurück</em></button>
+    <button class="spW-btn primary" onclick="spWizNext(2)">Test &amp; Next / <em>Testen &amp; Weiter</em> →</button>
+   </div>
+  </div>
+
+  <!-- Step 3: Lock password -->
+  <div class="spW-step" id="spWs3">
+   <div class="spW-logo">🔒</div>
+   <h2 class="spW-title">Set an app lock PIN<br><span style="font-size:14px;font-weight:500;color:#64748b;">App-Sperrpasswort festlegen</span></h2>
+   <p class="spW-sub">After 12 hours the app locks. This is your local unlock password — stored only in this browser.<br><em>Nach 12 Stunden sperrt sich die App. Dieses Passwort gilt nur auf diesem Gerät.</em></p>
+   <div class="spW-warn">⚠️ This is <strong>not</strong> your GitHub or data password. It's just to lock the screen on this device.<br><em>Dies ist <strong>nicht</strong> dein GitHub- oder Datenverschlüsselungspasswort — nur eine Bildschirmsperre für dieses Gerät.</em></div>
+   <div class="spW-field">
+    <label>Lock Password / <em>Sperrpasswort</em></label>
+    <input id="wz_lock" type="password" placeholder="Choose a short password / Kurzes Passwort wählen" autocomplete="new-password">
+   </div>
+   <div class="spW-field">
+    <label>Confirm Password / <em>Passwort bestätigen</em></label>
+    <input id="wz_lock2" type="password" placeholder="Repeat it / Wiederholen" autocomplete="new-password" onkeydown="if(event.key==='Enter') spWizFinish()">
+   </div>
+   <div id="spW_err3" class="spW-err"></div>
+   <div class="spW-btns">
+    <button class="spW-btn ghost" onclick="spWizBack(3)">← Back / <em>Zurück</em></button>
+    <button class="spW-btn success" onclick="spWizFinish()">✅ Save &amp; Launch / <em>Speichern &amp; Starten</em></button>
+   </div>
+  </div>
+ </div>
+</div>
+
+<!-- LOCK SCREEN -->
+<div id="spLock">
+ <div class="spL-card">
+  <div class="spL-icon">🔐</div>
+  <h2 class="spL-title">App Locked / <span style="font-size:16px;font-weight:500;">Gesperrt</span></h2>
+  <p class="spL-sub">Enter your lock password to continue.<br><em>Sperrpasswort eingeben, um fortzufahren.</em></p>
+  <input id="spLockInput" class="spL-input" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter') spLockUnlock()">
+  <button class="spL-btn" onclick="spLockUnlock()">Unlock / <em>Entsperren</em></button>
+  <div id="spLockErr" class="spL-err">Wrong password — try again. / <em>Falsches Passwort — erneut versuchen.</em></div>
+  <div class="spL-hint">Locked after 12 hours of inactivity. / <em>Gesperrt nach 12 Stunden Inaktivität.</em><br>Forgot your password? Clear site data in browser settings. / <em>Passwort vergessen? Websitedaten im Browser löschen.</em></div>
+ </div>
+</div>
+
+<script>
+(function(){
+  var LOCK_KEY   = 'spLockHash';
+  var LOCK_TS    = 'spLockTS';
+  var SETUP_KEY  = 'spWizDone';
+  var LOCK_TTL   = 12 * 60 * 60 * 1000; // 12 hours
+
+  /* ── tiny SHA-256 via WebCrypto ── */
+  async function sha256(str) {
+    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+
+  /* ── progress dots ── */
+  function spWizDots(step) {
+    [1,2,3].forEach(function(i){
+      var d = document.getElementById('spWd'+i);
+      if (!d) return;
+      d.className = 'spW-dot' + (i < step ? ' done' : i === step ? ' active' : '');
+    });
+  }
+
+  /* ── show a step ── */
+  function spWizShow(n) {
+    [1,2,3].forEach(function(i){
+      var s = document.getElementById('spWs'+i);
+      if (s) s.className = 'spW-step' + (i===n?' active':'');
+    });
+    spWizDots(n);
+  }
+
+  /* ── error helpers ── */
+  function spWizErr(step, msg) {
+    var el = document.getElementById('spW_err'+step);
+    if (!el) return;
+    el.textContent = msg; el.style.display = msg ? 'block' : 'none';
+  }
+
+  /* ── step navigation ── */
+  window.spWizBack = function(fromStep) { spWizErr(fromStep,''); spWizShow(fromStep-1); };
+
+  window.spWizNext = async function(step) {
+    spWizErr(step,'');
+    if (step === 1) {
+      var owner = (document.getElementById('wz_owner').value||'').trim();
+      var pages = (document.getElementById('wz_pages').value||'').trim();
+      if (!owner || !pages) { spWizErr(1,'Please enter at least a username and Pages repo. / Bitte Benutzername und Pages-Repo eingeben.'); return; }
+      spWizShow(2);
+    } else if (step === 2) {
+      var pat    = (document.getElementById('wz_pat').value||'').trim();
+      var shared = (document.getElementById('wz_shared').value||'').trim();
+      var owner2 = (document.getElementById('wz_owner').value||'').trim();
+      var pages2 = (document.getElementById('wz_pages').value||'').trim();
+      var data2  = (document.getElementById('wz_data').value||'').trim();
+      var testRepo = data2 || pages2;
+      var testTok  = pat || shared;
+      var btn = document.querySelector('#spWs2 .primary');
+      if (btn) { btn.textContent='Testing… / Teste…'; btn.disabled=true; }
+      try {
+        var hdrs = {'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'};
+        if (testTok) hdrs['Authorization']='Bearer '+testTok;
+        var r = await fetch('https://api.github.com/repos/'+owner2+'/'+testRepo, {headers:hdrs});
+        if (r.status===401) throw new Error('Token rejected — check your PAT. / Token abgelehnt — PAT überprüfen.');
+        if (r.status===404) throw new Error('Repo "'+testRepo+'" not found. Check the name and PAT access. / Repo nicht gefunden. Namen und PAT-Zugriff prüfen.');
+        if (!r.ok) throw new Error('GitHub error '+r.status+' / GitHub-Fehler '+r.status);
+        if (btn) { btn.textContent='Test & Next / Weiter →'; btn.disabled=false; }
+        spWizShow(3);
+        setTimeout(function(){ var l=document.getElementById('wz_lock'); if(l)l.focus(); },120);
+      } catch(e) {
+        spWizErr(2,'❌ '+e.message);
+        if (btn) { btn.textContent='Test & Next / Weiter →'; btn.disabled=false; }
+      }
+    }
+  };
+
+  window.spWizFinish = async function() {
+    spWizErr(3,'');
+    var pwd  = (document.getElementById('wz_lock').value||'');
+    var pwd2 = (document.getElementById('wz_lock2').value||'');
+    if (!pwd) { spWizErr(3,'Please choose a lock password. / Bitte ein Sperrpasswort wählen.'); return; }
+    if (pwd !== pwd2) { spWizErr(3,'Passwords don\'t match. / Passwörter stimmen nicht überein.'); return; }
+
+    // Collect all values
+    var owner  = (document.getElementById('wz_owner').value||'').trim();
+    var pages  = (document.getElementById('wz_pages').value||'').trim();
+    var data   = (document.getElementById('wz_data').value||'').trim();
+    var pat    = (document.getElementById('wz_pat').value||'').trim();
+    var shared = (document.getElementById('wz_shared').value||'').trim();
+    var enc    = (document.getElementById('wz_enc').value||'').trim();
+
+    // Save GitHub config (no PAT in localStorage)
+    var cfg = { siteUrl: owner, folderPath: pages, dataRepo: data, autoSync: false };
+    localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(cfg));
+    if (pat)    { try { sessionStorage.setItem('shiftPlannerPAT', pat); } catch(e){} }
+    if (shared) { try { localStorage.setItem('shiftPlannerCmtToken', shared); } catch(e){} }
+    if (enc)    { try { sessionStorage.setItem('shiftPlannerDataPwd', enc); } catch(e){} }
+
+    // Hash and save lock password
+    var hash = await sha256(pwd);
+    localStorage.setItem(LOCK_KEY, hash);
+    localStorage.setItem(LOCK_TS, Date.now().toString());
+    localStorage.setItem(SETUP_KEY, '1');
+
+    // Apply to running app
+    if (window.spConfig) {
+      window.spConfig.siteUrl    = owner;
+      window.spConfig.folderPath = pages;
+      window.spConfig.dataRepo   = data;
+      window.spConfig.fileName   = pat;
+    }
+    if (typeof window.saveDataPassword === 'function' && enc) window.saveDataPassword(enc);
+    if (typeof window._renderSyncStatusBadges === 'function') window._renderSyncStatusBadges();
+
+    // Close wizard
+    document.getElementById('spWizard').classList.remove('sp-vis');
+    if (typeof window.spPull === 'function') window.spPull(true);
+  };
+
+  /* ══ LOCK SCREEN ══════════════════════════════════════════ */
+  function spLockShow() {
+    document.getElementById('spLock').classList.add('sp-vis');
+    setTimeout(function(){ var i=document.getElementById('spLockInput'); if(i){i.value='';i.focus();} },100);
+  }
+
+  function spLockHide() {
+    document.getElementById('spLock').classList.remove('sp-vis');
+    localStorage.setItem(LOCK_TS, Date.now().toString());
+  }
+
+  window.spLockUnlock = async function() {
+    var val = (document.getElementById('spLockInput').value||'');
+    var err = document.getElementById('spLockErr');
+    var hash = await sha256(val);
+    if (hash === localStorage.getItem(LOCK_KEY)) {
+      err.style.display='none';
+      spLockHide();
+      if (typeof window._renderSyncStatusBadges==='function') window._renderSyncStatusBadges();
+    } else {
+      err.style.display='block';
+      document.getElementById('spLockInput').value='';
+      document.getElementById('spLockInput').focus();
+    }
+  };
+
+  // Reset the 12-hour timer on any user interaction
+  ['click','keydown','touchstart'].forEach(function(ev){
+    document.addEventListener(ev, function(){
+      if (localStorage.getItem(LOCK_KEY)) localStorage.setItem(LOCK_TS, Date.now().toString());
+    }, {passive:true});
+  });
+
+  /* ══ BOOT LOGIC ═══════════════════════════════════════════ */
+  setTimeout(function(){
+    var done     = localStorage.getItem(SETUP_KEY);
+    var lockHash = localStorage.getItem(LOCK_KEY);
+    var lastTS   = parseInt(localStorage.getItem(LOCK_TS)||'0',10);
+    var expired  = (Date.now() - lastTS) > LOCK_TTL;
+
+    if (!done) {
+      // First run — show wizard, hide old setup popup
+      var old = document.getElementById('setupPopup');
+      if (old) old.style.display='none';
+      document.getElementById('spWizard').classList.add('sp-vis');
+    } else if (lockHash && expired) {
+      // Has a lock and it's been over 12h — show lock screen
+      spLockShow();
+    } else {
+      // Logged in — just refresh the timestamp
+      localStorage.setItem(LOCK_TS, Date.now().toString());
+    }
+
+    // Also check every minute in case the tab is left open
+    setInterval(function(){
+      var ts = parseInt(localStorage.getItem(LOCK_TS)||'0',10);
+      if (localStorage.getItem(LOCK_KEY) && (Date.now()-ts) > LOCK_TTL) {
+        spLockShow();
+      }
+    }, 60000);
+  }, 400);
 })();
 </script>
 
