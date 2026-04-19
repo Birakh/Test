@@ -285,7 +285,7 @@
         <option value="">— Select your name —</option>
     </select>
     <div id="mobDayList"></div>
-    <div class="mob-full-link">📊 <a href="javascript:void(0)" onclick="document.getElementById('mobileView').style.display='none'; document.querySelectorAll('.desktop-only').forEach(e=>e.style.display='')">Switch to full desktop view</a></div>
+    <div class="mob-full-link"><a href="javascript:void(0)" onclick="document.getElementById('mobileView').style.display='none'; document.querySelectorAll('.desktop-only').forEach(e=>e.style.display='')">Switch to full desktop view</a></div>
 </div>
 
 <button id="langToggleBtn" class="desktop-only" onclick="toggleLang()" style="padding:4px 12px; font-size:12px; font-weight:bold; background:#2c3e50; color:white; border:none; border-radius:4px; cursor:pointer; vertical-align:middle; margin-bottom:6px;">🌐 Deutsch</button>
@@ -347,7 +347,7 @@
             <span id="we13wrap">13H:<input type="number" id="mstWe13" class="tgt-panel-input" value="0" onchange="saveMasterTargets()"></span>
             <span id="we6wrap">6H: <input type="number" id="mstWe6"  class="tgt-panel-input" value="0" onchange="saveMasterTargets()"></span><br>
             <div style="margin-top:6px; padding:6px; background:#e8f4fc; border-radius:3px; border:1px solid #aed6f1;">
-                <strong id="immoTgtTitle" style="color:#1a5276;">🏥 Immo Targets (Weekdays only)</strong>
+                <strong id="immoTgtTitle" style="color:#1a5276;">Immo Targets (Weekdays only)</strong>
                 <span id="immoTgtNote" style="font-size:10px; color:#555; display:block; margin-bottom:3px;">Warning-only — Auto-Fill never touches these. Use Jump-in workers to cover gaps.<br>Immo always 0 on weekends &amp; holidays.</span>
                 ImE: <input type="number" id="mstWdImE" class="tgt-panel-input" value="2" onchange="saveMasterTargets()">
                 ImL: <input type="number" id="mstWdImL" class="tgt-panel-input" value="1" onchange="saveMasterTargets()">
@@ -370,52 +370,52 @@
             <span id="fairNote">⚖️ <strong>Fair 8L / 8M rotation:</strong> Auto-Fill uses a weekly late quota per worker — so every worker gets ~2–3 lates and ~2–3 earlies each week, and 8L (22:30) vs 8M (20:00) are kept balanced too.</span>
         </div>
 
-        <button id="btnAutoFill" class="btn-auto btn-full edit-only" onclick="autoGenerate()">✨ Smart Auto-Fill</button>
+        <button id="btnAutoFill" class="btn-auto btn-full edit-only" onclick="autoGenerate()">Auto-Fill</button>
         <div style="clear:both; overflow:hidden;">
             <button class="btn-undo btn-half-l edit-only" id="undoBtn" onclick="undo()" disabled>↩ Undo</button>
             <button class="btn-redo btn-half-r edit-only" id="redoBtn" onclick="redo()" disabled>↪ Redo</button>
         </div>
         <div style="clear:both; overflow:hidden;">
-            <button id="btnAI"       class="btn-ai    btn-half-l" onclick="runAIAnalysis()">🤖 AI Analysis</button>
-            <button id="btnPersonal" class="btn-personal btn-half-r" onclick="openPersonalModal()">📱 Personal Export</button>
+            <button id="btnAI"       class="btn-ai    btn-half-l" onclick="runAIAnalysis()">AI Analysis</button>
+            <button id="btnPersonal" class="btn-personal btn-half-r" onclick="openPersonalModal()">Personal Export</button>
         </div>
         <div style="clear:both; overflow:hidden;">
-            <button id="btnHelp"    class="btn-help    btn-half-l" onclick="document.getElementById('helpModal').style.display='block'">📖 Help & Guide</button>
-            <button id="btnRefresh" class="btn-refresh btn-half-r" onclick="refreshBoard()">🔄 Refresh Board</button>
+            <button id="btnHelp"    class="btn-help    btn-half-l" onclick="document.getElementById('helpModal').style.display='block'">Help &amp; Guide</button>
+            <button id="btnRefresh" class="btn-refresh btn-half-r" onclick="refreshBoard()">Refresh</button>
         </div>
         <div style="clear:both; overflow:hidden;">
-            <button id="btnBackup"  class="btn-backup  btn-half-l" onclick="backupData()">💾 Backup JSON</button>
-            <button id="btnRestore" class="btn-restore btn-half-r" onclick="document.getElementById('restoreInput').click()">📂 Restore JSON</button>
+            <button id="btnBackup"  class="btn-backup  btn-half-l" onclick="backupData()">Backup JSON</button>
+            <button id="btnRestore" class="btn-restore btn-half-r" onclick="document.getElementById('restoreInput').click()">Restore JSON</button>
             <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(this)">
         </div>
-        <button id="btnExcel"  class="btn-export btn-full" onclick="copyColorfulExcel()">📋 Copy Table (HTML → Excel)</button>
-        <button id="btnXLSX" style="background:#0f766e; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#115e59'" onmouseout="this.style.background='#0f766e'" onclick="downloadExcelWithFormulas()">📥 Download Excel (.xlsx)</button>
-        <button id="btnHTML"   style="background:#1e8449; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#196f3d'" onmouseout="this.style.background='#1e8449'" onclick="downloadAsHTML()">⬇️ Download as HTML</button>
-        <button id="btnSPSync" style="background:#24292f; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='#24292f'" onclick="openSyncModal('github')">🐙/☁️ Sync</button>
+        <button id="btnExcel"  class="btn-export btn-full" onclick="copyColorfulExcel()">Copy Table (HTML → Excel)</button>
+        <button id="btnXLSX" style="background:#0f766e; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#115e59'" onmouseout="this.style.background='#0f766e'" onclick="downloadExcelWithFormulas()">Download Excel (.xlsx)</button>
+        <button id="btnHTML"   style="background:#1e8449; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#196f3d'" onmouseout="this.style.background='#1e8449'" onclick="downloadAsHTML()">Download as HTML</button>
+        <button id="btnSPSync" style="background:#24292f; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='#24292f'" onclick="openSyncModal('github')">GitHub Sync</button>
         <div style="display:flex; gap:4px; margin-top:4px;">
-            <button onclick="syncQuickPull()" title="Pull from active sync backend" style="flex:1; background:#0969da; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#0752b0'" onmouseout="this.style.background='#0969da'">⬇️ Pull</button>
-            <button onclick="syncQuickPush()" title="Push to active sync backend" style="flex:1; background:#1a7f37; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#156a2e'" onmouseout="this.style.background='#1a7f37'">⬆️ Push</button>
+            <button onclick="syncQuickPull()" title="Pull from active sync backend" style="flex:1; background:#0969da; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#0752b0'" onmouseout="this.style.background='#0969da'">Pull</button>
+            <button onclick="syncQuickPush()" title="Push to active sync backend" style="flex:1; background:#1a7f37; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#156a2e'" onmouseout="this.style.background='#1a7f37'">Push</button>
         </div>
         <div id="azurePullPushRow" style="display:none;"></div>
         <div id="azureStatusBar" style="display:none; margin-top:3px; padding:4px 7px; border-radius:3px; font-size:10px; font-weight:bold;"></div>
-        <button onclick="clearAppCache()" style="background:#7f8c8d; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#6c7a7a'" onmouseout="this.style.background='#7f8c8d'">🗑️ Clear Cache</button>
+        <button onclick="clearAppCache()" style="background:#7f8c8d; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#6c7a7a'" onmouseout="this.style.background='#7f8c8d'">Clear Cache</button>
         <div id="spStatusBar" style="display:none; margin-top:3px; padding:4px 7px; border-radius:3px; font-size:10px; font-weight:bold;"></div>
-        <button id="btnDiff"   style="background:#2980b9; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onclick="openMonthDiff()">📆 Month Comparison</button>
+        <button id="btnDiff"   style="background:#2980b9; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onclick="openMonthDiff()">Month Comparison</button>
         <div style="clear:both; overflow:hidden; margin-top:6px;">
             <button id="btnMonthReady" class="edit-only admin-only" onclick="toggleMonthReady()"
                 style="width:100%; font-size:11px; font-weight:bold; padding:6px; border:none; border-radius:4px; cursor:pointer; background:#27ae60; color:white;">
-                ✅ Mark Month as Ready
+                Mark Month as Ready
             </button>
         </div>
         <div style="clear:both; overflow:hidden; margin-top:6px;">
             <button id="btnNotifPerm" onclick="requestNotificationPermission()"
                 style="width:100%; font-size:11px; font-weight:bold; padding:6px; border:none; border-radius:4px; cursor:pointer; background:#8e44ad; color:white;">
-                🔔 Enable Push Notifications
+                Enable Notifications
             </button>
         </div>
         <div style="clear:both; overflow:hidden; margin-top:10px;">
-            <button class="btn-select btn-half-l edit-only" id="selectModeBtn" onclick="toggleSelectMode()">⬜ Select Mode</button>
-            <button id="btnClear" class="btn-clear btn-half-r edit-only admin-only" onclick="clearBoard()">🗑️ Clear Month</button>
+            <button class="btn-select btn-half-l edit-only" id="selectModeBtn" onclick="toggleSelectMode()">Select Mode</button>
+            <button id="btnClear" class="btn-clear btn-half-r edit-only admin-only" onclick="clearBoard()">Clear Month</button>
         </div>
     </div>
 
@@ -451,7 +451,7 @@
 
         <!-- Quick-reference explanation box -->
         <div id="fieldGuideBox" style="background:#f8f9fa; border:1px solid #dee2e6; border-radius:4px; padding:8px; font-size:11px; color:#444; margin-bottom:8px; line-height:1.6;">
-            <strong style="font-size:12px;">📋 Field Guide</strong><br>
+            <strong style="font-size:12px;">Field Guide</strong><br>
             <strong>System — New vs Old:</strong><br>
             <span style="display:inline-block; margin-left:8px;">
                 <strong>New</strong> = newer employment system — Auto-Fill uses a <em>flexible weekly hour target</em> (alternating slightly higher/lower weeks around the contract hours) and includes 13H and 6H shifts in the mix.<br>
@@ -486,7 +486,7 @@
         </div>
         <!-- Fixed Immo options: shown/hidden via toggleImmoOptions() -->
         <div class="form-group" id="rowImmo" style="display:none; background:#e8f4fc; padding:8px; border-radius:4px; border:1px solid #aed6f1; font-size:12px;">
-            <label><strong>🏥 Immo Shift Preference:</strong></label><br>
+            <label><strong>Immo Shift Preference:</strong></label><br>
             <select id="workerImmoPref" onchange="toggleImmoRatio()" style="margin-top:4px; font-weight:bold; width:100%;">
                 <option value="Mixed">Mixed — both ImE &amp; ImL during the week</option>
                 <option value="ImE">ImE Only — always 07:00–15:30</option>
@@ -544,7 +544,7 @@
                     <option value="none">None</option>
                     <option value="nurFruh">☀️ Nur Früh — early only</option>
                     <option value="nurSpat">🌙 Nur Spät — late only (8L+8M mix)</option>
-                    <option value="var1">🔄 Var 1 — Old: alternating weeks, late weeks mix 8L+8M</option>
+                    <option value="var1">Var 1 — Old: alternating weeks, late weeks mix 8L+8M</option>
                     <option value="var2">📅 Var 2 — New: 4-week template (3E+2M / 2E+1M+2L / …)</option>
                     <option value="var3">⛔ Var 3 — Strict: early week=8E only, late week=8L only</option>
                 </select>
@@ -589,12 +589,12 @@
             ⚖️ <strong>Fair 8L / 8M balance:</strong> Auto-Fill pre-computes a <em>monthly budget</em> for each worker — how many 8L (IR2, 22:30) and how many 8M (IR3/IR4, 20:00) they need to hit 40% late shifts on their actual working days. VAC/SICK days are excluded from the calculation. The budget is drawn down week by week.
         </div>
         <div style="font-size:11px; margin:4px 0; padding:7px 8px; background:#e8f4fc; border-left:3px solid #2e86c1; border-radius:0 4px 4px 0;">
-            <strong>🏥 Immo Worker Types:</strong><br>
+            <strong>Immo Worker Types:</strong><br>
             <span style="color:#1a5276;"><strong>[F.Immo]</strong></span> Fixed Immo — <em>Immo shifts only</em> (ImE / ImL or mixed), never regular wards.<br>
             <span style="color:#8e44ad;"><strong>[J.Immo]</strong></span> Jump-in — regular worker; covers Immo <em>manually</em> when someone is sick or understaffed.
         </div>
         <div style="margin-top:8px; font-size:11px; padding:7px 8px; background:#f0f9ff; border-left:3px solid #0891b2; border-radius:0 4px 4px 0;">
-            <strong>📊 Excel Room Columns (IR2 / IR3 / IR4):</strong><br>
+            <strong>Excel Room Columns (IR2 / IR3 / IR4):</strong><br>
             <strong>Early / Früh</strong> — workers on 8E, 6H, or 13H assigned to that room.<br>
             <strong>M</strong> — workers on 8M assigned to that room.<br>
             <strong>Late / Spät</strong> — workers on 8L or 13H assigned to that room.<br>
@@ -630,7 +630,7 @@
 <div class="no-print desktop-only" style="margin-bottom:8px; padding:0 4px;">
     <label style="cursor:pointer; font-size:13px; font-weight:bold; color:#34495e;">
         <input type="checkbox" id="statsToggle" onchange="toggleStatsPanel()">
-        📊 Show Worker Stats Panel
+        Show Worker Stats Panel
     </label>
 </div>
 
@@ -645,13 +645,13 @@
 
 <!-- Stats Panel (shown when checkbox ticked) -->
 <div id="statsPanel">
-    <h2 style="margin-top:0; color:#34495e;">📊 <span id="statsTitle">Worker Statistics</span> — <span id="statsMonthLabel"></span></h2>
+    <h2 style="margin-top:0; color:#34495e;"><span id="statsTitle">Worker Statistics</span> — <span id="statsMonthLabel"></span></h2>
     <div id="statsContent"></div>
 </div>
 
 <!-- Selection Bar (fixed bottom, shown in select mode) -->
 <div id="selectionBar">
-    <span id="selModeLabel" style="font-weight:bold; font-size:14px; white-space:nowrap;">⬜ Select Mode</span>
+    <span id="selModeLabel" style="font-weight:bold; font-size:14px; white-space:nowrap;">Select Mode</span>
     <span style="white-space:nowrap;"><strong id="selectionCount" style="color:#f39c12; font-size:16px;">0</strong> <span id="selCellsLabel">cells selected</span></span>
     <select id="bulkShiftSelect">
         <option value="-">- (Clear)</option>
@@ -676,22 +676,22 @@
             <option value="8E-Immo">8E-Immo</option><option value="8L-Immo">8L-Immo</option>
         </optgroup>
         <optgroup label="Special">
-            <option value="OFF">OFF</option><option value="VAC">🏖 VAC</option><option value="SICK">SICK</option>
+            <option value="OFF">OFF</option><option value="VAC">VAC</option><option value="SICK">SICK</option>
             <option value="FB">FB</option><option value="PF">PF</option><option value="LSS">LSS</option><option value="Offc">Offc</option>
             <option value="RB1">RB1</option><option value="RB2">RB2</option><option value="DF">DF</option>
-            <option value="Urlaub IR">🏖 Urlaub IR</option><option value="Urlaub-ZA">🏖 Urlaub-ZA</option><option value="U-Immo">🏖 U-Immo</option>
+            <option value="Urlaub IR">Urlaub IR</option><option value="Urlaub-ZA">Urlaub-ZA</option><option value="U-Immo">U-Immo</option>
         </optgroup>
     </select>
-    <button id="btnApplyBulk"  onclick="applyBulkShift()"  style="background:#e67e22;">✔ Apply to All Selected</button>
-    <button id="btnClearSel"   onclick="clearSelection()"  style="background:#7f8c8d;">✖ Clear Selection</button>
-    <button id="btnExitSel"    onclick="toggleSelectMode()" style="background:#c0392b;">✖ Exit</button>
+    <button id="btnApplyBulk"  onclick="applyBulkShift()"  style="background:#e67e22;">✔ Apply to Selected</button>
+    <button id="btnClearSel"   onclick="clearSelection()"  style="background:#7f8c8d;">Clear Selection</button>
+    <button id="btnExitSel"    onclick="toggleSelectMode()" style="background:#c0392b;">Exit</button>
 </div>
 
 <!-- Edit Worker Modal -->
 <div id="editWorkerModal" class="modal">
     <div class="modal-content" style="max-width:520px;">
         <span class="close-btn" onclick="closeEditModal()">&times;</span>
-        <h2 style="color:#0056b3;">✏️ Edit Worker</h2>
+        <h2 style="color:#0056b3;">Edit Worker</h2>
         <div style="font-size:13px;">
             <div class="form-group" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                 <div><label style="font-size:11px; display:block; margin-bottom:2px;">Name</label>
@@ -715,7 +715,7 @@
 
             <!-- Fixed Immo sub-options -->
             <div id="editRowImmo" style="display:none; background:#e8f4fc; padding:8px; border-radius:4px; border:1px solid #aed6f1; margin-bottom:8px; font-size:12px;">
-                <label><strong>🏥 Immo Shift Preference:</strong></label><br>
+                <label><strong>Immo Shift Preference:</strong></label><br>
                 <select id="editImmoPref" onchange="editToggleImmoRatio()" style="margin-top:4px; font-weight:bold; width:100%;">
                     <option value="Mixed">Mixed — both ImE &amp; ImL</option>
                     <option value="ImE">ImE Only — always 07:00–15:30</option>
@@ -769,7 +769,7 @@
                             <option value="none">None — normal auto-fill logic</option>
                             <option value="nurFruh">☀️ Nur Früh — early shifts only (8E)</option>
                             <option value="nurSpat">🌙 Nur Spät — late shifts only (8L + 8M mix)</option>
-                            <option value="var1">🔄 Var 1 — Old system: alternating weeks, late weeks mix 8L+8M (A: 2L+3M / B: 3L+2M)</option>
+                            <option value="var1">Var 1 — Old system: alternating weeks, late weeks mix 8L+8M (A: 2L+3M / B: 3L+2M)</option>
                             <option value="var2">📅 Var 2 — New system: 4-week template (40h: 3E+2M / 2E+1M+2L / 2E+1M+2L / 3E+1M+1L)</option>
                             <option value="var3">⛔ Var 3 — Strict: full early week (8E only) / full late week (8L only, no 8M)</option>
                         </select>
@@ -808,7 +808,7 @@
 <div id="monthDiffModal" class="modal">
     <div class="modal-content" style="max-width:860px;">
         <span class="close-btn" onclick="document.getElementById('monthDiffModal').style.display='none'">&times;</span>
-        <h2 style="color:#2980b9;">📆 Month Comparison</h2>
+        <h2 style="color:#2980b9;">Month Comparison</h2>
         <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px;">
             <div>
                 <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:3px;">Worker</label>
@@ -864,7 +864,7 @@
 <div id="aiModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="document.getElementById('aiModal').style.display='none'">&times;</span>
-        <h2>🤖 AI Schedule Analysis</h2>
+        <h2>AI Schedule Analysis</h2>
         <div id="aiReportContent" style="line-height:1.6; font-size:14px;"></div>
     </div>
 </div>
@@ -873,7 +873,7 @@
 <div id="personalModal" class="modal">
     <div class="modal-content" style="max-width:560px;">
         <span class="close-btn" onclick="document.getElementById('personalModal').style.display='none'">&times;</span>
-        <h2 style="color:#27ae60; margin-top:0;">📱 Personal Schedule Export</h2>
+        <h2 style="color:#27ae60; margin-top:0;">Personal Schedule Export</h2>
 
         <!-- Worker + email row -->
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
@@ -895,11 +895,11 @@
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:10px;">
             <button onclick="copyPersonalText()" style="background:#0056b3; color:white; border:none; border-radius:4px; padding:9px 6px; font-size:12px; font-weight:bold; cursor:pointer;">📋 Copy Text</button>
             <button onclick="downloadPersonalICS()" style="background:#27ae60; color:white; border:none; border-radius:4px; padding:9px 6px; font-size:12px; font-weight:bold; cursor:pointer;">📅 Download ICS</button>
-            <button onclick="emailPersonalSchedule()" style="background:#e67e22; color:white; border:none; border-radius:4px; padding:9px 6px; font-size:12px; font-weight:bold; cursor:pointer;">✉️ Open in Mail</button>
+            <button onclick="emailPersonalSchedule()" style="background:#e67e22; color:white; border:none; border-radius:4px; padding:9px 6px; font-size:12px; font-weight:bold; cursor:pointer;">Open in Mail</button>
         </div>
         <p style="font-size:10px; color:#888; margin:8px 0 0 0;">
             💡 <strong>ICS</strong> = imports directly into Google Calendar, Outlook, Apple Calendar.<br>
-            ✉️ <strong>Open in Mail</strong> = opens your default mail app. Attach the ICS file to let the recipient import it.
+            <strong>Open in Mail</strong> = opens your default mail app. Attach the ICS file to let the recipient import it.
         </p>
     </div>
 </div>
@@ -908,7 +908,7 @@
 <div id="helpModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="document.getElementById('helpModal').style.display='none'">&times;</span>
-        <h2 id="helpTitle" style="color:#0056b3;">📖 A to Z User Guide — v5</h2>
+        <h2 id="helpTitle" style="color:#0056b3;">A to Z User Guide</h2>
         <div id="helpContent" style="line-height:1.6; font-size:13px;"></div>
     </div>
 </div>
@@ -917,13 +917,13 @@
 <div id="syncModal" class="modal">
     <div class="modal-content" style="max-width:580px;">
         <span class="close-btn" onclick="closeSyncModal()">&times;</span>
-        <h2 style="margin-bottom:12px;">🔄 Sync Settings</h2>
+        <h2 style="margin-bottom:12px;">Sync Settings</h2>
 
         <!-- Tab bar -->
         <div style="display:flex; border-bottom:2px solid #ddd; margin-bottom:14px;">
             <button id="syncTabGH" onclick="switchSyncTab('github')"
                 style="flex:1; padding:9px 4px; border:none; border-bottom:3px solid #24292f; background:none;
-                       font-weight:bold; font-size:13px; cursor:pointer; color:#24292f;">🐙 GitHub</button>
+                       font-weight:bold; font-size:13px; cursor:pointer; color:#24292f;">GitHub</button>
             <button id="syncTabAZ" onclick="switchSyncTab('azure')"
                 style="flex:1; padding:9px 4px; border:none; border-bottom:3px solid transparent; background:none;
                        font-weight:bold; font-size:13px; cursor:pointer; color:#888;">☁️ Azure</button>
@@ -1024,8 +1024,8 @@
 
             <!-- Action buttons -->
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button onclick="spPull()" style="flex:1; background:#0969da; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">⬇️ Pull from GitHub</button>
-                <button onclick="spPush()" style="flex:1; background:#1a7f37; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">⬆️ Push to GitHub</button>
+                <button onclick="spPull()" style="flex:1; background:#0969da; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">Pull from GitHub</button>
+                <button onclick="spPush()" style="flex:1; background:#1a7f37; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">Push to GitHub</button>
                 <button onclick="spTestConnection()" style="background:#605e5c; color:white; border:none; padding:10px 14px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">🔌 Test</button>
             </div>
             <div style="margin-top:12px; padding:8px; background:#f8f8f8; border-radius:4px; font-size:11px; color:#555;">
@@ -1065,7 +1065,7 @@
                             style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
                         <small id="cmtTokenInputStatus" style="color:#1a7f37; display:none;">✔ Comment token updated in memory</small>
                     </div>
-                    <small style="color:#888; font-size:10px;">Applied immediately as you type. After setting: download HTML (⬇️ button) and commit to repo.</small>
+                    <small style="color:#888; font-size:10px;">Applied immediately as you type. After setting: download HTML and commit to repo.</small>
                 </div>
                 <div style="margin-bottom:8px;">
                     <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Shared Comments Token (PAT)</label>
@@ -1078,8 +1078,8 @@
                 </div>
                 <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
                     <button onclick="saveSharedCommentToken()" style="background:#27ae60; color:white; border:none; padding:6px 14px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">💾 Save Token</button>
-                    <button onclick="cmtPull()" style="background:#0969da; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">⬇️ Pull Comments</button>
-                    <button onclick="cmtPush()" style="background:#1a7f37; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">⬆️ Push Comments</button>
+                    <button onclick="cmtPull()" style="background:#0969da; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">Pull Comments</button>
+                    <button onclick="cmtPush()" style="background:#1a7f37; color:white; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">Push Comments</button>
                     <button onclick="cmtTest()" style="background:#605e5c; color:white; border:none; padding:6px 10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:12px;">🔌 Test</button>
                 </div>
                 <div id="cmtStatus" style="display:none; margin-top:8px; padding:6px 10px; border-radius:4px; font-size:11px;"></div>
@@ -1151,8 +1151,8 @@
 
             <!-- Action buttons -->
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                <button onclick="azurePull()" style="flex:1; background:#0078d4; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">⬇️ Pull from Azure</button>
-                <button onclick="azurePush()" style="flex:1; background:#005a9e; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">⬆️ Push to Azure</button>
+                <button onclick="azurePull()" style="flex:1; background:#0078d4; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">Pull from Azure</button>
+                <button onclick="azurePush()" style="flex:1; background:#005a9e; color:white; border:none; padding:10px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:13px;">Push to Azure</button>
             </div>
         </div><!-- end syncPaneAZ -->
 
@@ -1487,8 +1487,8 @@ function isPendingVacationShift(shift) { return typeof shift === 'string' && shi
 function toPendingVacation(shift) { return isVacationBase(shift) ? (shift + pendingVacationSuffix) : shift; }
 function stripPendingVacation(shift) { return isPendingVacationShift(shift) ? shift.slice(0, -pendingVacationSuffix.length) : shift; }
 function getRoomAssignment(shift) { const m = String(shift||'').match(/-(IR2|IR3|IR4)(?:$|[^A-Z0-9])/); return m ? m[1] : ''; }
-function viewerCanEditCell(currentShift) { return currentShift === '-' || isVacationBase(stripPendingVacation(currentShift)) || isPendingVacationShift(currentShift); }
-function canViewerEditChange(oldValue, newValue) { if (newValue === '-') return oldValue === '-' || isVacationBase(stripPendingVacation(oldValue)) || isPendingVacationShift(oldValue); return isVacationBase(stripPendingVacation(newValue)); }
+function viewerCanEditCell(currentShift) { return currentShift === '-' || isPendingVacationShift(currentShift); }
+function canViewerEditChange(oldValue, newValue) { if (newValue === '-') return oldValue === '-' || isPendingVacationShift(oldValue); return isVacationBase(stripPendingVacation(newValue)); }
 function viewerShiftValueForSave(value) { if (value === '-') return '-'; const clean = stripPendingVacation(value); return isVacationBase(clean) ? toPendingVacation(clean) : value; }
 
 // lateShiftTypes is global so placeShiftsGreedyFair can access it
@@ -1648,8 +1648,10 @@ function getHolidayName(dIndex) {
 // ─────────────────────────────────────────────────────────
 // ─── Helpers (shorthand + utilities) ───────────────────────
 const $ = id => document.getElementById(id);
-// Escape user-supplied strings before injecting into innerHTML to prevent XSS
 const escHtml = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+// Bilingual helpers — use throughout instead of repeating currentLang checks
+const _de  = () => window.currentLang === 'de';
+const _t   = (en, de) => _de() ? de : en;   // _t('English','Deutsch')
 const $$ = sel => document.querySelectorAll(sel);
 const show = id => $(id) && ($(id).style.display = 'block');
 const hide = id => $(id) && ($(id).style.display = 'none');
@@ -1684,7 +1686,7 @@ function filterWorkers(query) {
 function jumpToToday() {
     const today = new Date();
     if (today.getFullYear() !== currentYear || today.getMonth()+1 !== currentMonth) {
-        alert('Today is not in the currently viewed month.'); return;
+        alert(_t('Today is not in the currently viewed month.','Heute ist nicht im aktuell angezeigten Monat.')); return;
     }
     const d = today.getDate() - 1;
     const row = document.querySelector(`tr[data-day="${d}"]`);
@@ -1812,7 +1814,7 @@ window.onload = () => { try {
     // Restore SP status bar if configured
     if (spConfig.siteUrl) {
         const lastSync = localStorage.getItem('shiftPlannerSPLastSync');
-        spSetStatus(`🐙 GitHub configured${lastSync ? ' · Last sync: ' + lastSync : ' · Not yet synced'}`, '#f6f8fa', '#24292f');
+        spSetStatus(`GitHub configured${lastSync ? ' · Last sync: ' + lastSync : ' · Not yet synced'}`, '#f6f8fa', '#24292f');
         // Load password hash from GitHub config file
         spLoadConfig();
         if (spConfig.autoSync) {
@@ -1967,7 +1969,7 @@ function toggle13HShift() {
         const chk6 = $('toggle6H');
         if (chk6) chk6.checked = false;
         setOpacity(['wd6wrap','we6wrap'], false);
-        alert('ℹ️ 6H has been automatically disabled because it requires 13H to be active.');
+        alert(_t('ℹ️ 6H has been automatically disabled because it requires 13H to be active.','ℹ️ 6H wurde automatisch deaktiviert, da 13H aktiv sein muss.'));
     }
     saveData(); renderTable();
 }
@@ -1977,7 +1979,7 @@ function toggle6HShift() {
     const chk6 = $('toggle6H');
     if (chk6 && chk6.checked && !use13H) {
         // 6H requires 13H — the high/low alternation is needed to stay within the 40h contract
-        alert('⚠️ 6H shifts require the 13H option to also be enabled.\n\nThe 6H half-day only works together with 13H because the high/low week alternation is what keeps the weekly average at 40 hours.\n\nPlease enable 13H first.');
+        alert(_t('⚠️ 6H shifts require the 13H option to also be enabled.\n\nThe 6H half-day only works together with 13H because the high/low week alternation is what keeps the weekly average at 40 hours.\n\nPlease enable 13H first.','⚠️ 6H-Schichten erfordern die aktivierte 13H-Option.\n\nDie 6H-Halbschicht funktioniert nur zusammen mit 13H, da der Hoch-/Niedrigwochenwechsel den Wochendurchschnitt bei 40 Stunden hält.\n\nBitte zuerst 13H aktivieren.'));
         chk6.checked = false;
         return;
     }
@@ -2110,26 +2112,26 @@ function updateNotifBtn() {
     const btn = $('btnNotifPerm');
     if (!btn) return;
     if (!('Notification' in window)) {
-        btn.textContent = '🔔 Notifications not supported';
+        btn.textContent = _t('Notifications not supported','Benachrichtigungen nicht unterstützt');
         btn.disabled = true;
         return;
     }
     if (Notification.permission === 'granted') {
-        btn.textContent = '🔔 Notifications ON ✅';
+        btn.textContent = _t('Notifications enabled','Benachrichtigungen aktiviert');
         btn.style.background = '#27ae60';
     } else if (Notification.permission === 'denied') {
-        btn.textContent = '🔕 Notifications blocked — allow in browser settings';
+        btn.textContent = _t('Notifications blocked — allow in browser settings','Benachrichtigungen blockiert — in Browsereinstellungen erlauben');
         btn.style.background = '#c0392b';
         btn.disabled = true;
     } else {
-        btn.textContent = '🔔 Enable Push Notifications';
+        btn.textContent = _t('Enable Notifications','Benachrichtigungen aktivieren');
         btn.style.background = '#8e44ad';
         btn.disabled = false;
     }
 }
 
 function requestNotificationPermission() {
-    if (!('Notification' in window)) return alert('Your browser does not support notifications.');
+    if (!('Notification' in window)) return alert(_t('Your browser does not support notifications.','Ihr Browser unterstützt keine Benachrichtigungen.'));
     Notification.requestPermission().then(() => updateNotifBtn());
 }
 
@@ -2149,7 +2151,7 @@ function notifyNewVacationRequest(workerName, dayLabel, shiftType) {
     const monthName = new Date(currentYear, currentMonth-1, 1)
         .toLocaleString('default', { month:'long', year:'numeric' });
     spawnNotification(
-        '🏖 New Vacation Request',
+        'New Vacation Request',
         `${workerName} requested ${shiftType} on ${dayLabel} (${monthName})`,
         `vac-${workerName}-${currentMonthKey}`
     );
@@ -2165,7 +2167,7 @@ function updateMonthReadyUI() {
     const btn      = $('btnMonthReady');
     if (banner) banner.classList.toggle('visible', !!isReady);
     if (btn) {
-        btn.textContent  = isReady ? '🔄 Unmark Month as Ready' : '✅ Mark Month as Ready';
+        btn.textContent  = isReady ? 'Unmark as Ready' : 'Mark as Ready';
         btn.style.background = isReady ? '#e67e22' : '#27ae60';
     }
 }
@@ -2192,7 +2194,7 @@ function toggleMonthReady() {
         );
         // Push to GitHub so other users see it on next pull
         if (spConfig.autoSync && spConfig.siteUrl && navigator.onLine && !_spSyncing) spPush(true);
-        alert(`✅ ${monthName} marked as READY.\nAll users with notifications enabled will be alerted when they next sync.`);
+        alert(_t(`✅ ${monthName} marked as READY.\nAll users with notifications enabled will be alerted when they next sync.`,`✅ ${monthName} als FERTIG markiert.\nAlle Benutzer mit aktivierten Benachrichtigungen werden beim nächsten Synchronisieren informiert.`));
     } else {
         if (spConfig.autoSync && spConfig.siteUrl && navigator.onLine && !_spSyncing) spPush(true);
     }
@@ -2232,7 +2234,7 @@ function checkNotificationsAfterPull(prevData, nextData) {
         });
         if (newRequests.length > 0) {
             spawnNotification(
-                `🏖 ${newRequests.length} New Vacation Request${newRequests.length > 1 ? 's' : ''}`,
+                `${newRequests.length} New Vacation Request${newRequests.length > 1 ? 's' : ''}`,
                 newRequests.slice(0, 3).join('\n') + (newRequests.length > 3 ? `\n…+${newRequests.length - 3} more` : ''),
                 `vac-pull-${currentMonthKey}`
             );
@@ -2288,7 +2290,7 @@ function updateImmoRatioLabel() {
 function addWorkerFromForm() {
     if (!requireAdmin("Add Worker")) return;
     const name = $('workerName').value.toUpperCase();
-    if (!name) return alert('Please enter a worker name.');
+    if (!name) return alert(_t('Please enter a worker name.','Bitte einen Mitarbeiternamen eingeben.'));
     const fixedOff = [];
     document.querySelectorAll('#fixedOffCheckboxes input:checked').forEach(cb => fixedOff.push(parseInt(cb.value)));
     const contract = $('workerContract').value;
@@ -2333,7 +2335,7 @@ function deleteWorker(index) {
 
 function clearAllWorkers() {
     if (!requireAdmin("Clear All Workers")) return;
-    if (workers.length === 0) return alert('No workers to remove.');
+    if (workers.length === 0) return alert(_t('No workers to remove.','Keine Mitarbeiter zum Entfernen.'));
     if (!confirm(`Remove all ${workers.length} workers and clear all shifts for this month?\nThis cannot be undone.`)) return;
     workers = [];
     lssDays = [];
@@ -2491,7 +2493,7 @@ function scheduleRenderTable() {
 function updateShift(wIndex, dIndex, value) {
     const oldValue = workers[wIndex].shifts[dIndex]; let finalValue = value;
     if (!isEditMode) {
-        if (currentRole !== 'viewer' || !canViewerEditChange(oldValue, value)) { const sel = document.querySelector(`.shift-select[data-w="${wIndex}"][data-d="${dIndex}"]`); if (sel) sel.value = oldValue; if (currentRole === 'viewer') alert('🔒 Viewers can only request Urlaub / vacation (or clear a vacation request).'); else requireEdit('Edit Shift'); return; }
+        if (currentRole !== 'viewer' || !canViewerEditChange(oldValue, value)) { const sel = document.querySelector(`.shift-select[data-w="${wIndex}"][data-d="${dIndex}"]`); if (sel) sel.value = oldValue; if (currentRole === 'viewer') alert(_t('🔒 Viewers can only request Urlaub / vacation (or clear a vacation request).','🔒 Nur-Leser können nur Urlaub beantragen oder Urlaubsantrag zurückziehen.')); else requireEdit('Edit Shift'); return; }
         finalValue = viewerShiftValueForSave(value);
     } else if (isPendingVacationShift(oldValue) && isVacationBase(stripPendingVacation(value))) { finalValue = stripPendingVacation(value); }
     pushUndo(); workers[wIndex].shifts[dIndex] = finalValue; saveData();
@@ -2647,7 +2649,7 @@ function applyCustomHours() {
     const room = ($('cusRoom') || { value:'' }).value;
     const shM = parseInt(s.split(':')[0])*60 + parseInt(s.split(':')[1]);
     const ehM = parseInt(e.split(':')[0])*60 + parseInt(e.split(':')[1]);
-    if (ehM <= shM) { alert('End time must be after start time!'); return; }
+    if (ehM <= shM) { alert(_t('End time must be after start time!','Endzeit muss nach der Startzeit liegen!')); return; }
     pushUndo();
     workers[wIndex].shifts[dIndex] = `CUS-${s}-${e}${room ? '-' + room : ''}`;
     closeCustomHoursModal(); saveData(); renderTable();
@@ -2663,27 +2665,27 @@ function closeCustomHoursModal() {
 function toggleSelectMode() {
     if (!selectMode && !requireEdit("Select Mode")) return;
     selectMode = !selectMode;
+    window.selectMode = selectMode;  // sync so viewer overrides can read the local variable
     selectedCells.clear();
     const btn     = $('selectModeBtn');
     const bar     = $('selectionBar');
     const wrapper = document.querySelector('.table-wrapper');
+    const de      = currentLang === 'de';
     if (selectMode) {
-        btn.classList.add('active');
-        btn.textContent = '✔ Select Mode ON';
-        bar.classList.add('visible');
-        wrapper.classList.add('select-mode-active');
+        if (btn) { btn.classList.add('active'); btn.textContent = de ? 'Auswahlmodus AN' : 'Select Mode ON'; }
+        if (bar) bar.classList.add('visible');
+        if (wrapper) wrapper.classList.add('select-mode-active');
     } else {
-        btn.classList.remove('active');
-        btn.textContent = '⬜ Select Mode';
-        bar.classList.remove('visible');
-        wrapper.classList.remove('select-mode-active');
+        if (btn) { btn.classList.remove('active'); btn.textContent = de ? 'Auswahlmodus' : 'Select Mode'; }
+        if (bar) bar.classList.remove('visible');
+        if (wrapper) wrapper.classList.remove('select-mode-active');
         document.querySelectorAll('td.selected-cell').forEach(td => td.classList.remove('selected-cell'));
     }
-    $('selectionCount').textContent = 0;
+    if ($('selectionCount')) $('selectionCount').textContent = 0;
 }
 
 function handleCellClick(e, wIndex, dIndex) {
-    if (!selectMode) return;
+    if (!(selectMode || window.selectMode)) return;  // check both local and window.selectMode
     e.preventDefault();
     e.stopPropagation();
     const key = `${wIndex}_${dIndex}`;
@@ -2700,7 +2702,7 @@ function handleCellClick(e, wIndex, dIndex) {
 
 function applyBulkShift() {
     if (!requireEdit("Bulk Fill")) return;
-    if (selectedCells.size===0) return alert('No cells selected!');
+    if (selectedCells.size===0) return alert(_t('No cells selected!','Keine Zellen ausgewählt!'));
     pushUndo();
     const shift = $('bulkShiftSelect').value;
     selectedCells.forEach(key => {
@@ -2708,7 +2710,17 @@ function applyBulkShift() {
         workers[w].shifts[d] = shift;
     });
     selectedCells.clear();
-    $('selectionCount').textContent = 0;
+    // Exit select mode after applying
+    selectMode = false;
+    window.selectMode = false;
+    const wrapper = document.querySelector('.table-wrapper');
+    if (wrapper) wrapper.classList.remove('select-mode-active');
+    const bar = $('selectionBar');
+    if (bar) bar.classList.remove('visible');
+    const btn = $('selectModeBtn');
+    const de  = currentLang === 'de';
+    if (btn) { btn.classList.remove('active'); btn.textContent = de ? 'Auswahlmodus' : 'Select Mode'; }
+    if ($('selectionCount')) $('selectionCount').textContent = 0;
     saveData(); renderTable();
 }
 
@@ -2817,10 +2829,10 @@ function restoreData(input) {
                 allMonthsData = parsed;
                 localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
                 changeMonth(true);
-                alert('✅ Restore successful!');
+                alert(_t('✅ Restore successful!','✅ Wiederherstellung erfolgreich!'));
             }
         } catch {
-            alert('❌ Invalid backup file. Please select a valid .json backup.');
+            alert(_t('❌ Invalid backup file. Please select a valid .json backup.','❌ Ungültige Sicherungsdatei. Bitte eine gültige .json-Sicherung auswählen.'));
         }
         input.value = '';
     };
@@ -2832,14 +2844,14 @@ function restoreData(input) {
 // ─────────────────────────────────────────────────────────
 function getDropdownOptions(currentShift) {
     const base=["-","13H","8E","8L","8M","6H","OFF","VAC","SICK","FB","PF","DF","Urlaub IR","Urlaub-ZA","U-Immo","LSS","Offc","RB1","RB2"]; const immo=["ImE","ImL"]; const rooms=["IR2","IR3","IR4","Immo"]; const rShifts=["13H","8E","8L","8M","6H"]; const currentBase=getBaseShift(currentShift); let html=`<option value="-" ${currentShift==='-'?'selected':''}>-</option>`;
-    if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${currentShift || '-'}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; } if (isPendingVacationShift(currentShift)) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ request</option>`; const vacEmoji = { 'VAC':'🏖 VAC', 'Urlaub IR':'🏖 Urlaub IR', 'Urlaub-ZA':'🏖 Urlaub-ZA', 'U-Immo':'🏖 U-Immo' }; vacationTypes.forEach(s => { const selected = stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${selected?'selected':''}>${vacEmoji[s]||s}</option>`; }); return html; }
+    if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${currentShift || '-'}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>Custom: ${ov.label}${ov.star?' (best)':''}</option>`; } if (isPendingVacationShift(currentShift)) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} (pending)</option>`; vacationTypes.forEach(s => { const selected = stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${selected?'selected':''}>${s}</option>`; }); return html; }
     if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; }
     // ── FIX: for VAC-PENDING cells, only the pending option gets 'selected'. ──
     // Do NOT also mark the plain VAC option as selected — that caused the browser
     // to display VAC as the active selection, making an accidental click auto-approve.
     const isPending = isPendingVacationShift(currentShift);
     if (isPending) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ pending approval</option>`;
-    html += `<optgroup label="Immo Shifts">`; immo.forEach(s => html += `<option value="${s}" ${currentShift===s?'selected':''}>${s}</option>`); html += `</optgroup><optgroup label="Base Shifts & Special">`; const vacEmoji = { 'VAC':'🏖 VAC', 'Urlaub IR':'🏖 Urlaub IR', 'Urlaub-ZA':'🏖 Urlaub-ZA', 'U-Immo':'🏖 U-Immo' }; base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${(currentShift===s || (!isPending && stripPendingVacation(currentShift)===s))?'selected':''}>${vacEmoji[s]||s}</option>`; }); html += `</optgroup>`; rooms.forEach(room => { html += `<optgroup label="${room} Assigned">`; rShifts.forEach(s => { const v=`${s}-${room}`; html += `<option value="${v}" ${currentShift===v?'selected':''}>${v}</option>`; }); html += `</optgroup>`; }); return html;
+    html += `<optgroup label="Immo Shifts">`; immo.forEach(s => html += `<option value="${s}" ${currentShift===s?'selected':''}>${s}</option>`); html += `</optgroup><optgroup label="Base Shifts &amp; Special">`; base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${(currentShift===s || (!isPending && stripPendingVacation(currentShift)===s))?'selected':''}>${s}</option>`; }); html += `</optgroup>`; rooms.forEach(room => { html += `<optgroup label="${room} Assigned">`; rShifts.forEach(s => { const v=`${s}-${room}`; html += `<option value="${v}" ${currentShift===v?'selected':''}>${v}</option>`; }); html += `</optgroup>`; }); return html;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -2920,17 +2932,17 @@ function renderTable() {
         ${use6H  ? `<th>6H<br><small>(Act/Tgt)</small></th>`  : ''}
         <th style="background:#dff0f8;">ImE<br><small>(Act/Tgt)</small></th>
         <th style="background:#cce0e8;">ImL<br><small>(Act/Tgt)</small></th>
-        <th style="background:#e8f4fc; color:#1a5276;" title="Total working staff this day">👥 Total<br><small>working</small></th>
+        <th style="background:#e8f4fc; color:#1a5276;" title="Total working staff this day">Total<br><small>working</small></th>
         <th>IR2 (E|M|L)</th><th>IR3 (E|M|L)</th><th>IR4 (E|M|L)</th>
         <th>Immo (07:00|07:30)</th>
         <th style="min-width:150px;">Room Warnings</th>
-        <th style="min-width:90px; color:#c0392b;">🤒 Sick</th>
-        <th style="min-width:90px; color:#8e44ad;">🏖 Vacation</th>
+        <th style="min-width:90px; color:#c0392b;">Sick</th>
+        <th style="min-width:90px; color:#8e44ad;">Vacation</th>
         <th style="min-width:60px;">FB</th>
         <th style="min-width:60px;">PF</th>
         <th style="min-width:60px;">DF</th>
         <th style="min-width:70px; color:#c0392b;">Krank</th>
-        <th>💬 Daily Comments${cmtReady() ? ' <span title=\'Comment sync ON\' style=\'color:#27ae60; font-size:10px;\'>●</span>' : ' <span title=\'Comment sync not configured — see 🐙 GitHub Sync\' style=\'color:#aaa; font-size:10px;\'>○</span>'}</th></tr>`;
+        <th>Daily Comments${cmtReady() ? ' <span title=\'Comment sync ON\' style=\'color:#27ae60; font-size:10px;\'>●</span>' : ' <span title=\'Comment sync not configured — see 🐙 GitHub Sync\' style=\'color:#aaa; font-size:10px;\'>○</span>'}</th></tr>`;
     $('tableHead').innerHTML = headHTML;
 
     // ── Body ──
@@ -2949,8 +2961,8 @@ function renderTable() {
         bodyHTML += `<tr class="${rowClass}" data-day="${d}">`;
         let rowWorkerCells = '';
 
-        let c8E=0,c8M=0,c8L=0,c13H=0,c6H=0,cImE=0,cImL=0,vCount=0,sickCount=0,workingCount=0,cFB=0,cPF=0,cDF=0,cKrank=0;
-        const sickNames=[], vacNames=[], fbNames=[], pfNames=[], dfNames=[], krankNames=[];
+        let c8E=0,c8M=0,c8L=0,c13H=0,c6H=0,cImE=0,cImL=0,vCount=0,sickCount=0,workingCount=0,cFB=0,cPF=0,cDF=0;
+        const sickNames=[], vacNames=[], fbNames=[], pfNames=[], dfNames=[];
         const rooms = {
             IR2:{e:[],m:[],l:[]}, IR3:{e:[],m:[],l:[]},
             IR4:{e:[],m:[],l:[]}, Immo:{e:[],l:[],u:[],vac:[],sick:[]}
@@ -2981,7 +2993,7 @@ function renderTable() {
 
             // Counters
             if (['VAC','Urlaub IR','Urlaub-ZA','U-Immo'].includes(baseShift)) { vCount++; vacNames.push(worker.name); }
-            if (baseShift==='SICK') { sickCount++; cKrank++; sickNames.push(worker.name); krankNames.push(worker.name); }
+            if (baseShift==='SICK') { sickCount++; sickNames.push(worker.name); }
             if (baseShift==='FB') { cFB++; fbNames.push(worker.name); }
             if (baseShift==='PF') { cPF++; pfNames.push(worker.name); }
             if (baseShift==='DF') { cDF++; dfNames.push(worker.name); }
@@ -3115,7 +3127,7 @@ function renderTable() {
         if (isWE || isHol) warnHtml = '';
 
         let vacClass = '';
-        const totalAbsence = vCount + cFB + cPF + cDF + cKrank;
+        const totalAbsence = vCount + cFB + cPF + cDF + sickCount;
         if (totalAbsence >= 6) vacClass = 'warning';
         else if (totalAbsence >= 5) vacClass = 'warning-yellow';
         if (maxVac>0) {
@@ -3135,7 +3147,7 @@ function renderTable() {
             <td title="${titleOrDash(fbNames)}" style="font-weight:bold;">${cFB || '-'}</td>
             <td title="${titleOrDash(pfNames)}" style="font-weight:bold;">${cPF || '-'}</td>
             <td title="${titleOrDash(dfNames)}" style="font-weight:bold;">${cDF || '-'}</td>
-            <td title="${titleOrDash(krankNames)}" style="font-weight:bold; color:${cKrank ? '#c0392b' : '#555'};">${cKrank || '-'}</td>
+            <td title="${titleOrDash(sickNames)}" style="font-weight:bold; color:${sickCount ? '#c0392b' : '#555'};">${sickCount || '-'}</td>
             <td style="vertical-align:middle;">
                 <input type="text" class="comment-input" data-day="${d}" placeholder="Type notes..."
                     value="${(dailyComments[d]||'').replace(/"/g,'"')}"
@@ -3601,7 +3613,7 @@ function autoGenerate() {
         saveData(); renderTable();
     } catch(e) {
         console.error('Auto-Fill error:', e);
-        alert('❌ Auto-Fill error: ' + e.message + '\n\nCheck console (F12) for details. Also make sure you have added workers before running Auto-Fill.');
+        alert(_t('❌ Auto-Fill error: ' + e.message + '\n\nCheck console (F12) for details. Also make sure you have added workers before running Auto-Fill.','❌ Auto-Fill Fehler: ' + e.message + '\n\nDetails in der Konsole (F12). Stellen Sie sicher, dass Mitarbeiter vorhanden sind.'));
         renderTable();
     }
 }
@@ -3848,9 +3860,9 @@ function renderMonthDiff() {
     const keyA   = $('diffMonthA').value;
     const keyB   = $('diffMonthB').value;
 
-    if (!wName)       return alert('Please select a worker.');
-    if (!keyA||!keyB) return alert('Please select both months.');
-    if (keyA===keyB)  return alert('Please select two different months.');
+    if (!wName)       return alert(_t('Please select a worker.','Bitte einen Mitarbeiter auswählen.'));
+    if (!keyA||!keyB) return alert(_t('Please select both months.','Bitte beide Monate auswählen.'));
+    if (keyA===keyB)  return alert(_t('Please select two different months.','Bitte zwei verschiedene Monate auswählen.'));
 
     const getMonthData = (key) => {
         const [y,m] = key.split('-').map(Number);
@@ -4012,7 +4024,7 @@ function runAIAnalysis() {
         ? `<ul style="color:red; font-size:12px;"><li>${gaps.join('</li><li>')}</li></ul>`
         : `<p style="color:green;">✔️ All regular daily targets are fully met!</p>`;
 
-    report += `<h3>🏥 Immo Coverage Gaps (Manual Jump-in Required)</h3>`;
+    report += `<h3>Immo Coverage Gaps (Manual Jump-in Required)</h3>`;
     report += immoGaps.length>0
         ? `<ul style="color:#856404; background:#fff3cd; padding:10px 10px 10px 28px; border-radius:4px; font-size:12px; border:1px solid #ffc107;"><li>${immoGaps.join('</li><li>')}</li></ul>`
         : `<p style="color:green;">✔️ All Immo targets are covered!</p>`;
@@ -4031,7 +4043,7 @@ function runAIAnalysis() {
         : `<p style="color:green;">✔️ No pending vacation requests.</p>`;
 
     // ── Shift Swap Suggestions ──
-    report += `<h3>🔄 Shift Swap Suggestions</h3>`;
+    report += `<h3>Shift Swap Suggestions</h3>`;
     const swapSuggestions = [];
 
     // 1. Fairness swaps — balance late shifts among full-time mixed workers
@@ -4225,7 +4237,7 @@ function buildPersonalICS(w) {
         // DESCRIPTION — combine request flag and holiday note into one line
         const descParts = [];
         if (w.requests && w.requests[d]) descParts.push('⭐ Special request');
-        if (isHoliday(d)) descParts.push('🏖 Public holiday');
+        if (isHoliday(d)) descParts.push('Public holiday');
         if (descParts.length) lines.push(`DESCRIPTION:${icsEscape(descParts.join(' · '))}`);
         lines.push('END:VEVENT');
     }
@@ -4254,7 +4266,7 @@ function generatePersonalText() {
         const label = isPend ? `${stripPendingVacation(shift)} ⏳` : shift;
         const times = SHIFT_TIMES[getBaseShift(isPend ? stripPendingVacation(shift) : shift)];
         const timeStr = times ? ` (${String(times.sh).padStart(2,'0')}:${String(times.sm).padStart(2,'0')}–${String(times.eh).padStart(2,'0')}:${String(times.em).padStart(2,'0')})` : '';
-        const holMark = isHoliday(d) ? ' 🏖' : '';
+        const holMark = isHoliday(d) ? ' (Holiday)' : '';
         text += `${String(d+1).padStart(2,'0')}. ${dayNames[dow]}: ${label}${timeStr}${holMark}\n`;
     }
     $('personalTextArea').value = text;
@@ -4262,14 +4274,14 @@ function generatePersonalText() {
 
 function copyPersonalText() {
     const ta = $('personalTextArea');
-    if (!ta.value) { alert('Please select a worker first!'); return; }
+    if (!ta.value) { alert(_t('Please select a worker first!','Bitte zuerst einen Mitarbeiter auswählen!')); return; }
     navigator.clipboard ? navigator.clipboard.writeText(ta.value) : (ta.select(), document.execCommand('copy'));
-    alert('✅ Schedule copied to clipboard!');
+    alert(_t('✅ Schedule copied to clipboard!','✅ Dienstplan in die Zwischenablage kopiert!'));
 }
 
 function downloadPersonalICS() {
     const wIndex = $('personalWorkerSelect').value;
-    if (wIndex === '') { alert('Please select a worker first!'); return; }
+    if (wIndex === '') { alert(_t('Please select a worker first!','Bitte zuerst einen Mitarbeiter auswählen!')); return; }
     const w = workers[wIndex];
     const ics = buildPersonalICS(w);
     const blob = new Blob([ics], { type:'text/calendar;charset=utf-8' });
@@ -4284,7 +4296,7 @@ function downloadPersonalICS() {
 
 function emailPersonalSchedule() {
     const wIndex = $('personalWorkerSelect').value;
-    if (wIndex === '') { alert('Please select a worker first!'); return; }
+    if (wIndex === '') { alert(_t('Please select a worker first!','Bitte zuerst einen Mitarbeiter auswählen!')); return; }
     const w       = workers[wIndex];
     const email   = $('personalEmail').value.trim();
     const ta      = $('personalTextArea');
@@ -4330,7 +4342,6 @@ function computeHelperValue(rawShift, key) {
         case 'fb':    return  b === 'FB'   ? 1 : 0;
         case 'pf':    return  b === 'PF'   ? 1 : 0;
         case 'df':    return  b === 'DF'   ? 1 : 0;
-        case 'krank': return  b === 'SICK' ? 1 : 0;
         default:      return 0;
     }
 }
@@ -4374,7 +4385,6 @@ function excelHelperFormula(ref, key) {
         case 'fb':    return `IF(${ref}="FB",1,0)`;
         case 'pf':    return `IF(${ref}="PF",1,0)`;
         case 'df':    return `IF(${ref}="DF",1,0)`;
-        case 'krank': return `IF(${ref}="SICK",1,0)`;
         default:      return `0`;
     }
 }
@@ -4406,7 +4416,6 @@ function excelHelperFormulaPending(ref, key) {
         case 'fb':    return `IF(${ref}="FB",1,0)`;
         case 'pf':    return `IF(${ref}="PF",1,0)`;
         case 'df':    return `IF(${ref}="DF",1,0)`;
-        case 'krank': return `IF(${ref}="SICK",1,0)`;
         default:      return `0`;
     }
 }
@@ -4513,23 +4522,52 @@ function buildAnalysisSheet(de) {
     ws['!merges'].push({ s:{ r: row-1, c:0 }, e:{ r: row-1, c:4 } });
 
     // ── 1. Worker Summary table ──
-    addSection('👥', de ? 'Mitarbeiter-Übersicht' : 'Worker Summary');
+    addSection('', de ? 'Mitarbeiter-Übersicht' : 'Worker Summary');
     addRow([de?'Name':'Name', de?'Vertrag':'Contract', de?'Std.':'Hours', de?'Spät%':'Late%', de?'Fair?':'Fair?', de?'Urlaub':'Vac', de?'Krank':'Sick'],
         '#DDDDDD', { bold:true });
 
-    workers.forEach(w => {
+    workers.forEach((w, wi) => {
         const totalH      = w.shifts.reduce((s,sh) => s + getShiftHours(sh), 0);
         const totalShifts = w.shifts.filter(s => s !== '-').length;
         const lateCount   = w.shifts.filter(s => ['8L','8M'].includes(getBaseShift(s))).length;
         const latePct     = totalShifts > 0 ? Math.round((lateCount / totalShifts) * 100) : 0;
         const isFair      = latePct >= 30 && latePct <= 50;
         const vacN        = w.shifts.filter(s => isVacationBase(getBaseShift(s))).length;
-        const pendN       = w.shifts.filter(s => isPendingVacationShift(s)).length;
         const sickN       = w.shifts.filter(s => getBaseShift(s)==='SICK').length;
-        const vacStr      = pendN > 0 ? `${vacN} (+${pendN} ⏳)` : `${vacN}`;
-        addRow([w.name, `${w.contract}h`, totalH, `${latePct}%`, isFair ? '✔ Fair' : '⚠ Check', vacStr, sickN],
-            isFair ? null : BG_WRN,
-            { fontColor: isFair ? GREEN : ORANGE });
+
+        // Fix 3: live Excel formulas referencing Plan sheet worker column
+        const planCol  = excelCol(cfg.workerStartCol + wi);
+        const dataRows = daysInMonth;
+        const planRng  = `Plan!${planCol}$2:${planCol}$${dataRows + 1}`;
+
+        const hoursFormula =
+            `SUMPRODUCT((${planRng}<>"")*` +
+            `(${planRng}<>"-")*` +
+            `IF(LEFT(${planRng},3)="13H",13,` +
+            `IF(LEFT(${planRng},2)="6H",6,8)))`;
+
+        const lateFormula =
+            `IFERROR(ROUND((COUNTIF(${planRng},"8L*")+COUNTIF(${planRng},"8M*"))` +
+            `/MAX(1,COUNTIF(${planRng},"8*")+COUNTIF(${planRng},"13H*"))*100,0),0)`;
+
+        const fairFormula =
+            `IF(AND(${lateFormula}>=30,${lateFormula}<=50),"` + '\u2714' + ` Fair","` + '\u26A0' + ` Check")`;
+
+        const vacFormula  = `COUNTIF(${planRng},"VAC*")+COUNTIF(${planRng},"Urlaub*")+COUNTIF(${planRng},"U-Immo*")`;
+        const sickFormula = `COUNTIF(${planRng},"SICK")`;
+
+        const cellBg = isFair ? null : BG_WRN;
+        const color  = isFair ? GREEN : ORANGE;
+        const r0 = row;
+        ws[`A${r0+1}`] = xlsCell(w.name,           cellBg, { fontColor: color });
+        ws[`B${r0+1}`] = xlsCell(`${w.contract}h`, cellBg, { fontColor: color });
+        ws[`C${r0+1}`] = { t:'n', v: totalH,  f: hoursFormula, s: xlsCellStyle(cellBg, { fontColor: color }) };
+        ws[`D${r0+1}`] = { t:'n', v: latePct, f: lateFormula,  s: xlsCellStyle(cellBg, { fontColor: color }) };
+        ws[`E${r0+1}`] = { t:'s', v: isFair ? '\u2714 Fair' : '\u26A0 Check', f: fairFormula, s: xlsCellStyle(cellBg, { fontColor: color }) };
+        ws[`F${r0+1}`] = { t:'n', v: vacN,    f: vacFormula,   s: xlsCellStyle(cellBg, { fontColor: color }) };
+        ws[`G${r0+1}`] = { t:'n', v: sickN,   f: sickFormula,  s: xlsCellStyle(cellBg, { fontColor: color }) };
+        ws['!merges'] = ws['!merges'] || [];
+        row++;
     });
 
     // ── 2. Fairness Check ──
@@ -4626,7 +4664,7 @@ function buildAnalysisSheet(de) {
     }
 
     // ── 6. Shift Swap Suggestions ──
-    addSection('🔄', de ? 'Tausch-Vorschläge' : 'Shift Swap Suggestions');
+    addSection('', de ? 'Tausch-Vorschläge' : 'Shift Swap Suggestions');
     const swaps = [];
     if (latesData.length >= 2) {
         const hi = latesData[0], lo = latesData[latesData.length-1];
@@ -4683,9 +4721,9 @@ function buildAnalysisSheet(de) {
     return ws;
 }
 function buildExcelExportConfig() {
-    // Fixed columns: Date, Weekday, Holiday?, LSS?  → indices 0-3
-    // Worker columns start at index 4
-    const workerStartCol  = 4;
+    // Fixed columns: KW, Date, Weekday, Holiday?, LSS?  → indices 0-4
+    // Worker columns start at index 5
+    const workerStartCol  = 5;
     const summaryStartCol = workerStartCol + workers.length;
 
     const de = currentLang === 'de';
@@ -4751,7 +4789,7 @@ async function downloadExcelWithFormulas() {
     const COMMENT_BG = 'FDFEFE';
 
     // ── Build Plan sheet ──
-    const planHeader = [de?'Datum':'Date', de?'Wochentag':'Weekday', de?'Feiertag?':'Holiday?', 'LSS?'];
+    const planHeader = ['KW', de?'Datum':'Date', de?'Wochentag':'Weekday', de?'Feiertag?':'Holiday?', 'LSS?'];
     workers.forEach(w => {
         const totalShifts = w.shifts.filter(s => s !== '-' && !isPendingVacationShift(s)).length;
         const lateShifts  = w.shifts.filter(s => ['8L','8M'].includes(getBaseShift(s))).length;
@@ -4764,7 +4802,7 @@ async function downloadExcelWithFormulas() {
 
     for (let d = 0; d < daysInMonth; d++) {
         const dateObj = new Date(currentYear, currentMonth-1, d+1);
-        const row = [dateObj, dayNames[dateObj.getDay()], isHoliday(d) ? 'Y' : '', lssDays.includes(d) ? 'Y' : ''];
+        const row = [null, dateObj, dayNames[dateObj.getDay()], isHoliday(d) ? 'Y' : '', lssDays.includes(d) ? 'Y' : ''];
         workers.forEach(w => {
             const shift = w.shifts[d] || '-';
             // Show pending vacation cleanly: strip -PENDING suffix, add ⏳
@@ -4794,8 +4832,22 @@ async function downloadExcelWithFormulas() {
     }
 
     const planWs = XLSX.utils.aoa_to_sheet(planRows);
+
+    // Fix 2: inject KW formula cells (col A, rows 2..n) — references col B (Date)
+    for (let d = 0; d < daysInMonth; d++) {
+        const excelRow = d + 2;
+        const dt    = new Date(currentYear, currentMonth - 1, d + 1);
+        const jan4  = new Date(currentYear, 0, 4);
+        const wkNum = Math.ceil(((dt - jan4) / 86400000 + jan4.getDay() + 1) / 7);
+        planWs[`A${excelRow}`] = {
+            t: 'str', v: 'KW ' + wkNum,
+            f: `IFERROR("KW "&WEEKNUM(B${excelRow}),"")`,
+            s: xlsCellStyle('#FAFAFA', { border:true, align:'center', fontColor:'#888888', sz:10 })
+        };
+    }
+
     planWs['!cols'] = [
-        {wch:12},{wch:10},{wch:10},{wch:6},
+        {wch:7},{wch:12},{wch:10},{wch:10},{wch:6},
         ...workers.map(() => ({wch:18})),
         ...cfg.summary.map(s => {
             if (s.key === 'comments')      return { wch: 28 };
@@ -4878,7 +4930,7 @@ async function downloadExcelWithFormulas() {
     }
 
     // ── Helper sheet (hidden — formula logic) ──
-    const helperKeys = ['c8E','c8M','c8L', ...(use13H?['c13H']:[]), ...(use6H?['c6H']:[]), 'cImE','cImL','work','vac','sick','fb','pf','df','krank'];
+    const helperKeys = ['c8E','c8M','c8L', ...(use13H?['c13H']:[]), ...(use6H?['c6H']:[]), 'cImE','cImL','work','vac','sick','fb','pf','df'];
     const helperHeader = [de?'Datum':'Date', 'DayIndex'];
     helperKeys.forEach(key => workers.forEach(w => helperHeader.push(`${key}_${w.name}`)));
     const helperRows = [helperHeader];
@@ -4894,9 +4946,11 @@ async function downloadExcelWithFormulas() {
         helperWs[excelCell(rowIdx, 0)].t = 'd';
         helperWs[excelCell(rowIdx, 0)].z = 'dd.mm.yyyy';
         helperKeys.forEach((key, keyIdx) => workers.forEach((w, wIdx) => {
-            const helperCol    = 2 + keyIdx * workers.length + wIdx;
-            const planCellRef  = `Plan!${excelCol(cfg.workerStartCol + wIdx)}${rowIdx + 1}`;
-            const val          = computeHelperValue(w.shifts[d] || '-', key);
+            const helperCol   = 2 + keyIdx * workers.length + wIdx;
+            // Fix 6: reference named range SP_W_N, INDEX to single row cell
+            const namedRange  = `SP_W_${wIdx}`;
+            const planCellRef = `INDEX(${namedRange},${rowIdx + 1})`;
+            const val         = computeHelperValue(w.shifts[d] || '-', key);
             helperSums[key][d] += val;
             helperWs[excelCell(rowIdx, helperCol)] = { t:'n', v: val, f: excelHelperFormulaPending(planCellRef, key) };
         }));
@@ -4957,11 +5011,15 @@ async function downloadExcelWithFormulas() {
                 case 'fb':    f = ci(wRng,'FB'); break;
                 case 'pf':    f = ci(wRng,'PF'); break;
                 case 'df':    f = ci(wRng,'DF'); break;
-                case 'krank': f = ci(wRng,'SICK'); break;
                 case 'absence': {
-                    // SUM of vac, fb, pf, df, sick columns on this same row
-                    const col = k => excelCol(cfg.summaryStartCol + cfg.summary.findIndex(x => x.key===k));
-                    f = `SUM(${col('vac')}${excelRow},${col('fb')}${excelRow},${col('pf')}${excelRow},${col('df')}${excelRow},${col('sick')}${excelRow})`;
+                    const col = k => {
+                        const i = cfg.summary.findIndex(x => x.key === k);
+                        return i >= 0 ? excelCol(cfg.summaryStartCol + i) : null;
+                    };
+                    const vCol = col('vac'), fbCol = col('fb'), pfCol = col('pf'), dfCol = col('df'), sCol = col('sick');
+                    if (vCol && fbCol && pfCol && dfCol && sCol) {
+                        f = `SUM(${vCol}${excelRow},${fbCol}${excelRow},${pfCol}${excelRow},${dfCol}${excelRow},${sCol}${excelRow})`;
+                    }
                     break;
                 }
                 default: f = null;
@@ -5127,14 +5185,12 @@ async function downloadExcelWithFormulas() {
 
         // ── 2. Row-level CF — full row (A to last summary col) for Hol/LSS/Weekend ──
         // Applied at lower priority than shift colours (priority numbers continue from above).
-        // Col C = Holiday? (index 2 = "C"), Col D = LSS? (index 3 = "D"), Col A = Date (index 0)
-        const firstCol = excelCol(cfg.workerStartCol); // start after date/hol/lss cols — avoids circular ref on $A2/$C2/$D2
+        // KW=A, Date=B, Weekday=C, Holiday=D, LSS=E, Workers=F+
         const lastCol  = excelCol(cfg.summaryStartCol + cfg.summary.length - 1);
-        const rowSqref = `${firstCol}2:${lastCol}${lastRow}`;
-        // Anchor cols C and D so formula applies row-by-row
-        const holRef  = `$C2`;
-        const lssRef  = `$D2`;
-        const dateRef = `$A2`;
+        const rowSqref = `A2:${lastCol}${lastRow}`; // Fix 4: starts at A2 to shade all columns
+        const holRef  = `$D2`;  // Holiday? is col D (index 3) after KW column
+        const lssRef  = `$E2`;  // LSS? is col E (index 4) after KW column
+        const dateRef = `$B2`;  // Date is col B (index 1) after KW column
         const rowRules = [
             // Holiday wins over weekend — check first (lower priority number = wins)
             [20, `${holRef}="Y"`],                                    // holiday purple
@@ -5150,7 +5206,22 @@ async function downloadExcelWithFormulas() {
         }).join('');
         const rowCF = `<conditionalFormatting sqref="${rowSqref}">${rowRulesXml}</conditionalFormatting>`;
 
-        return shiftCF + rowCF;
+        // Fix 9: highlight work-count column red when below minStaff
+        let minStaffCF = '';
+        if (minStaff > 0) {
+            const workIdx = cfg.summary.findIndex(x => x.key === 'work');
+            if (workIdx >= 0) {
+                const workCol   = excelCol(cfg.summaryStartCol + workIdx);
+                const workSqref = `${workCol}2:${workCol}${lastRow}`;
+                minStaffCF =
+                    `<conditionalFormatting sqref="${workSqref}">` +
+                    `<cfRule type="cellIs" dxfId="12" priority="${pri + 10}" operator="lessThan">` +
+                    `<formula>${minStaff}</formula></cfRule>` +
+                    `</conditionalFormatting>`;
+            }
+        }
+
+        return shiftCF + rowCF + minStaffCF;
     }
 
     XLSX.utils.book_append_sheet(wb, planWs,    'Plan');
@@ -5189,10 +5260,19 @@ async function downloadExcelWithFormulas() {
                 if (wbXmlFile) {
                     let wbXml = await wbXmlFile.async('string');
                     const shiftCodesRef = `Legend!$D$1:$D$${shiftCodes.length}`;
+                    const planLastCol   = `$${excelCol(planHeader.length - 1)}`;
+                    const planLastRow   = planRows.length;
+                    const workerNamedRanges = workers.map((w, i) => {
+                        const col = excelCol(cfg.workerStartCol + i);
+                        return `<definedName name="SP_W_${i}">Plan!$${col}$2:$${col}$${planLastRow}</definedName>`;
+                    }).join('');
                     const defNames =
                         '<definedNames>' +
                         '<definedName name="SP_ShiftCodes">' + shiftCodesRef + '</definedName>' +
                         '<definedName name="SP_YNList">Legend!$E$1:$E$2</definedName>' +
+                        '<definedName name="_xlnm.Print_Titles" localSheetId="0">Plan!$1:$1</definedName>' +
+                        `<definedName name="_xlnm.Print_Area" localSheetId="0">Plan!$A$1:${planLastCol}$${planLastRow}</definedName>` +
+                        workerNamedRanges +
                         '</definedNames>';
                     const wbClean = wbXml.replace(/<definedNames>[\s\S]*?<\/definedNames>/g, '');
                     zip.file('xl/workbook.xml', wbClean.replace('</workbook>', defNames + '</workbook>'));
@@ -5265,6 +5345,41 @@ async function downloadExcelWithFormulas() {
                     zip.file(sheetKey, sheetXml);
                 }
 
+                // Fix 1: freeze panes on Dienstplan RT (sheet5) — cols A-C, rows 1-5, topLeftCell=D6
+                const rtSheetFile = zip.file('xl/worksheets/sheet5.xml');
+                if (rtSheetFile) {
+                    let rtXml = await rtSheetFile.async('string');
+                    const freezeXml =
+                        '<sheetViews><sheetView workbookViewId="0">' +
+                        '<pane xSplit="3" ySplit="5" topLeftCell="D6" activePane="bottomRight" state="frozen"/>' +
+                        '<selection pane="bottomRight" activeCell="D6" sqref="D6"/>' +
+                        '</sheetView></sheetViews>';
+                    rtXml = rtXml.includes('<sheetViews')
+                        ? rtXml.replace(/<sheetViews>[\s\S]*?<\/sheetViews>/, freezeXml)
+                        : rtXml.replace('<sheetData', freezeXml + '<sheetData');
+                    zip.file('xl/worksheets/sheet5.xml', rtXml);
+                }
+
+                // Fix 10: inject tab colours into each visible sheet XML
+                const tabColors = [
+                    { file: 'xl/worksheets/sheet1.xml', rgb: 'FF1F4E79' }, // Plan — dark blue
+                    { file: 'xl/worksheets/sheet3.xml', rgb: 'FF888888' }, // Legend — grey
+                    { file: 'xl/worksheets/sheet4.xml', rgb: 'FFD35400' }, // Analysis — orange
+                    { file: 'xl/worksheets/sheet5.xml', rgb: 'FF0F766E' }, // Dienstplan RT — teal
+                ];
+                for (const { file, rgb } of tabColors) {
+                    const tc = zip.file(file);
+                    if (!tc) continue;
+                    let tcXml = await tc.async('string');
+                    const tabTag = `<sheetPr><tabColor rgb="${rgb}"/></sheetPr>`;
+                    if (tcXml.includes('<sheetPr>') || tcXml.includes('<sheetPr ')) {
+                        tcXml = tcXml.replace(/<sheetPr([^>]*)>/, `<sheetPr$1><tabColor rgb="${rgb}"/>`);
+                    } else {
+                        tcXml = tcXml.replace('<sheetData', tabTag + '<sheetData');
+                    }
+                    zip.file(file, tcXml);
+                }
+
                 finalBytes = await zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } });
             } catch (zipErr) {
                 console.error('[ShiftPlanner V1] XLSX post-processing failed:', zipErr);
@@ -5280,7 +5395,7 @@ async function downloadExcelWithFormulas() {
         a.click();
         setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
     } catch(e) {
-        alert('❌ Excel export failed: ' + e.message + '\n\nTry using the JSON Backup instead (💾 Backup JSON).');
+        alert(_t('❌ Excel export failed: ' + e.message + '\n\nTry using the JSON Backup instead (💾 Backup JSON).','❌ Excel-Export fehlgeschlagen: ' + e.message + '\n\nVerwenden Sie stattdessen die JSON-Sicherung (💾 Backup JSON).'));
     }
 }
 
@@ -5482,7 +5597,7 @@ function buildDienstplanRTSheet() {
         workers.forEach((w, i) => {
             const rc = WORKER_START + i * 3;
             const rt = dayRTs[i];
-            const P  = `Plan!${excelCol(4 + i)}${r - 4}`;  // Plan cell for this worker & day
+            const P  = `Plan!${excelCol(5 + i)}${r - 4}`;  // Plan worker col (workerStartCol=5 after KW column)
 
             // Room formula — maps Plan shift code → RT room label
             const roomFrm = (
@@ -5539,16 +5654,16 @@ function buildDienstplanRTSheet() {
                     return rt.room === rs.room;
                 })
                 .map(w => w.name.slice(0, 3))
-                .join(' ');  // space-separated like the reference file
+                .join(',');  // Fix 7: comma-separated — enables robust Anz count formula
 
             // Build the Excel formula &-chain
             const parts = workers.map((w, wi) => {
-                const rc   = WORKER_START + wi * 3;
-                const rLet = col1(rc);
-                const sLet = col1(rc + 1);
-                const hRef = `$${rLet}$2`;
-                const rRef = `$${rLet}${r}`;
-                const sRef = `$${sLet}${r}`;
+                const rc     = WORKER_START + wi * 3;
+                const rLet   = col1(rc);
+                const sLet   = col1(rc + 1);
+                const abbrev = w.name.slice(0, 3); // Fix 5: literal string — immune to row insertions above row 2
+                const rRef   = `$${rLet}${r}`;
+                const sRef   = `$${sLet}${r}`;
                 let cond;
                 if (rs.shift !== null) {
                     cond = `AND(OR(${rRef}="${rs.room}",${rRef}="Springer"),${sRef}=${rs.shift})`;
@@ -5559,7 +5674,7 @@ function buildDienstplanRTSheet() {
                 } else {
                     cond = `${rRef}="${rs.room}"`;
                 }
-                return `IF(${cond},${hRef},"")`;
+                return `IF(${cond},"${abbrev}","")`;
             });
 
             ws[addr(r, sumCol)] = parts.length
@@ -5600,13 +5715,12 @@ function buildDienstplanRTSheet() {
             const laengeVal   = summaryVal.replace(/ /g, '').length || '';
             const anzVal      = laengeVal !== '' ? Math.floor(Number(laengeVal) / 3) : 0;
 
-            ws[addr(r, lCol)] = laengeVal !== ''
-                ? frmNum(`IF(${sLet}${r}<>"",LEN(SUBSTITUTE(${sLet}${r}," ","")),"")`
-                    , laengeVal, bg, { fontColor:'#666666' })
-                : frmStr(`IF(${sLet}${r}<>"",LEN(SUBSTITUTE(${sLet}${r}," ","")),"")`
-                    , '', bg, { fontColor:'#666666' });
-            ws[addr(r, lCol + 1)] = frmNum(
-                `IF(${lLet}${r}<>"",${lLet}${r}/3,0)`, anzVal, bg, { fontColor:'#666666' });
+            // Fix 7: Anz = comma-count + 1 (non-empty); works for any abbreviation length
+            const anzFormula  = `IF(${sLet}${r}<>"",LEN(${sLet}${r})-LEN(SUBSTITUTE(${sLet}${r},",",""))+1,0)`;
+            const lenFormula  = `IF(${sLet}${r}<>"",LEN(SUBSTITUTE(${sLet}${r},",","")),0)`;
+            const anzValFixed = summaryVal !== '' ? summaryVal.split(',').filter(Boolean).length : 0;
+            ws[addr(r, lCol)]     = frmNum(lenFormula, laengeVal || 0, bg, { fontColor:'#666666' });
+            ws[addr(r, lCol + 1)] = frmNum(anzFormula, anzValFixed,    bg, { fontColor:'#666666' });
         });
     }
 
@@ -5698,7 +5812,7 @@ function downloadAsHTML() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    alert('✅ HTML file downloaded!\n\nOpen it in any browser — your current data is embedded.\nYou can also commit this file to your GitHub repo as a backup.');
+    alert(_t('✅ HTML file downloaded!\n\nOpen it in any browser — your current data is embedded.\nYou can also commit this file to your GitHub repo as a backup.','✅ HTML-Datei heruntergeladen!\n\nIn jedem Browser öffnen — aktuelle Daten sind eingebettet.\nAls Sicherung auch ins GitHub-Repo übertragen möglich.'));
 }
 
 
@@ -5755,9 +5869,9 @@ function copyColorfulExcel() {
     window.getSelection().addRange(range);
     try {
         document.execCommand('copy');
-        alert('✅ Success! Open Excel, select top-left cell, press Ctrl+V.');
+        alert(_t('✅ Success! Open Excel, select top-left cell, press Ctrl+V.','✅ Erfolgreich! Excel öffnen, linke obere Zelle wählen, Strg+V drücken.'));
     } catch(err) {
-        alert('Oops! Browser blocked the clipboard. Error: ' + err);
+        alert(_t('Oops! Browser blocked the clipboard. Error: ' + err,'Fehler! Browser hat Zwischenablage blockiert: ' + err));
     }
     window.getSelection().removeAllRanges();
     document.body.removeChild(tmp);
@@ -5778,27 +5892,27 @@ const T = {
     targetsTitle:   'Master Granular Targets',
     wdLabel:        'Weekday Defaults:',
     weLabel:        'Weekend/Holiday Defaults:',
-    immoTgtTitle:   '🏥 Immo Targets (Weekdays only)',
+    immoTgtTitle:   'Immo Targets (Weekdays only)',
     immoTgtNote:    'Warning-only — Auto-Fill never touches these. Use Jump-in workers to cover gaps.\nImmo always 0 on weekends & holidays.',
     toggle13Hlabel: 'Enable <span style="background:#ffe599;padding:1px 5px;border-radius:3px;">13H</span> shifts (07:00–20:00)',
     toggle6Hlabel:  'Enable <span style="background:#d9ead3;padding:1px 5px;border-radius:3px;">6H</span> shifts (07:00–13:00)',
     toggleShiftNote:'When off: column hidden, Auto-Fill skips it.',
-    fairNote:       '⚖️ <strong>Fair 8L / 8M balance:</strong> Auto-Fill pre-computes a <em>monthly budget</em> per worker — exact 8L and 8M counts needed to hit 40% late shifts on actual working days (VAC/SICK excluded). Budget drawn down week by week; 8L and 8M tracked independently.',
-    btnAutoFill:    '✨ Smart Auto-Fill',
+    fairNote:       '<strong>Fair 8L / 8M balance:</strong> Auto-Fill pre-computes a <em>monthly budget</em> per worker — exact 8L and 8M counts needed to hit 40% late shifts on actual working days (VAC/SICK excluded). Budget drawn down week by week; 8L and 8M tracked independently.',
+    btnAutoFill:    'Auto-Fill',
     undoBtn:        '↩ Undo',
     redoBtn:        '↪ Redo',
-    btnAI:          '🤖 AI Analysis',
-    btnPersonal:    '📱 Personal Export',
-    btnHelp:        '📖 Help & Guide',
-    btnRefresh:     '🔄 Refresh Board',
-    btnBackup:      '💾 Backup JSON',
-    btnRestore:     '📂 Restore JSON',
-    btnExcel:       '📋 Copy Table (HTML → Excel)',
-    btnHTML:        '⬇️ Download as HTML',
-    btnSPSync:      '🐙 GitHub Sync',
-    btnDiff:        '📆 Month Comparison',
-    selectModeBtn:  '⬜ Select Mode',
-    btnClear:       '🗑️ Clear Month',
+    btnAI:          'AI Analysis',
+    btnPersonal:    'Personal Export',
+    btnHelp:        'Help & Guide',
+    btnRefresh:     'Refresh',
+    btnBackup:      'Backup JSON',
+    btnRestore:     'Restore JSON',
+    btnExcel:       'Copy Table (HTML → Excel)',
+    btnHTML:        'Download as HTML',
+    btnSPSync:      'GitHub Sync',
+    btnDiff:        'Month Comparison',
+    selectModeBtn:  'Select Mode',
+    btnClear:       'Clear Month',
     lbl_name:       'Name',
     lbl_sys:        'System',
     lbl_con:        'Contract',
@@ -5812,26 +5926,26 @@ const T = {
     opt_jimmo:      'Immo Jump-in',
     lbl_fixedoff:   'Fixed Days Off:',
     btnAddWorker:   '+ Add Worker',
-    btnClearAll:    '🗑️ Clear All Workers',
+    btnClearAll:    'Clear All Workers',
     lbl_maxvac:     'Max Vacation per day:',
     lbl_vacnote:    'Yellow = 1 spot left | Red = Full',
     lbl_maxcon:     'Max Consecutive Days:',
     lbl_minstaf:    'Min Working Staff / day:',
     lbl_minstafnote:'0 = disabled | Date cell turns red if below',
-    lbl_shortcuts:  '<strong>⌨ Arrow keys</strong> navigate cells.<br><strong>Ctrl+Z / Ctrl+Y</strong> undo & redo.<br><strong>⬜ Select Mode</strong> bulk-fills multiple cells.',
+    lbl_shortcuts:  '<strong>Arrow keys</strong> navigate cells. <strong>Ctrl+Z / Ctrl+Y</strong> undo &amp; redo. <strong>Select Mode</strong> bulk-fills multiple cells.',
     statsTitle:     'Worker Statistics',
-    statsToggle:    '📊 Show Worker Stats Panel',
-    selModeLabel:   '⬜ Select Mode',
+    statsToggle:    'Show Worker Stats Panel',
+    selModeLabel:   'Select Mode',
     selCellsLabel:  'cells selected',
-    btnApplyBulk:   '✔ Apply to All Selected',
-    btnClearSel:    '✖ Clear Selection',
-    btnExitSel:     '✖ Exit',
-    helpTitle:      '📖 A to Z User Guide — v6',
+    btnApplyBulk:   '✔ Apply to Selected',
+    btnClearSel:    'Clear Selection',
+    btnExitSel:     'Exit',
+    helpTitle:      'A to Z User Guide — v6',
     helpContent:    getHelpContent('en'),
   },
   de: {
     pageTitle:      'Dienstplaner V2',
-    langBtn:        '🌐 English',
+    langBtn:        'English',
     months: ['Jänner','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
     p1title:        '1. Einrichtung & Aktionen',
     p2title:        '2. Mitarbeiter hinzufügen',
@@ -5840,27 +5954,27 @@ const T = {
     targetsTitle:   'Tagesgenaue Zielwerte',
     wdLabel:        'Werktag-Standards:',
     weLabel:        'Wochenende/Feiertag-Standards:',
-    immoTgtTitle:   '🏥 Immo-Zielwerte (nur Werktage)',
+    immoTgtTitle:   'Immo-Zielwerte (nur Werktage)',
     immoTgtNote:    'Nur Warnung — Auto-Befüllung ändert diese nie. Jump-in-Mitarbeiter bei Lücken einsetzen.\nImmo ist an Wochenenden und Feiertagen immer 0.',
     toggle13Hlabel: '<span style="background:#ffe599;padding:1px 5px;border-radius:3px;">13H</span>-Dienste aktivieren (07:00–20:00)',
     toggle6Hlabel:  '<span style="background:#d9ead3;padding:1px 5px;border-radius:3px;">6H</span>-Dienste aktivieren (07:00–13:00)',
     toggleShiftNote:'Wenn deaktiviert: Spalte ausgeblendet, Auto-Befüllung überspringt diesen Dienst.',
-    fairNote:       '⚖️ <strong>Gerechte 8L / 8M-Bilanz:</strong> Die Auto-Befüllung berechnet vorab ein <em>Monatsbudget</em> je Mitarbeiter — genaue Anzahl 8L (IR2, 22:30) und 8M (IR3/IR4, 20:00) für 40% Spätdienste auf echten Arbeitstagen (Urlaub/Krank ausgeschlossen). Budget wird wöchentlich abgerufen; 8L und 8M werden separat verfolgt.',
-    btnAutoFill:    '✨ Intelligente Auto-Befüllung',
+    fairNote:       '<strong>Gerechte 8L / 8M-Bilanz:</strong> Die Auto-Befüllung berechnet vorab ein <em>Monatsbudget</em> je Mitarbeiter — genaue Anzahl 8L und 8M für 40% Spätdienste auf echten Arbeitstagen (Urlaub/Krank ausgeschlossen). Budget wird wöchentlich abgerufen; 8L und 8M werden separat verfolgt.',
+    btnAutoFill:    'Auto-Befüllung',
     undoBtn:        '↩ Rückgängig',
     redoBtn:        '↪ Wiederholen',
-    btnAI:          '🤖 KI-Analyse',
-    btnPersonal:    '📱 Persönlicher Export',
-    btnHelp:        '📖 Hilfe & Anleitung',
-    btnRefresh:     '🔄 Ansicht aktualisieren',
-    btnBackup:      '💾 JSON-Sicherung',
-    btnRestore:     '📂 JSON wiederherstellen',
-    btnExcel:       '📋 Tabelle kopieren (HTML → Excel)',
-    btnHTML:        '⬇️ Als HTML herunterladen',
-    btnSPSync:      '🐙 GitHub-Synchronisation',
-    btnDiff:        '📆 Monatsvergleich',
-    selectModeBtn:  '⬜ Auswahlmodus',
-    btnClear:       '🗑️ Monat leeren',
+    btnAI:          'KI-Analyse',
+    btnPersonal:    'Persönlicher Export',
+    btnHelp:        'Hilfe & Anleitung',
+    btnRefresh:     'Aktualisieren',
+    btnBackup:      'JSON-Sicherung',
+    btnRestore:     'JSON wiederherstellen',
+    btnExcel:       'Tabelle kopieren (HTML → Excel)',
+    btnHTML:        'Als HTML herunterladen',
+    btnSPSync:      'GitHub-Synchronisation',
+    btnDiff:        'Monatsvergleich',
+    selectModeBtn:  'Auswahlmodus',
+    btnClear:       'Monat leeren',
     lbl_name:       'Name',
     lbl_sys:        'System',
     lbl_con:        'Vertrag',
@@ -5874,21 +5988,21 @@ const T = {
     opt_jimmo:      'Immo-Einspringer',
     lbl_fixedoff:   'Feste freie Tage:',
     btnAddWorker:   '+ Mitarbeiter hinzufügen',
-    btnClearAll:    '🗑️ Alle Mitarbeiter löschen',
+    btnClearAll:    'Alle Mitarbeiter löschen',
     lbl_maxvac:     'Max. Urlaub pro Tag:',
     lbl_vacnote:    'Gelb = 1 Platz frei | Rot = Voll',
     lbl_maxcon:     'Max. aufeinanderfolgende Tage:',
     lbl_minstaf:    'Min. arbeitendes Personal / Tag:',
     lbl_minstafnote:'0 = deaktiviert | Datumszelle wird rot wenn unterschritten',
-    lbl_shortcuts:  '<strong>⌨ Pfeiltasten</strong> navigieren durch Zellen.<br><strong>Strg+Z / Strg+Y</strong> rückgängig & wiederholen.<br><strong>⬜ Auswahlmodus</strong> füllt mehrere Zellen auf einmal.',
+    lbl_shortcuts:  '<strong>Pfeiltasten</strong> navigieren durch Zellen. <strong>Strg+Z / Strg+Y</strong> rückgängig &amp; wiederholen. <strong>Auswahlmodus</strong> füllt mehrere Zellen auf einmal.',
     statsTitle:     'Mitarbeiterstatistik',
-    statsToggle:    '📊 Statistikbereich anzeigen',
-    selModeLabel:   '⬜ Auswahlmodus',
+    statsToggle:    'Statistikbereich anzeigen',
+    selModeLabel:   'Auswahlmodus',
     selCellsLabel:  'Zellen ausgewählt',
-    btnApplyBulk:   '✔ Auf alle ausgewählten anwenden',
-    btnClearSel:    '✖ Auswahl aufheben',
-    btnExitSel:     '✖ Beenden',
-    helpTitle:      '📖 Vollständige Benutzeranleitung — v6',
+    btnApplyBulk:   '✔ Auf Auswahl anwenden',
+    btnClearSel:    'Auswahl aufheben',
+    btnExitSel:     'Beenden',
+    helpTitle:      'Vollständige Benutzeranleitung — v6',
     helpContent:    getHelpContent('de'),
   }
 };
@@ -5939,14 +6053,14 @@ function getHelpContent(lang) {
   <h3>${de?'Schritt 4: Manuelle Daten eingeben':'Step 4: Enter Manual Data'}</h3>
   ${de?'Urlaub, Krankenstand und feste Dienste vor der Auto-Befüllung eintragen.':'Enter VAC, SICK and fixed shifts before running Auto-Fill.'}
 
-  <h3>${de?'Schritt 5: Intelligente Auto-Befüllung ✨':'Step 5: Run Smart Auto-Fill ✨'}</h3>
+  <h3>${de?'Schritt 5: Auto-Befüllung':'Step 5: Auto-Fill'}</h3>
   ${de?'Berücksichtigt Ruhezeiten, verhindert aufeinanderfolgende Tage und füllt Dienste gemäß Tageszielen auf.':'Balances rest times, prevents consecutive-day violations, and fills shifts to hit daily targets.'}
   <div style="margin:6px 0;padding:7px 10px;background:#eafaf1;border:1px solid #a9dfbf;border-radius:4px;font-size:12px;">
     <strong>${de?'⚖️ Fairness-System (3 Ebenen):':'⚖️ Fairness System (3 levels):'}</strong><br>
     ${de?'<strong>1. Monatliches Budget (Vollplan):</strong> Vor der ersten Woche berechnet die Auto-Befüllung für jeden Mitarbeiter exakt, wie viele 8L und 8M er diesen Monat braucht — basierend auf seinen echten Arbeitstagen (Urlaub/Krank ausgeschlossen). 8L und 8M werden <em>separat</em> budgetiert.<br><strong>2. Wöchentliche Budgetentnahme:</strong> Jede Woche wird ein proportionaler Anteil des Restbudgets verteilt (Restbudget ÷ verbleibende Wochen, aufrundend in frühen Wochen). Wer mehr Budget-Defizit hat, geht zuerst.<br><strong>3. Bucket-Shuffle + Top-3-Tagswahl:</strong> Mitarbeiter mit ähnlicher Spätdienst-Bilanz (±1) werden zufällig geordnet. Tage werden aus den Top-3 Optionen gewichtet zufällig gewählt — vermeidet Montags-Bias.<br><strong>Fair?-Spalte:</strong> Excel-Export zeigt ✔ (30–50% Spätdienste) oder ⚠ im Spaltenheader.':'<strong>1. Monthly budget (full-month planning):</strong> Before week 1, Auto-Fill computes exactly how many 8L and 8M each worker needs this month — based on actual working days (VAC/SICK excluded). 8L and 8M are budgeted <em>independently</em>.<br><strong>2. Weekly budget drawdown:</strong> Each week takes a proportional slice of the remaining budget (remaining ÷ weeks left, rounding up in early weeks). Workers with more remaining budget go first.<br><strong>3. Bucket shuffle + top-3 day pick:</strong> Workers with similar late counts (±1) are randomly ordered. Days are chosen via weighted random from the top-3 options — prevents Monday-bias.<br><strong>Fair? column:</strong> Excel export shows ✔ (30–50% lates) or ⚠ in each worker column header.'}
   </div>
 
-  <h3>${de?'Schritt 6: Ansicht aktualisieren 🔄':'Step 6: Refresh Board 🔄'}</h3>
+  <h3>${de?'Schritt 6: Ansicht aktualisieren':'Step 6: Refresh'}</h3>
   ${de?'Nach manuellen Änderungen <strong>Ansicht aktualisieren</strong> klicken.':'After any manual change click <strong>Refresh Board</strong>.'}
 
   <h3>${de?'Schritt 7: Rückgängig & Wiederholen ↩↪':'Step 7: Undo & Redo ↩↪'}</h3>
@@ -5958,16 +6072,16 @@ function getHelpContent(lang) {
   <h3>${de?'Schritt 9: Auswahlmodus ⬜':'Step 9: Select Mode ⬜'}</h3>
   ${de?'Mehrere Zellen markieren und einen Dienst auf alle auf einmal anwenden. Zimmer-Varianten (8E-IR2, 8M-IR3 usw.) in der Auswahlliste verfügbar.':'Select multiple cells and apply one shift to all at once. Room variants (8E-IR2, 8M-IR3 etc.) available in the selection bar.'}
 
-  <h3>${de?'Schritt 10: Statistikbereich 📊':'Step 10: Worker Stats Panel 📊'}</h3>
+  <h3>${de?'Schritt 10: Statistikbereich':'Step 10: Worker Stats Panel'}</h3>
   ${de?'"Statistikbereich anzeigen" aktivieren für Stunden, Früh/Spät-Aufteilung, Urlaub, Krankenstand und maximale aufeinanderfolgende Tage.':'Tick Show Worker Stats Panel for hours, early/late split, vacation, sick and max consecutive days.'}
 
-  <h3>${de?'Schritt 11: Monatsvergleich 📆':'Step 11: Month Comparison 📆'}</h3>
+  <h3>${de?'Schritt 11: Monatsvergleich':'Step 11: Month Comparison'}</h3>
   ${de?'Zwei gespeicherte Monate nebeneinander vergleichen — Stunden, Früh/Spät-Verschiebungen und jeden geänderten Dienst.':'Compare any two saved months side by side — hours, early/late changes, and every shifted day.'}
 
   <h3>${de?'Schritt 12: Zimmer zuweisen 🚪':'Step 12: Assign Rooms 🚪'}</h3>
   ${de?'Dienst wie <code>8E</code> auf <code>8E-IR2</code> ändern, um die Zimmerspalten automatisch zu befüllen. Zellfarben aktualisieren sich automatisch per bedingter Formatierung.':'Change a shift like <code>8E</code> to <code>8E-IR2</code> to populate the Room columns automatically. Cell colours update via Conditional Formatting.'}
 
-  <h3>${de?'Schritt 13: KI-Prüfung & Tauschvorschläge 🤖':'Step 13: AI Check & Swap Suggestions 🤖'}</h3>
+  <h3>${de?'Schritt 13: KI-Prüfung & Tauschvorschläge':'Step 13: AI Check & Swap Suggestions'}</h3>
   ${de?'Überprüft Gerechtigkeit, Arbeitszeitverstöße, Unterbesetzung und Immo-Lücken. Schlägt konkrete Tausche vor. <strong>Auch im Excel-Export</strong> als "Analyse"-Blatt enthalten.':'Checks fairness, labour law violations, understaffing and Immo gaps. Proposes specific swaps. <strong>Also included in the Excel export</strong> as an "Analysis" sheet.'}
 
   <h3>${de?'Schritt 14: LSS-Tag 📋 — Nur Editor/Admin':'Step 14: LSS Day 📋 — Editor/Admin only'}</h3>
@@ -5976,10 +6090,10 @@ function getHelpContent(lang) {
   <h3>${de?'Schritt 15: Benutzerdefinierte Dienstzeiten ⏰':'Step 15: Custom Shift Hours ⏰'}</h3>
   ${de?'Jede Zelle hat einen kleinen <strong style="color:#6c3483;">⏰</strong>-Knopf. Individuelle Start- und Endzeiten festlegen. Dienste die sowohl vor Mittag beginnen als auch nach 14:00 enden zählen in beiden Spalten (8E und 8L) und werden mit <strong>★</strong> markiert.':'Every cell has a tiny <strong style="color:#6c3483;">⏰</strong> button. Set a custom start and end time. If the shift spans before noon and after 14:00 it counts in both 8E and 8L buckets and is marked ★.'}
 
-  <h3>${de?'Schritt 16: GitHub-Sync & Einstellungen 💾🐙':'Step 16: GitHub Sync & Settings 💾🐙'}</h3>
+  <h3>${de?'Schritt 16: GitHub-Sync & Einstellungen':'Step 16: GitHub Sync & Settings'}</h3>
   ${de?'<strong>PAT</strong> und <strong>Verschlüsselungspasswort</strong> werden <em>sofort beim Tippen</em> gespeichert — kein Speichern-Button nötig.<br><strong>Geteiltes Kommentar-Token</strong> wird ebenfalls sofort in den Speicher übernommen.<br><strong>JSON-Sicherung</strong> speichert alle Daten. <strong>JSON wiederherstellen</strong> lädt sie neu.<br><strong>GitHub-Sync:</strong> Owner, Repo-Name und PAT eingeben. Pull = Daten holen, Push = Daten hochladen.':'<strong>PAT</strong> and <strong>encryption password</strong> are applied <em>immediately as you type</em> — no Save button needed.<br><strong>Shared comment token</strong> is also applied instantly to memory.<br><strong>Backup JSON</strong> saves all data. <strong>Restore JSON</strong> reloads it.<br><strong>GitHub Sync:</strong> Enter owner, repo, and PAT. Pull = fetch shared data, Push = upload your data.'}
 
-  <h3>${de?'Schritt 17: Excel-Export 📊':'Step 17: Excel Export 📊'}</h3>
+  <h3>${de?'Schritt 17: Excel-Export':'Step 17: Excel Export'}</h3>
   ${de?'Enthält vier Blätter: <strong>Plan</strong> (Hauptblatt mit Farben, Dropdowns und Formeln), <strong>Helpers</strong> (Formel-Logik, versteckt), <strong>Legend</strong> (Farbschlüssel + Dropdown-Quelle), <strong>Analyse</strong> (Fairness, Gesetzesprüfung, Tauschvorschläge). Formeln werden beim Öffnen automatisch neu berechnet. Jeder Dienst-Spaltenkopf zeigt <strong>✔</strong> (fair, 30–50% Spätdienste) oder <strong>⚠</strong>.':'Contains four sheets: <strong>Plan</strong> (main sheet with colours, dropdowns and formulas), <strong>Helpers</strong> (formula engine, hidden), <strong>Legend</strong> (colour key + dropdown source), <strong>Analysis</strong> (fairness, law checks, swap suggestions). Formulas recalculate automatically on open. Each worker column header shows <strong>✔</strong> (fair, 30–50% lates) or <strong>⚠</strong>.'}
 
   <hr style="margin-top:20px;border:0;border-top:1px solid #eee;">
@@ -6240,7 +6354,7 @@ function toggleLock() {
     if (!adminHash && !editorHash) {
         currentRole = 'admin';
         applyLockState();
-        spSetStatus('⚙️ Admin Mode — no passwords set yet. Use 🐙 GitHub Sync → 🔑 Set Passwords to protect the app.', '#fffbe6', '#856404');
+        spSetStatus('Admin Mode — no passwords set yet. Use GitHub Sync → Set Passwords to protect the app.', '#fffbe6', '#856404');
         return;
     }
     // Show login modal
@@ -6313,13 +6427,13 @@ async function attemptUnlock() {
 
 function requireEdit(actionName) {
     if (isEditMode) return true;
-    alert(`🔒 "${actionName || 'This action'}" requires Editor or Admin login.\n\nClick the 🔒 Login button (top-right).`);
+    alert(_t(`🔒 "${actionName || 'This action'}" requires Editor or Admin login.\n\nClick the 🔒 Login button (top-right).`,`🔒 "${actionName || 'Diese Aktion'}" erfordert Editor- oder Admin-Anmeldung.\n\nAuf 🔒 Anmelden (oben rechts) klicken.`));
     return false;
 }
 
 function requireAdmin(actionName) {
     if (currentRole === 'admin') return true;
-    alert(`⚙️ "${actionName || 'This action'}" requires Admin login.\n\nClick 🔒 Login → select Admin tab.`);
+    alert(_t(`⚙️ "${actionName || 'This action'}" requires Admin login.\n\nClick 🔒 Login → select Admin tab.`,`⚙️ "${actionName || 'Diese Aktion'}" erfordert Admin-Anmeldung.\n\nAuf 🔒 Anmelden klicken → Admin-Tab wählen.`));
     return false;
 }
 
@@ -6341,7 +6455,7 @@ async function saveAllPasswords() {
     if (!isFirstTimeSetup && !requireAdmin('Set Passwords')) return;
     if (!spConfig.siteUrl || !spConfig.folderPath || !spConfig.fileName) {
         const err = $('setPwError');
-        err.textContent = '⚠️ Connect to GitHub first (🐙 button).';
+        err.textContent = 'Connect to GitHub first (GitHub Sync button).';
         err.style.display = 'block'; return;
     }
     const err = $('setPwError');
@@ -6353,11 +6467,11 @@ async function saveAllPasswords() {
     const e2 = $('pw_editor2').value;
 
     // Validate
-    if (a1 && a1 !== a2) { err.textContent = '⚠️ Admin passwords do not match.'; err.style.display='block'; return; }
-    if (e1 && e1 !== e2) { err.textContent = '⚠️ Editor passwords do not match.'; err.style.display='block'; return; }
-    if (a1 && a1.length < 8) { err.textContent = '⚠️ Admin password must be at least 8 characters.'; err.style.display='block'; return; }
-    if (e1 && e1.length < 8) { err.textContent = '⚠️ Editor password must be at least 8 characters.'; err.style.display='block'; return; }
-    if (!a1 && !e1) { err.textContent = '⚠️ Enter at least one password to save.'; err.style.display='block'; return; }
+    if (a1 && a1 !== a2) { err.textContent = _t('⚠️ Admin passwords do not match.','⚠️ Admin-Passwörter stimmen nicht überein.'); err.style.display='block'; return; }
+    if (e1 && e1 !== e2) { err.textContent = _t('⚠️ Editor passwords do not match.','⚠️ Editor-Passwörter stimmen nicht überein.'); err.style.display='block'; return; }
+    if (a1 && a1.length < 8) { err.textContent = _t('⚠️ Admin password must be at least 8 characters.','⚠️ Admin-Passwort muss mindestens 8 Zeichen haben.'); err.style.display='block'; return; }
+    if (e1 && e1.length < 8) { err.textContent = _t('⚠️ Editor password must be at least 8 characters.','⚠️ Editor-Passwort muss mindestens 8 Zeichen haben.'); err.style.display='block'; return; }
+    if (!a1 && !e1) { err.textContent = _t('⚠️ Enter at least one password to save.','⚠️ Mindestens ein Passwort eingeben.'); err.style.display='block'; return; }
 
     try {
         // Load existing config to preserve unchanged passwords
@@ -6374,7 +6488,7 @@ async function saveAllPasswords() {
         await ghWriteFile(spCfgFile, JSON.stringify(cfg, null, 2));
         $('setPasswordModal').style.display = 'none';
         const saved = [a1 ? 'Admin' : '', e1 ? 'Editor' : ''].filter(Boolean).join(' & ');
-        alert(`✅ ${saved} password${saved.includes('&') ? 's' : ''} saved to GitHub!\n\nAll team members will receive the update automatically on next load.`);
+        alert(_t(`✅ ${saved} password${saved.includes('&') ? 's' : ''} saved to GitHub!\n\nAll team members will receive the update automatically on next load.`,`✅ ${saved} Passwort${saved.includes('&') ? 'wörter' : ''} auf GitHub gespeichert!\n\nAlle Teammitglieder erhalten die Aktualisierung automatisch beim nächsten Laden.`));
     } catch(e) {
         err.textContent = `❌ Failed to save: ${e.message}`;
         err.style.display = 'block';
@@ -6549,7 +6663,7 @@ function saveSPConfig() {
     try { if (tokenVal) sessionStorage.setItem('shiftPlannerPAT', tokenVal);
           else sessionStorage.removeItem('shiftPlannerPAT'); } catch(e) {}
     spShowModalStatus('✅ Settings saved!', '#e6ffe6', '#107c10');
-    spSetStatus(`🐙 GitHub configured · Not yet synced`, '#f6f8fa', '#24292f');
+    spSetStatus(`GitHub configured · Not yet synced`, '#f6f8fa', '#24292f');
     // Refresh status chips immediately after config change
     if (typeof window._renderSyncStatusBadges === 'function') window._renderSyncStatusBadges();
     // Immediately load the password hash from GitHub with the new config
@@ -6583,40 +6697,44 @@ function spHideStatus() {
 
 // Test GitHub connection
 async function spTestConnection() {
+    const de = currentLang === 'de';
     if (!spConfig.siteUrl || !spConfig.folderPath || !spConfig.fileName) {
-        spShowModalStatus('⚠️ Please fill in Owner, Repo, and PAT then save first.', '#fff3cd', '#856404');
+        spShowModalStatus(de
+            ? '⚠️ Bitte Inhaber, Repo und PAT ausfüllen und speichern.'
+            : '⚠️ Please fill in Owner, Repo, and PAT then save first.', '#fff3cd', '#856404');
         return;
     }
-    spShowModalStatus('🔌 Testing connection...', '#f6f8fa', '#24292f');
+    spShowModalStatus(de ? '🔌 Verbindung wird getestet…' : '🔌 Testing connection...', '#f6f8fa', '#24292f');
     try {
-        const pagesR = await fetch(
+        const pagesR = await ghFetch(
             `https://api.github.com/repos/${spConfig.siteUrl}/${spConfig.folderPath}`,
             { headers: ghHeaders() }
         );
-        if (pagesR.status === 401) throw new Error('Invalid token — check your PAT.');
-        if (pagesR.status === 403) throw new Error('Forbidden — token lacks repo access.');
-        if (pagesR.status === 404) throw new Error('Pages repo not found — check owner/repo name.');
         if (!pagesR.ok) throw new Error(`HTTP ${pagesR.status}`);
         const pagesData = await pagesR.json();
-        // If a separate data repo is configured, test that too
         const dr = spConfig.dataRepo && spConfig.dataRepo.trim();
         if (dr) {
-            const dataR = await fetch(
+            const dataR = await ghFetch(
                 `https://api.github.com/repos/${spConfig.siteUrl}/${dr}`,
                 { headers: ghHeaders() }
             );
-            if (dataR.status === 404) throw new Error(`Data repo "${dr}" not found — check the name.`);
+            if (dataR.status === 404) throw new Error(de
+                ? `Daten-Repo "${dr}" nicht gefunden — Namen prüfen.`
+                : `Data repo "${dr}" not found — check the name.`);
             if (!dataR.ok) throw new Error(`Data repo HTTP ${dataR.status}`);
             const dataData = await dataR.json();
             spShowModalStatus(
-                `✅ Pages repo: ${pagesData.full_name} (${pagesData.private ? 'private' : 'public'}) · ` +
-                `Data repo: ${dataData.full_name} (${dataData.private ? '🔒 private' : 'public'})`,
+                `✅ Pages: ${pagesData.full_name} (${pagesData.private ? '🔒' : de?'öffentlich':'public'}) · `+
+                `Data: ${dataData.full_name} (${dataData.private ? '🔒 '+(de?'privat':'private') : de?'öffentlich':'public'})`,
                 '#e6ffe6', '#107c10');
         } else {
-            spShowModalStatus(`✅ Connected to: ${pagesData.full_name} (${pagesData.private ? 'private' : 'public'}) · ℹ️ No separate data repo set`, '#e6ffe6', '#107c10');
+            spShowModalStatus(
+                `✅ ${pagesData.full_name} (${pagesData.private ? '🔒 '+(de?'privat':'private') : de?'öffentlich':'public'}) · `+
+                (de ? 'ℹ️ Kein separates Daten-Repo konfiguriert' : 'ℹ️ No separate data repo configured'),
+                '#e6ffe6', '#107c10');
         }
     } catch(e) {
-        spShowModalStatus(`❌ Connection failed: ${e.message}`, '#ffe6e6', '#c0392b');
+        spShowModalStatus(`❌ ${de?'Verbindung fehlgeschlagen':'Connection failed'}: ${e.message}`, '#ffe6e6', '#c0392b');
     }
 }
 
@@ -6633,8 +6751,8 @@ async function spPull(silent = false) {
         if (!silent) spShowModalStatus(`⏳ ${e.message}`, '#fff3cd', '#856404');
         return;
     }
-    if (!isDirect && !silent) spShowModalStatus('⬇️ Pulling from GitHub...', '#f6f8fa', '#24292f');
-    if (isDirect) spSetStatus('⬇️ Pulling…', '#f6f8fa', '#24292f');
+    if (!isDirect && !silent) spShowModalStatus('Pulling from GitHub...', '#f6f8fa', '#24292f');
+    if (isDirect) spSetStatus('Pulling…', '#f6f8fa', '#24292f');
     try {
         const text = await ghReadFile(spDataFile);
         if (text === null) {
@@ -6650,7 +6768,7 @@ async function spPull(silent = false) {
             : null;
 
         // Direct (main screen) — no confirm, just pull
-        if (!isDirect && !silent && !confirm('⬇️ Pull from GitHub?\n\nThis will REPLACE your current local data with the shared version.\n\nAny unsaved local changes will be lost. Continue?')) return;
+        if (!isDirect && !silent && !confirm('Pull from GitHub?\n\nThis will REPLACE your current local data with the shared version.\n\nAny unsaved local changes will be lost. Continue?')) return;
 
         allMonthsData = parsed;
         localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
@@ -6669,7 +6787,7 @@ async function spPull(silent = false) {
 
         const msg = `✅ Pulled at ${now}`;
         if (!isDirect && !silent) spShowModalStatus(msg, '#e6ffe6', '#107c10');
-        spSetStatus(`🐙 Pulled · ${now}`, '#e6ffe6', '#107c10');
+        spSetStatus(`Pulled · ${now}`, '#e6ffe6', '#107c10');
     } catch(e) {
         const msg = `❌ Pull failed: ${e.message}`;
         if (!silent) spShowModalStatus(msg, '#ffe6e6', '#c0392b');
@@ -6691,7 +6809,7 @@ async function spPush(silent = false) {
         if (!silent) spShowModalStatus(`⏳ ${e.message}`, '#fff3cd', '#856404');
         return;
     }
-    if (!silent) spShowModalStatus('⬆️ Pushing to GitHub...', '#f6f8fa', '#24292f');
+    if (!silent) spShowModalStatus('Pushing to GitHub...', '#f6f8fa', '#24292f');
 
     try {
         saveData(); // ensure latest state is in allMonthsData
@@ -6781,7 +6899,7 @@ async function spPush(silent = false) {
             const now = new Date().toLocaleString();
             localStorage.setItem('shiftPlannerSPLastSync', now);
             if (!silent) spShowModalStatus(`✅ Vacation request saved (${now})`, '#e6ffe6', '#107c10');
-            spSetStatus(`🐙 Pushed · ${now}`, '#e6ffe6', '#107c10');
+            spSetStatus(`Pushed · ${now}`, '#e6ffe6', '#107c10');
             return;
         }
 
@@ -6799,7 +6917,7 @@ async function spPush(silent = false) {
         const now = new Date().toLocaleString();
         localStorage.setItem('shiftPlannerSPLastSync', now);
         if (!silent) spShowModalStatus(`✅ Pushed at ${now}`, '#e6ffe6', '#107c10');
-        spSetStatus(`🐙 Pushed · ${now}`, '#e6ffe6', '#107c10');
+        spSetStatus(`Pushed · ${now}`, '#e6ffe6', '#107c10');
 
     } catch(e) {
         if (e.isConflict) {
@@ -6810,12 +6928,15 @@ async function spPush(silent = false) {
                 setTimeout(() => spPush(silent), 1500);
             } else {
                 // Editor/Admin conflict — they need to pull and re-apply
-                const msg = `⚠️ Conflict detected!\n\nSomeone else saved the schedule while you were working.\n\nWhat to do:\n1. Close this dialog\n2. Click ⬇️ Pull from GitHub to load their latest version\n3. Re-apply your changes\n4. Push again\n\nYour local changes were NOT lost — they are still visible in your browser.`;
+                const msg = _t(
+                    `⚠️ Conflict detected!\n\nSomeone else saved the schedule while you were working.\n\nWhat to do:\n1. Close this dialog\n2. Pull from GitHub to load the latest version\n3. Re-apply your changes\n4. Push again\n\nYour local changes were NOT lost — they are still visible in your browser.`,
+                    `⚠️ Konflikt erkannt!\n\nJemand anderes hat den Dienstplan gespeichert, während Sie gearbeitet haben.\n\nVorgehen:\n1. Diesen Dialog schließen\n2. Von GitHub laden\n3. Eigene Änderungen erneut eingeben\n4. Erneut hochladen\n\nIhre lokalen Änderungen sind NICHT verloren — sie sind noch im Browser sichtbar.`
+                );
                 if (!silent) {
-                    spShowModalStatus('⚠️ Conflict — see alert for instructions', '#fff3cd', '#856404');
+                    spShowModalStatus(_t('⚠️ Conflict — see alert for instructions','⚠️ Konflikt — siehe Hinweis'), '#fff3cd', '#856404');
                     alert(msg);
                 }
-                spSetStatus(`⚠️ Push conflict — Pull first, then push again`, '#fff3cd', '#856404');
+                spSetStatus(_t('⚠️ Push conflict — Pull first, then push again','⚠️ Konflikt — zuerst laden, dann erneut hochladen'), '#fff3cd', '#856404');
             }
         } else {
             if (!silent) spShowModalStatus(`❌ Push failed: ${e.message}`, '#ffe6e6', '#c0392b');
@@ -6842,7 +6963,7 @@ async function saveSharedCommentToken() {
         return;
     }
     COMMENTS_SHARED_TOKEN = token;
-    cmtShowStatus('💾 Token saved in memory. Use ⬇️ Download as HTML to bake it into the file, then commit to your repo.', '#e6f3ff', '#0969da');
+    cmtShowStatus('Token saved in memory. Download the HTML file and commit to your repo to make it permanent.', '#e6f3ff', '#0969da');
 }
 
 function cmtShowStatus(msg, bg, color) {
@@ -7111,7 +7232,7 @@ function clearAppCache() {
     // Also clear sessionStorage secrets
     try { sessionStorage.removeItem('shiftPlannerPAT'); } catch(e) {}
     try { sessionStorage.removeItem('shiftPlannerDataPwd'); } catch(e) {}
-    alert(`✅ Cleared ${keys.length} cached item(s).\n\nReloading page...`);
+    alert(_t(`✅ Cleared ${keys.length} cached item(s).\n\nReloading page...`,`✅ ${keys.length} gecachte Element(e) gelöscht.\n\nSeite wird neu geladen...`));
     location.reload();
 }
 
@@ -7535,12 +7656,12 @@ function openGHSyncOrSetup() {
 // ── Set / bake the shared comment token ──
 function setCommentToken() {
     const tok = ($('cmtTokenInput') || {value:''}).value.trim();
-    if (!tok) { alert('Please paste a PAT first.'); return; }
+    if (!tok) { alert(_t('Please paste a PAT first.','Bitte zuerst ein PAT einfügen.')); return; }
     SHARED_COMMENT_TOKEN = tok;
     COMMENTS_SHARED_TOKEN = tok; // keep both in sync
     // Persist in localStorage so it survives page refresh until admin re-downloads HTML
     try { localStorage.setItem('shiftPlannerCmtToken', tok); } catch(e){}
-    spShowModalStatus('✅ Comment token saved in memory. Download HTML (⬇️) and commit to repo to bake it in permanently.', '#e6ffe6', '#107c10');
+    spShowModalStatus('Comment token saved. Download the HTML file and commit to your repo to make it permanent.', '#e6ffe6', '#107c10');
 }
 // ─────────────────────────────────────────────────────────
 //  Mobile View
@@ -7590,8 +7711,8 @@ function mobNextMonth() {
 const MOB_SHIFT_LABELS = {
     '8E':'Early (08:00–16:00)', '8L':'Late (12:00–20:30)', '8M':'Mid (09:30–18:00)',
     '13H':'Long (08:00–21:00)', '6H':'Short (6h)', 'ImE':'Immo Early', 'ImL':'Immo Late',
-    'VAC':'Vacation 🏖', 'SICK':'Sick 🤒', 'FB':'Training 📚', 'RB':'On-Call 📞',
-    'OFF':'Day Off', '-':'—', 'K':'Sick 🤒', 'U':'Vacation 🏖', 'DF':'Day Off',
+    'VAC':'Vacation', 'SICK':'Sick', 'FB':'Training', 'RB':'On-Call',
+    'OFF':'Day Off', '-':'—', 'K':'Sick', 'U':'Vacation', 'DF':'Day Off',
     'PF':'Leave 🌿', 'Offc':'Office', 'LSS':'LSS'
 };
 
@@ -7785,7 +7906,7 @@ function renderMobileView() {
         var heading = $('su_heading');
         if (heading) heading.textContent = isBaked
             ? '🔑 Enter your access credentials'
-            : '🐙 Connect to GitHub';
+            : 'Connect to GitHub';
         var subtext = $('su_subtext');
         if (subtext) subtext.style.display = isBaked ? 'none' : '';
 
@@ -7823,16 +7944,18 @@ function renderMobileView() {
         var stat = $('su_status');
         var btn  = $('su_test_btn');
         err.style.display = 'none'; stat.style.display = 'none';
-        if (!owner || !repo) { err.textContent = 'Please enter your GitHub username and repository name.'; err.style.display = 'block'; return; }
-        btn.textContent = 'Testing...'; btn.disabled = true;
+        if (!owner || !repo) { err.textContent = _t('Please enter your GitHub username and repository name.','Bitte GitHub-Benutzernamen und Repo-Namen eingeben.'); err.style.display = 'block'; return; }
+        btn.textContent = _t('Testing...','Teste...'); btn.disabled = true;
         try {
             var data = await suCheckRepo(owner, repo, token);
-            var msg = '✅ Pages repo OK — ' + data.full_name + (data.private ? ' (private)' : ' (public)');
+            var priv = data.private ? '🔒 ' + _t('private','privat') : _t('public','öffentlich');
+            var msg = '✅ Pages repo OK — ' + data.full_name + ' (' + priv + ')';
             if (dataRepo) {
                 var ddata = await suCheckRepo(owner, dataRepo, token);
-                msg += ' · Data repo OK — ' + ddata.full_name + (ddata.private ? ' (🔒 private)' : ' (public)');
+                var dpriv = ddata.private ? '🔒 ' + _t('private','privat') : _t('public','öffentlich');
+                msg += ' · Data repo OK — ' + ddata.full_name + ' (' + dpriv + ')';
             }
-            msg += '. Ready to connect.';
+            msg += '. ' + _t('Ready to connect.','Bereit zur Verbindung.');
             stat.textContent = msg; stat.style.display = 'block';
         } catch(e) {
             err.textContent = '❌ ' + e.message; err.style.display = 'block';
@@ -7850,43 +7973,38 @@ function renderMobileView() {
         var btn  = $('su_btn');
         err.style.display = 'none'; stat.style.display = 'none';
         if (!owner || !repo) {
-            err.textContent = 'Please enter your GitHub username and repository name.';
+            err.textContent = _t('Please enter your GitHub username and repository name.','Bitte GitHub-Benutzernamen und Repo-Namen eingeben.');
             err.style.display = 'block'; return;
         }
-        btn.textContent = 'Connecting...'; btn.disabled = true;
+        btn.textContent = _t('Connecting...','Verbinde...'); btn.disabled = true;
         try {
             var data = await suCheckRepo(owner, repo, token);
-            // Save GitHub config — PAT (token) stays in sessionStorage, not localStorage
             var cfg = { siteUrl: owner, folderPath: repo, dataRepo: dataRepo, autoSync: false };
             localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(cfg));
             try { if (token) sessionStorage.setItem('shiftPlannerPAT', token);
                   else sessionStorage.removeItem('shiftPlannerPAT'); } catch(e) {}
-            // Save data password — use saveDataPassword so it goes to sessionStorage only
             var dpwd = ($('su_datapwd') || {value:''}).value.trim();
             if (dpwd && typeof saveDataPassword === 'function') saveDataPassword(dpwd);
             else if (dpwd) sessionStorage.setItem('shiftPlannerDataPwd', dpwd);
             var label = dataRepo ? (repo + ' + 🔒' + dataRepo) : repo;
-            stat.textContent = 'Connected to ' + data.full_name + (dataRepo ? ' (data → ' + dataRepo + ')' : '') + '! Loading config...';
+            stat.textContent = _t('Connected to ','Verbunden mit ') + data.full_name + (dataRepo ? ' (data → ' + dataRepo + ')' : '') + '! ' + _t('Loading config...','Lade Konfiguration...');
             stat.style.display = 'block';
-            btn.textContent = 'Connected!';
-            // Tell the main app about the new config
+            btn.textContent = _t('Connected!','Verbunden!');
             if (typeof spConfig !== 'undefined') {
                 spConfig.siteUrl    = owner;
                 spConfig.folderPath = repo;
                 spConfig.dataRepo   = dataRepo;
                 spConfig.fileName   = token;
             }
-            // Apply data password to main app immediately
             var dpwd2 = ($('su_datapwd') || {value:''}).value.trim();
             if (typeof saveDataPassword === 'function' && dpwd2) saveDataPassword(dpwd2);
             if (typeof spLoadConfig === 'function') spLoadConfig();
-            if (typeof spSetStatus  === 'function') spSetStatus('🐙 ' + owner + '/' + label + ' · Connected', '#f6f8fa', '#24292f');
+            if (typeof spSetStatus  === 'function') spSetStatus(owner + '/' + label + ' · ' + _t('Connected','Verbunden'), '#f6f8fa', '#24292f');
             setTimeout(function() {
                 suDismiss();
                 if (typeof spPull === 'function') spPull(true);
-                // Update sync button label to show connected
                 var btn2 = $('btnSPSync');
-                if (btn2) btn2.textContent = '🐙 GitHub: ' + label;
+                if (btn2) btn2.textContent = 'GitHub: ' + label;
             }, 1200);
         } catch(e) {
             err.textContent = e.message;
@@ -8303,7 +8421,7 @@ function renderMobileView() {
     if(!sel) return;
     if(!bulkSelectFullHTML) bulkSelectFullHTML = sel.innerHTML;
     if(window.currentRole === 'viewer' && !window.isEditMode){
-      sel.innerHTML = '<optgroup label="Vacation Requests">'
+      sel.innerHTML = '<optgroup label="' + (_de() ? 'Urlaubsanträge' : 'Vacation Requests') + '">'
         + '<option value="Urlaub IR">U-IR</option>'
         + '<option value="Urlaub-ZA">U-ZA</option>'
         + '<option value="U-Immo">U-Immo</option>'
@@ -8315,14 +8433,16 @@ function renderMobileView() {
 
   function updateSelectModeUI(){
     ensureSelectModeButtonForViewer();
-    const btn = $('selectModeBtn');
-    const lbl = $('selModeLabel');
+    const btn   = $('selectModeBtn');
+    const lbl   = $('selModeLabel');
     const apply = $('btnApplyBulk');
+    const de    = _de();
+    const isViewer = (window.currentRole === 'viewer' && !window.isEditMode);
     if(btn) btn.textContent = window.selectMode
-      ? ((window.currentRole === 'viewer' && !window.isEditMode) ? '🏖 Vacation Select ON' : '✔ Select Mode ON')
-      : ((window.currentRole === 'viewer' && !window.isEditMode) ? '🏖 Request Vacation' : '⬜ Select Mode');
-    if(lbl) lbl.textContent = (window.currentRole === 'viewer' && !window.isEditMode) ? '🏖 Vacation Request Select' : '⬜ Select Mode';
-    if(apply) apply.textContent = (window.currentRole === 'viewer' && !window.isEditMode) ? '✔ Request Vacation for Selected' : '✔ Apply to All Selected';
+      ? (isViewer ? (de ? 'Urlaubsauswahl AN' : 'Leave Select ON') : (de ? 'Auswahlmodus AN' : 'Select Mode ON'))
+      : (isViewer ? (de ? 'Urlaub beantragen' : 'Request Leave')   : (de ? 'Auswahlmodus'   : 'Select Mode'));
+    if(lbl)   lbl.textContent   = isViewer ? (de ? 'Urlaubsantrag' : 'Leave Request') : (de ? 'Auswahlmodus' : 'Select Mode');
+    if(apply) apply.textContent = isViewer ? (de ? 'Urlaubsantrag übermitteln' : 'Submit Leave Request') : (de ? 'Auf Auswahl anwenden' : '✔ Apply to Selected');
     setBulkSelectOptionsByRole();
   }
 
@@ -8346,12 +8466,12 @@ function renderMobileView() {
     const rosterCount = (window.workerRoster && window.workerRoster.length) || (window.workers && window.workers.length) || 0;
     const lastSync = localStorage.getItem('shiftPlannerSPLastSync');
     bar.innerHTML = ''
-      + (!navigator.onLine ? '<span class="status-chip chip-warn">📵 Offline</span>' : '')
-      + '<span class="status-chip ' + (ghReady ? 'chip-ok' : 'chip-off') + '">' + (ghReady ? '🐙 GitHub Ready' : '🐙 GitHub Not Set') + '</span>'
-      + '<span class="status-chip ' + (patReady ? 'chip-ok' : 'chip-warn') + '">' + (patReady ? '✅ PAT Saved' : '⚠️ Add PAT') + '</span>'
-      + '<span class="status-chip ' + (encryptionOn ? 'chip-ok' : 'chip-warn') + '">' + (encryptionOn ? '🔐 Encryption On' : '🔓 Encryption Off') + '</span>'
-      + '<span class="status-chip ' + (rosterCount ? 'chip-ok' : 'chip-off') + '">👥 Roster ' + rosterCount + '</span>'
-      + '<span class="status-chip ' + (lastSync ? 'chip-ok' : 'chip-off') + '">' + (lastSync ? '🕒 ' + lastSync : '🕒 Not synced yet') + '</span>';
+      + (!navigator.onLine ? '<span class="status-chip chip-warn">Offline</span>' : '')
+      + '<span class="status-chip ' + (ghReady ? 'chip-ok' : 'chip-off') + '">' + (ghReady ? 'GitHub' : 'GitHub: not configured') + '</span>'
+      + '<span class="status-chip ' + (patReady ? 'chip-ok' : 'chip-warn') + '">' + (patReady ? 'PAT saved' : 'PAT missing') + '</span>'
+      + '<span class="status-chip ' + (encryptionOn ? 'chip-ok' : 'chip-warn') + '">' + (encryptionOn ? 'Encrypted' : 'No encryption') + '</span>'
+      + '<span class="status-chip ' + (rosterCount ? 'chip-ok' : 'chip-off') + '">Roster: ' + rosterCount + '</span>'
+      + '<span class="status-chip ' + (lastSync ? 'chip-ok' : 'chip-off') + '">' + (lastSync ? 'Synced: ' + lastSync : 'Not synced') + '</span>';
   }
   // Expose globally so spSetStatus, saveSPConfig, liveUpdateEncryption etc. can call it
   window._renderSyncStatusBadges = renderSyncStatusBadges;
@@ -8369,7 +8489,7 @@ function renderMobileView() {
     panel.id = 'vacRangePanel';
     panel.className = 'vac-range-panel';
     panel.innerHTML = ''
-      + '<h3>🏖 Vacation Range Request</h3>'
+      + '<h3>Vacation Range Request</h3>'
       + '<div class="vac-range-grid">'
       + '  <div class="worker-search-row">'
       + '    <label style="display:block; margin-bottom:3px; font-weight:bold;">Search worker</label>'
@@ -8434,13 +8554,13 @@ function renderMobileView() {
     const end = $('vacRangeEnd') ? $('vacRangeEnd').value : '';
     const vacType = $('vacRangeType') ? $('vacRangeType').value : 'Urlaub IR';
     const res = $('vacRangeResult');
-    if(!workerName){ if(res) res.textContent = 'Please select a worker.'; return; }
+    if(!workerName){ if(res) res.textContent = _de() ? 'Bitte einen Mitarbeiter auswählen.' : 'Please select a worker.'; return; }
     const wIndex = (window.workers || []).findIndex(function(w){ return (w.name || '').toUpperCase() === workerName; });
-    if(wIndex === -1){ if(res) res.textContent = 'Worker not found in current list.'; return; }
-    if(!start || !end){ if(res) res.textContent = 'Please select start and end dates.'; return; }
+    if(wIndex === -1){ if(res) res.textContent = _de() ? 'Mitarbeiter nicht in aktueller Liste gefunden.' : 'Worker not found in current list.'; return; }
+    if(!start || !end){ if(res) res.textContent = _de() ? 'Bitte Start- und Enddatum auswählen.' : 'Please select start and end dates.'; return; }
     const d0 = new Date(start + 'T12:00:00');
     const d1 = new Date(end + 'T12:00:00');
-    if(Number.isNaN(d0.getTime()) || Number.isNaN(d1.getTime()) || d1 < d0){ if(res) res.textContent = 'Invalid date range.'; return; }
+    if(Number.isNaN(d0.getTime()) || Number.isNaN(d1.getTime()) || d1 < d0){ if(res) res.textContent = _de() ? 'Ungültiger Datumsbereich.' : 'Invalid date range.'; return; }
     const viewerMode = (window.currentRole === 'viewer' && !window.isEditMode);
     let changed=0, skipWeekend=0, skipHoliday=0, skipFixed=0, skipBusy=0, skipMonth=0, pushed=false;
     const worker = window.workers[wIndex];
@@ -8458,7 +8578,9 @@ function renderMobileView() {
       changed++;
     }
     if(changed > 0){ window.saveData(); if(typeof window.scheduleRenderTable === 'function') window.scheduleRenderTable(); else window.renderTable(); }
-    if(res) res.textContent = 'Updated ' + changed + ' day(s). Skipped: ' + skipWeekend + ' weekend, ' + skipHoliday + ' holiday, ' + skipFixed + ' fixed day-off, ' + skipBusy + ' occupied, ' + skipMonth + ' outside this month.';
+    if(res) res.textContent = _de()
+      ? 'Aktualisiert: ' + changed + ' Tag(e). Übersprungen: ' + skipWeekend + ' Wochenende, ' + skipHoliday + ' Feiertag, ' + skipFixed + ' fester Frei, ' + skipBusy + ' belegt, ' + skipMonth + ' außerhalb des Monats.'
+      : 'Updated ' + changed + ' day(s). Skipped: ' + skipWeekend + ' weekend, ' + skipHoliday + ' holiday, ' + skipFixed + ' fixed day-off, ' + skipBusy + ' occupied, ' + skipMonth + ' outside this month.';
   };
 
   const origRequireAdmin = window.requireAdmin;
@@ -8501,9 +8623,9 @@ function renderMobileView() {
   window.applyBulkShift = function(){
     const viewerMode = (window.currentRole === 'viewer' && !window.isEditMode);
     if(!viewerMode) return origApplyBulkShift.apply(this, arguments);
-    if(!window.selectedCells || window.selectedCells.size === 0) return alert('No cells selected!');
+    if(!window.selectedCells || window.selectedCells.size === 0) return alert(_t('No cells selected!','Keine Zellen ausgewählt!'));
     const shift = $('bulkShiftSelect') ? $('bulkShiftSelect').value : '';
-    if(['Urlaub IR','Urlaub-ZA','U-Immo'].indexOf(shift) === -1) return alert('Viewers can only request U-IR, U-ZA or U-Immo in select mode.');
+    if(['Urlaub IR','Urlaub-ZA','U-Immo'].indexOf(shift) === -1) return alert(_t('Viewers can only request U-IR, U-ZA or U-Immo in select mode.','Nur-Leser können im Auswahlmodus nur U-IR, U-ZA oder U-Immo beantragen.'));
     let changed=0, skipped=0, pushed=false;
     window.selectedCells.forEach(function(key){
       const parts = key.split('_').map(Number);
@@ -8515,11 +8637,17 @@ function renderMobileView() {
       changed++;
     });
     window.selectedCells.clear();
+    window.selectMode = false;
+    const barV = $('selectionBar');
+    if(barV) barV.classList.remove('visible');
+    const wrapperV = document.querySelector('.table-wrapper');
+    if(wrapperV) wrapperV.classList.remove('select-mode-active');
+    updateSelectModeUI();
     const cnt = $('selectionCount');
     if(cnt) cnt.textContent = 0;
     window.saveData();
     if(typeof window.scheduleRenderTable === 'function') window.scheduleRenderTable(); else window.renderTable();
-    alert('Vacation requests added to ' + changed + ' cell(s). Skipped ' + skipped + ' locked/occupied cell(s).');
+    alert(_t('Vacation requests added to ' + changed + ' cell(s). Skipped ' + skipped + ' locked/occupied cell(s).','Urlaubsanträge für ' + changed + ' Zelle(n) hinzugefügt. ' + skipped + ' gesperrt/belegt übersprungen.'));
   };
 
   // ── Caches for post-render hooks ──
@@ -8637,7 +8765,7 @@ function renderMobileView() {
 
 
 <!-- ── Shift Legend ── -->
-<button id="legendBtn" onclick="toggleLegend()" title="Toggle shift colour legend">🎨 Legend</button>
+<button id="legendBtn" onclick="toggleLegend()" title="Toggle shift colour legend">Legend</button>
 <div id="shiftLegend">
     <h4>Shift Colours</h4>
     <div class="leg-item"><span class="leg-swatch" style="background:#cfe2f3;"></span>8E — Early (07–15)</div>
