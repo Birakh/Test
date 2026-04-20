@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://alcdn.msauth.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://login.microsoftonline.com https://*.blob.core.windows.net; img-src 'self' data:; frame-ancestors 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://alcdn.msauth.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://login.microsoftonline.com https://*.blob.core.windows.net; img-src 'self' data:; frame-ancestors 'none';">
     <title>Shift Planner V2</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 20px; font-size: 13px; }
@@ -222,7 +222,7 @@
         /* ── Print Layout ── */
         @media print {
             body { background:white !important; margin:0; font-size:11px; }
-            .no-print, #lockBtn, #darkModeBtn, #legendBtn, #jumpTodayBtn,
+            .no-print, #lockBtn, #darkModeBtn, #legendBtn,
             .panel, #statsPanel, #selectionBar, #monthReadyBanner,
             button.btn-half-l, button.btn-half-r, button.btn-full { display:none !important; }
             .table-wrapper { max-height:none; overflow:visible; border:none; }
@@ -253,10 +253,58 @@
         #workerFilter:focus { border-color:#0056b3; }
         .worker-col-hidden { display:none !important; }
 
-        /* ── Jump to Today ── */
-        #jumpTodayBtn { padding:5px 10px; background:#e74c3c; color:white; border:none;
-            border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold; }
-        #jumpTodayBtn:hover { background:#c0392b; }
+        /* ── Viewer mode — show only essential info ── */
+        .app-viewer #panelSetup,
+        .app-viewer #panelWorkers   { display:none !important; }
+
+        /* Legend panel stays but is compacted */
+        .app-viewer #panelLegend    { flex: 0 0 auto; max-width:240px; }
+
+        /* Hide non-essential toolbar items */
+        .app-viewer #statsPanel,
+        .app-viewer .btn-backup,
+        .app-viewer .btn-restore,
+        .app-viewer .btn-export,
+        .app-viewer #btnXLSX,
+        .app-viewer #btnHTML,
+        .app-viewer #btnAI,
+        .app-viewer #btnDiff,
+        .app-viewer #syncStatusBadgeBar,
+        .app-viewer #spStatusBar,
+        .app-viewer #statsToggleRow,
+        .app-viewer #btnHelp,
+        .app-viewer #btnAutoFill,
+        .app-viewer #undoBtn,
+        .app-viewer #redoBtn      { display:none !important; }
+
+        /* Viewer gets Pull + Personal export only */
+        .app-viewer #btnPersonal  { display:block !important; }
+        .app-viewer #btnSPSync    { display:block !important; opacity:0.7; }
+        .app-viewer #btnRefresh   { display:block !important; }
+
+        /* Compact viewer legend bar below header */
+        #viewerLegendBar {
+            display:none;
+            flex-wrap:wrap;
+            gap:4px 10px;
+            padding:6px 12px;
+            background:#f8f9fa;
+            border-bottom:1px solid #dee2e6;
+            font-size:11px;
+        }
+        .app-viewer #viewerLegendBar { display:flex; }
+        #viewerLegendBar .vl-chip {
+            display:inline-flex;
+            align-items:center;
+            gap:4px;
+            white-space:nowrap;
+        }
+        #viewerLegendBar .vl-swatch {
+            width:14px; height:14px;
+            border-radius:3px;
+            border:1px solid rgba(0,0,0,.12);
+            display:inline-block;
+        }
         </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 <script src="https://alcdn.msauth.net/browser/2.39.0/js/msal-browser.min.js" crossorigin="anonymous"></script>
@@ -297,10 +345,29 @@
 <!-- Month Ready Banner -->
 <div id="monthReadyBanner" class="desktop-only">✅ This month's schedule has been marked as <strong>READY</strong> — published to the team.</div>
 
+<!-- Viewer legend bar — only visible in viewer mode (app-viewer CSS class) -->
+<div id="viewerLegendBar">
+    <span style="font-weight:600; color:#374151; margin-right:4px;">Shifts:</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#cfe2f3;"></span>8E Early</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#f9cb9c;"></span>8M Mid</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#f4cccc;"></span>8L Late</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#ffe599;"></span>13H Long</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#d9ead3;"></span>6H Half</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#a2c4c9;"></span>ImE Immo E</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#76a5af;"></span>ImL Immo L</span>
+    <span style="font-weight:600; color:#374151; margin-left:6px; margin-right:4px;">Status:</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#b6d7a8;"></span>VAC Approved</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#fff2cc;"></span>VAC ⏳ Pending</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#f5b7b1;"></span>SICK</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#9fc5e8;"></span>FB Training</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#e0e0e0;"></span>OFF</span>
+    <span class="vl-chip"><span class="vl-swatch" style="background:#e0e0e0; border-style:dashed;"></span>— Empty</span>
+</div>
+
 <div class="container no-print desktop-only">
 
     <!-- ═══ PANEL 1: Setup & Action ═══ -->
-    <div class="panel" style="flex: 1.2;">
+    <div id="panelSetup" class="panel" style="flex: 1.2;">
         <h2 id="p1title">1. Setup & Action</h2>
         <div class="form-group">
             <label id="monthLabel"><strong>Month (Auto-detects AT Holidays):</strong></label><br>
@@ -420,8 +487,7 @@
     </div>
 
     <!-- ═══ PANEL 2: Add Worker ═══ -->
-    <div class="panel" style="flex: 1.5;">
-        <h2 id="p2title">2. Add Worker</h2>
+    <div id="panelWorkers" class="panel" style="flex: 1.5;">
         <!-- Field labels row -->
         <div style="display:flex; gap:6px; flex-wrap:wrap; font-size:10px; color:#555; margin-bottom:2px; font-weight:bold;">
             <span id="lbl_name" style="width:84px;">Name</span>
@@ -568,7 +634,7 @@
     </div>
 
     <!-- ═══ PANEL 3: Legend ═══ -->
-    <div class="panel" style="flex: 1.5;">
+    <div id="panelLegend" class="panel" style="flex: 1.5;">
         <h2 id="p3title">Legend & Limits</h2>
         <ul style="column-count:2; margin-top:0; font-size:11px;">
             <li><span style="background:#a2c4c9; padding:1px 4px;">ImE</span> Immo 07:00–15:30</li>
@@ -1631,7 +1697,6 @@ function getAustrianHolidays(year, month) {
 }
 
 // Returns just the day-indices array (for backwards-compat)
-function holidayIndices() { return holidays.map(h => h.d !== undefined ? h.d : h); }
 
 // Get holiday name for a day index (or '' if none)
 function isHoliday(dIndex) {
@@ -1680,17 +1745,6 @@ function filterWorkers(query) {
         if (!show) hidden++;
     });
     if (status) status.textContent = hidden ? `(${hidden} hidden)` : '';
-}
-
-// ─── Jump to Today ─────────────────────────────────────────
-function jumpToToday() {
-    const today = new Date();
-    if (today.getFullYear() !== currentYear || today.getMonth()+1 !== currentMonth) {
-        alert(_t('Today is not in the currently viewed month.','Heute ist nicht im aktuell angezeigten Monat.')); return;
-    }
-    const d = today.getDate() - 1;
-    const row = document.querySelector(`tr[data-day="${d}"]`);
-    if (row) row.scrollIntoView({ behavior:'smooth', block:'center' });
 }
 
 window.onload = () => { try {
@@ -1852,8 +1906,7 @@ function loadMonthData(monthKey) {
         });
         lssDays  = saved.lssDays  || [];
 
-        // BUG-FIX #2 — guard against length mismatch after month-count change
-        dailyComments = (saved.dailyComments && saved.dailyComments.length===daysInMonth)
+    dailyComments = (saved.dailyComments && saved.dailyComments.length===daysInMonth)
             ? saved.dailyComments
             : Array(daysInMonth).fill('');
 
@@ -2670,7 +2723,7 @@ function toggleSelectMode() {
     const btn     = $('selectModeBtn');
     const bar     = $('selectionBar');
     const wrapper = document.querySelector('.table-wrapper');
-    const de      = currentLang === 'de';
+    const de      = _de();
     if (selectMode) {
         if (btn) { btn.classList.add('active'); btn.textContent = de ? 'Auswahlmodus AN' : 'Select Mode ON'; }
         if (bar) bar.classList.add('visible');
@@ -2718,7 +2771,7 @@ function applyBulkShift() {
     const bar = $('selectionBar');
     if (bar) bar.classList.remove('visible');
     const btn = $('selectModeBtn');
-    const de  = currentLang === 'de';
+    const de  = _de();
     if (btn) { btn.classList.remove('active'); btn.textContent = de ? 'Auswahlmodus' : 'Select Mode'; }
     if ($('selectionCount')) $('selectionCount').textContent = 0;
     saveData(); renderTable();
@@ -4535,7 +4588,6 @@ function buildAnalysisSheet(de, cfg) {
         const vacN        = w.shifts.filter(s => isVacationBase(getBaseShift(s))).length;
         const sickN       = w.shifts.filter(s => getBaseShift(s)==='SICK').length;
 
-        // Fix 3: live Excel formulas referencing Plan sheet worker column
         const planCol  = excelCol(cfg.workerStartCol + wi);
         const dataRows = daysInMonth;
         const planRng  = `Plan!${planCol}$2:${planCol}$${dataRows + 1}`;
@@ -4566,7 +4618,6 @@ function buildAnalysisSheet(de, cfg) {
         ws[`E${r0+1}`] = { t:'s', v: isFair ? '\u2714 Fair' : '\u26A0 Check', f: fairFormula, s: xlsCellStyle(cellBg, { fontColor: color }) };
         ws[`F${r0+1}`] = { t:'n', v: vacN,    f: vacFormula,   s: xlsCellStyle(cellBg, { fontColor: color }) };
         ws[`G${r0+1}`] = { t:'n', v: sickN,   f: sickFormula,  s: xlsCellStyle(cellBg, { fontColor: color }) };
-        ws['!merges'] = ws['!merges'] || [];
         row++;
     });
 
@@ -4721,12 +4772,10 @@ function buildAnalysisSheet(de, cfg) {
     return ws;
 }
 function buildExcelExportConfig() {
-    // Fixed columns: KW, Date, Weekday, Holiday?, LSS?  → indices 0-4
-    // Worker columns start at index 5
-    const workerStartCol  = 5;
+const workerStartCol  = 5;
     const summaryStartCol = workerStartCol + workers.length;
 
-    const de = currentLang === 'de';
+    const de = _de();
     const summary = [
         { label: '8E',                    key: 'c8E'   },
         { label: '8M',                    key: 'c8M'   },
@@ -4762,7 +4811,7 @@ function buildExcelExportConfig() {
 //  Download as HTML (with embedded data for SharePoint)
 // ─────────────────────────────────────────────────────────
 async function downloadExcelWithFormulas() {
-    const de  = currentLang === 'de';
+    const de  = _de();
     if (typeof XLSX === 'undefined') {
         alert(de ? 'Die Excel-Bibliothek konnte nicht geladen werden. Bitte Seite neu laden.' : 'The Excel library could not be loaded. Please reload the page and try again.');
         return;
@@ -4833,7 +4882,6 @@ async function downloadExcelWithFormulas() {
 
     const planWs = XLSX.utils.aoa_to_sheet(planRows);
 
-    // Fix 2: inject KW formula cells (col A, rows 2..n) — references col B (Date)
     for (let d = 0; d < daysInMonth; d++) {
         const excelRow = d + 2;
         const dt    = new Date(currentYear, currentMonth - 1, d + 1);
@@ -4878,13 +4926,11 @@ async function downloadExcelWithFormulas() {
         const isHol    = isHoliday(d);
         const rowBg    = isHol ? '#'+HOLIDAY_BG : (isWE ? '#'+WEEKEND_BG : null);
 
-        // Date cell — col 1 (B) after KW prepend — format as dd.mm.yyyy
         const dateCellAddr = excelCell(rowIdx, 1);
         planWs[dateCellAddr].t = 'd';
         planWs[dateCellAddr].z = 'dd.mm.yyyy';
         planWs[dateCellAddr].s = cellStyle(rowBg || (isWE?'#'+WEEKEND_BG:'F9FAFB'), { bold:isHol, border:true, align:'left' });
 
-        // Weekday(2), Holiday(3), LSS(4) — style with row background
         for (let c = 2; c <= 4; c++) {
             const a = excelCell(rowIdx, c);
             if (!planWs[a]) planWs[a] = { t:'s', v:'' };
@@ -4947,8 +4993,7 @@ async function downloadExcelWithFormulas() {
         helperWs[excelCell(rowIdx, 0)].z = 'dd.mm.yyyy';
         helperKeys.forEach((key, keyIdx) => workers.forEach((w, wIdx) => {
             const helperCol   = 2 + keyIdx * workers.length + wIdx;
-            // Fix 6: reference named range SP_W_N, INDEX to single row cell
-            const namedRange  = `SP_W_${wIdx}`;
+const namedRange  = `SP_W_${wIdx}`;
             const planCellRef = `INDEX(${namedRange},${rowIdx})`;
             const val         = computeHelperValue(w.shifts[d] || '-', key);
             helperSums[key][d] += val;
@@ -5187,7 +5232,7 @@ async function downloadExcelWithFormulas() {
         // Applied at lower priority than shift colours (priority numbers continue from above).
         // KW=A, Date=B, Weekday=C, Holiday=D, LSS=E, Workers=F+
         const lastCol  = excelCol(cfg.summaryStartCol + cfg.summary.length - 1);
-        const rowSqref = `A2:${lastCol}${lastRow}`; // Fix 4: starts at A2 to shade all columns
+        const rowSqref = `A2:${lastCol}${lastRow}`;
         const holRef  = `$D2`;  // Holiday? is col D (index 3) after KW column
         const lssRef  = `$E2`;  // LSS? is col E (index 4) after KW column
         const dateRef = `$B2`;  // Date is col B (index 1) after KW column
@@ -5206,7 +5251,6 @@ async function downloadExcelWithFormulas() {
         }).join('');
         const rowCF = `<conditionalFormatting sqref="${rowSqref}">${rowRulesXml}</conditionalFormatting>`;
 
-        // Fix 9: highlight work-count column red when below minStaff
         let minStaffCF = '';
         if (minStaff > 0) {
             const workIdx = cfg.summary.findIndex(x => x.key === 'work');
@@ -5344,8 +5388,6 @@ async function downloadExcelWithFormulas() {
                     zip.file('xl/styles.xml', stylesXml);
                     zip.file(sheetKey, sheetXml);
                 }
-
-                // Fix 1: freeze panes on Dienstplan RT (sheet5) — cols A-C, rows 1-5, topLeftCell=D6
                 const rtSheetFile = zip.file('xl/worksheets/sheet5.xml');
                 if (rtSheetFile) {
                     let rtXml = await rtSheetFile.async('string');
@@ -5360,8 +5402,6 @@ async function downloadExcelWithFormulas() {
                     zip.file('xl/worksheets/sheet5.xml', rtXml);
                 }
 
-                // Fix 10: inject tab colours into each visible sheet XML
-                // sheetPr must precede sheetViews in the xlsx element order
                 const tabColors = [
                     { file: 'xl/worksheets/sheet1.xml', rgb: 'FF1F4E79' }, // Plan — dark blue
                     { file: 'xl/worksheets/sheet3.xml', rgb: 'FF888888' }, // Legend — grey
@@ -5445,7 +5485,7 @@ function shiftToRTView(shift) {
 // ─────────────────────────────────────────────────────────
 function buildDienstplanRTSheet() {
     const ws  = {};
-    const de  = currentLang === 'de';
+    const de  = _de();
 
     // excelCol(n) in this app is 0-based → A=0, B=1, C=2, D=3 ...
     // We work 1-based internally and convert with: col1(c) = excelCol(c-1)
@@ -5661,14 +5701,14 @@ function buildDienstplanRTSheet() {
                     return rt.room === rs.room;
                 })
                 .map(w => w.name.slice(0, 3))
-                .join(',');  // Fix 7: comma-separated — enables robust Anz count formula
+                .join(',');
 
             // Build the Excel formula &-chain
             const parts = workers.map((w, wi) => {
                 const rc     = WORKER_START + wi * 3;
                 const rLet   = col1(rc);
                 const sLet   = col1(rc + 1);
-                const abbrev = w.name.slice(0, 3); // Fix 5: literal string — immune to row insertions above row 2
+                const abbrev = w.name.slice(0, 3);
                 const rRef   = `$${rLet}${r}`;
                 const sRef   = `$${sLet}${r}`;
                 let cond;
@@ -5714,15 +5754,12 @@ function buildDienstplanRTSheet() {
         ROOM_SUM.forEach((rs, i) => {
             const sLet = col1(SUMMARY_START + i * 2);
             const lCol = laengeStart + i * 2;
-            const lLet = col1(lCol);
 
             // Pre-compute cached values from the already-computed matchingAbbrevs
             const summaryCell = ws[addr(r, SUMMARY_START + i * 2)];
             const summaryVal  = summaryCell ? String(summaryCell.v || '') : '';
             const laengeVal   = summaryVal.replace(/,/g, '').length || '';
-            const anzVal      = laengeVal !== '' ? Math.floor(Number(laengeVal) / 3) : 0;
 
-            // Fix 7: Anz = comma-count + 1 (non-empty); works for any abbreviation length
             const anzFormula  = `IF(${sLet}${r}<>"",LEN(${sLet}${r})-LEN(SUBSTITUTE(${sLet}${r},",",""))+1,0)`;
             const lenFormula  = `IF(${sLet}${r}<>"",LEN(SUBSTITUTE(${sLet}${r},",","")),0)`;
             const anzValFixed = summaryVal !== '' ? summaryVal.split(',').filter(Boolean).length : 0;
@@ -6307,7 +6344,7 @@ function applyLockState() {
     const badge   = $('roleBadge');
 
     // Remove all role classes first
-    body.classList.remove('app-locked', 'app-editor', 'app-admin');
+    body.classList.remove('app-locked', 'app-editor', 'app-admin', 'app-viewer');
 
     if (currentRole === 'admin') {
         body.classList.add('app-admin');
@@ -6320,7 +6357,7 @@ function applyLockState() {
         if (lockBtn) { lockBtn.textContent = '✏️ Editor'; lockBtn.className = 'unlocked desktop-only'; }
         if (badge)   { badge.textContent = '✏️ Editor'; badge.className = 'editor desktop-only'; }
     } else {
-        body.classList.add('app-locked');
+        body.classList.add('app-locked', 'app-viewer');
         isEditMode = false;
         if (lockBtn) { lockBtn.textContent = '🔒 Login'; lockBtn.className = 'locked desktop-only'; }
         if (badge)   { badge.textContent = '👁 Viewer'; badge.className = 'viewer desktop-only'; }
@@ -6697,14 +6734,10 @@ function spShowModalStatus(msg, bg, color) {
     el.style.display = 'block';
 }
 
-function spHideStatus() {
-    const el = $('spModalStatus');
-    if (el) el.style.display = 'none';
-}
 
 // Test GitHub connection
 async function spTestConnection() {
-    const de = currentLang === 'de';
+    const de = _de();
     if (!spConfig.siteUrl || !spConfig.folderPath || !spConfig.fileName) {
         spShowModalStatus(de
             ? '⚠️ Bitte Inhaber, Repo und PAT ausfüllen und speichern.'
@@ -7243,21 +7276,6 @@ function clearAppCache() {
     location.reload();
 }
 
-// Set / update the data encryption password from the sync modal
-function setDataPassword() {
-    const el  = $('spDataPwd');
-    const pwd = el ? el.value.trim() : '';
-    const statusEl = $('spDataPwdStatus');
-    saveDataPassword(pwd);
-    if (statusEl) {
-        statusEl.textContent = pwd
-            ? '✅ Data password saved — all future pushes will be encrypted with this password.'
-            : '⚠️ Data password cleared — files will be written unencrypted.';
-        statusEl.style.color  = pwd ? '#1a7f37' : '#856404';
-        statusEl.style.display = 'block';
-    }
-}
-
 // ── Live-update helpers — apply settings immediately as user types ──
 
 // ══════════════════════════════════════════════════════════════════
@@ -7634,42 +7652,9 @@ function liveUpdateCommentToken(value) {
 }
 
 // Smart GitHub sync button — opens setup if not configured, sync modal if already connected
-function openGHSyncOrSetup() {
-    const hasConfig = spConfig && spConfig.siteUrl && spConfig.folderPath;
-    if (hasConfig) {
-        openSPModal();
-    } else {
-        // Try reading from localStorage in case suConnect just saved it
-        try {
-            const saved = localStorage.getItem('shiftPlannerSPConfig');
-            if (saved) {
-                const c = JSON.parse(saved);
-                if (c.siteUrl && c.folderPath) {
-                    spConfig.siteUrl    = c.siteUrl;
-                    spConfig.folderPath = c.folderPath;
-                    // Restore PAT from sessionStorage (never localStorage)
-                    const pat = sessionStorage.getItem('shiftPlannerPAT');
-                    if (pat) spConfig.fileName = pat;
-                    openSPModal();
-                    return;
-                }
-            }
-        } catch(e) {}
-        openSetupPopup();
-    }
-}
 
 
 // ── Set / bake the shared comment token ──
-function setCommentToken() {
-    const tok = ($('cmtTokenInput') || {value:''}).value.trim();
-    if (!tok) { alert(_t('Please paste a PAT first.','Bitte zuerst ein PAT einfügen.')); return; }
-    SHARED_COMMENT_TOKEN = tok;
-    COMMENTS_SHARED_TOKEN = tok; // keep both in sync
-    // Persist in localStorage so it survives page refresh until admin re-downloads HTML
-    try { localStorage.setItem('shiftPlannerCmtToken', tok); } catch(e){}
-    spShowModalStatus('Comment token saved. Download the HTML file and commit to your repo to make it permanent.', '#e6ffe6', '#107c10');
-}
 // ─────────────────────────────────────────────────────────
 //  Mobile View
 // ─────────────────────────────────────────────────────────
@@ -8293,12 +8278,21 @@ function renderMobileView() {
       window.spConfig.dataRepo   = data;
       window.spConfig.fileName   = pat;
     }
+    // Apply shared comment token to memory immediately
+    if (shared) {
+      if (typeof window.SHARED_COMMENT_TOKEN !== 'undefined') window.SHARED_COMMENT_TOKEN = shared;
+      if (typeof window.COMMENTS_SHARED_TOKEN !== 'undefined') window.COMMENTS_SHARED_TOKEN = shared;
+    }
     if (typeof window.saveDataPassword === 'function' && enc) window.saveDataPassword(enc);
+    // Load remote config (password hashes etc.) before pulling data
+    if (typeof window.spLoadConfig === 'function') window.spLoadConfig();
     if (typeof window._renderSyncStatusBadges === 'function') window._renderSyncStatusBadges();
 
-    // Close wizard
+    // Close wizard — small delay so spLoadConfig can start
     document.getElementById('spWizard').classList.remove('sp-vis');
-    if (typeof window.spPull === 'function') window.spPull(true);
+    setTimeout(function() {
+      if (typeof window.spPull === 'function') window.spPull(true);
+    }, 400);
   };
 
   /* ══ LOCK SCREEN ══════════════════════════════════════════ */
