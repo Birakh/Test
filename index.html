@@ -2776,11 +2776,11 @@ function renderStats() {
         const hCls = totalHours >= exp-8 ? 'stats-good' : totalHours >= exp-16 ? 'stats-warn' : 'stats-bad';
         const cCls = maxStreak > maxConsec ? 'stats-bad' : maxStreak===maxConsec ? 'stats-warn' : '';
         const ratio = workDays > 0 ? `${earlyCount}E / ${lateCount}L` : '—';
-        const immoLbl = w.immo!=='None' ? ` [${w.immo}]` : '';
+        const immoLbl = w.immo!=='None' ? ` [${escHtml(w.immo)}]` : '';
 
         rows += `<tr>
-            <td style="text-align:left; font-weight:bold;">${w.name}</td>
-            <td>${w.system} ${w.contract}h${immoLbl}</td>
+            <td style="text-align:left; font-weight:bold;">${escHtml(w.name)}</td>
+            <td>${escHtml(w.system)} ${w.contract}h${immoLbl}</td>
             <td class="${hCls}">${totalHours}h <small style="color:#999;">(~${exp}h exp.)</small></td>
             <td>${workDays}</td>
             <td>${ratio}</td>
@@ -2844,7 +2844,7 @@ function restoreData(input) {
 // ─────────────────────────────────────────────────────────
 function getDropdownOptions(currentShift) {
     const base=["-","13H","8E","8L","8M","6H","OFF","VAC","SICK","FB","PF","DF","Urlaub IR","Urlaub-ZA","U-Immo","LSS","Offc","RB1","RB2"]; const immo=["ImE","ImL"]; const rooms=["IR2","IR3","IR4","Immo"]; const rShifts=["13H","8E","8L","8M","6H"]; const currentBase=getBaseShift(currentShift); let html=`<option value="-" ${currentShift==='-'?'selected':''}>-</option>`;
-    if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${currentShift || '-'}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>Custom: ${ov.label}${ov.star?' (best)':''}</option>`; } if (isPendingVacationShift(currentShift)) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} (pending)</option>`; vacationTypes.forEach(s => { const selected = stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${selected?'selected':''}>${s}</option>`; }); return html; }
+    if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${currentShift || '-'}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>Custom: ${ov.label}${ov.star?' (best)':''}</option>`; } const isPendingV = isPendingVacationShift(currentShift); if (isPendingV) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} (pending)</option>`; vacationTypes.forEach(s => { const sel = !isPendingV && stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${sel?'selected':''}>${s}</option>`; }); return html; }
     if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; }
     // ── FIX: for VAC-PENDING cells, only the pending option gets 'selected'. ──
     // Do NOT also mark the plain VAC option as selected — that caused the browser
@@ -2918,10 +2918,10 @@ function renderTable() {
             const dayLabel = ['Su','Mo','Tu','We','Th','Fr','Sa'][w.fixed6HDay] || 'Mo';
             c22note = `<br><span style="color:#27ae60; font-size:10px;">[${dayLabel}→6H]</span>`;
         }
-        headHTML += `<th data-w-idx="${i}" data-w-name="${w.name}">${w.name}
+        headHTML += `<th data-w-idx="${i}" data-w-name="${escHtml(w.name)}">${escHtml(w.name)}
             <button class="btn-delete-worker no-print" onclick="openEditModal(${i})" title="Edit worker" style="color:#0056b3;">✏️</button>
             <button class="btn-delete-worker no-print" onclick="deleteWorker(${i})" title="Delete worker">✖</button>
-            <br><small>${w.system} ${w.contract}h${immoLbl}${c22note}</small></th>`;
+            <br><small>${escHtml(w.system)} ${w.contract}h${immoLbl}${c22note}</small></th>`;
     });
 
     headHTML += `
@@ -3016,7 +3016,7 @@ function renderTable() {
             const cusInfo  = baseShift === 'CUS' ? cusOverlap(shift) : null;
             const cusStar  = cusInfo && cusInfo.star ? ' <span title="Spans Early & Late — counted in both" style="color:#6c3483; font-weight:bold;">★</span>' : '';
             const cusLabel = cusInfo ? `<div style="font-size:9px; color:#6c3483; font-weight:bold; margin-top:1px;">${cusInfo.label}${cusInfo.star?' ★':''}</div>` : '';
-            const nameChip = `<span class="name-chip" style="background-color:${bgColor};">${worker.name}${reqStar}</span>`;
+            const nameChip = `<span class="name-chip" style="background-color:${bgColor};">${escHtml(worker.name)}${reqStar}</span>`;
             if (shift.includes('IR2') || getRoomAssignment(shift)==='IR2') {
                 if (['8E','6H','13H'].includes(baseShift)) rooms.IR2.e.push(nameChip);
                 if (['8M'].includes(baseShift))            rooms.IR2.m.push(nameChip);
@@ -4467,7 +4467,7 @@ function xlsCell(value, bgHex, opts = {}) {
 // ─────────────────────────────────────────────────────────
 //  Build Analysis sheet data (same logic as runAIAnalysis but structured for Excel)
 // ─────────────────────────────────────────────────────────
-function buildAnalysisSheet(de) {
+function buildAnalysisSheet(de, cfg) {
     const ws = {};
     let row = 0; // 0-based row index
 
@@ -4571,7 +4571,7 @@ function buildAnalysisSheet(de) {
     });
 
     // ── 2. Fairness Check ──
-    addSection('⚖️', de ? 'Fairness (Vollzeit Gemischt)' : 'Fairness Check (Full-Time Mixed)');
+    addSection('', de ? 'Fairness (Vollzeit Gemischt)' : 'Fairness Check (Full-Time Mixed)');
     const latesData = workers
         .filter(w => w.contract==='40' && w.system==='New' && w.pref==='Any' && w.immo!=='Fixed')
         .map(w => ({ name:w.name,
@@ -4600,7 +4600,7 @@ function buildAnalysisSheet(de) {
     }
 
     // ── 3. Labor Law ──
-    addSection('🚨', de ? 'Arbeitszeitgesetz-Prüfung' : 'Labor Law Checks');
+    addSection('', de ? 'Arbeitszeitgesetz-Prüfung' : 'Labor Law Checks');
     const consecViol = [], restViol = [];
     workers.forEach(w => {
         const pShifts = getPrevMonthLastDays(w.name, maxConsec+1);
@@ -4624,7 +4624,7 @@ function buildAnalysisSheet(de) {
         : (uRest.length ? `11h rest violations: ${uRest.join(', ')}` : 'No rest violations.'));
 
     // ── 4. Staffing Gaps ──
-    addSection('📅', de ? 'Personalziel-Lücken' : 'Staffing Gaps');
+    addSection('', de ? 'Personalziel-Lücken' : 'Staffing Gaps');
     const gaps = [], immoGaps = [];
     for (let d = 0; d < daysInMonth; d++) {
         const c8E=getDayCount(d,'8E'), c8M=getDayCount(d,'8M'), c8L=getDayCount(d,'8L'), c13=getDayCount(d,'13H');
@@ -4645,7 +4645,7 @@ function buildAnalysisSheet(de) {
     }
 
     // ── 5. Pending Vacation ──
-    addSection('⏳', de ? 'Offene Urlaubsanträge' : 'Pending Vacation Requests');
+    addSection('', de ? 'Offene Urlaubsanträge' : 'Pending Vacation Requests');
     const pendingVac = [];
     workers.forEach(w => {
         w.shifts.forEach((s,d) => {
@@ -4715,8 +4715,8 @@ function buildAnalysisSheet(de) {
     }
 
     // ── Finalize ref and column widths ──
-    ws['!ref'] = `A1:E${row}`;
-    ws['!cols'] = [{ wch:22 }, { wch:28 }, { wch:16 }, { wch:16 }, { wch:40 }];
+    ws['!ref'] = `A1:G${row}`;
+    ws['!cols'] = [{ wch:22 }, { wch:12 }, { wch:10 }, { wch:10 }, { wch:14 }, { wch:8 }, { wch:8 }];
     ws['!rows'] = Array.from({length: row}, () => ({hpt:18}));
     return ws;
 }
@@ -4878,14 +4878,14 @@ async function downloadExcelWithFormulas() {
         const isHol    = isHoliday(d);
         const rowBg    = isHol ? '#'+HOLIDAY_BG : (isWE ? '#'+WEEKEND_BG : null);
 
-        // Date cell — format as dd.mm.yyyy
-        const dateCellAddr = excelCell(rowIdx, 0);
+        // Date cell — col 1 (B) after KW prepend — format as dd.mm.yyyy
+        const dateCellAddr = excelCell(rowIdx, 1);
         planWs[dateCellAddr].t = 'd';
         planWs[dateCellAddr].z = 'dd.mm.yyyy';
         planWs[dateCellAddr].s = cellStyle(rowBg || (isWE?'#'+WEEKEND_BG:'F9FAFB'), { bold:isHol, border:true, align:'left' });
 
-        // Weekday / Holiday / LSS cells
-        for (let c = 1; c <= 3; c++) {
+        // Weekday(2), Holiday(3), LSS(4) — style with row background
+        for (let c = 2; c <= 4; c++) {
             const a = excelCell(rowIdx, c);
             if (!planWs[a]) planWs[a] = { t:'s', v:'' };
             planWs[a].s = cellStyle(rowBg || null, { border:true });
@@ -4949,7 +4949,7 @@ async function downloadExcelWithFormulas() {
             const helperCol   = 2 + keyIdx * workers.length + wIdx;
             // Fix 6: reference named range SP_W_N, INDEX to single row cell
             const namedRange  = `SP_W_${wIdx}`;
-            const planCellRef = `INDEX(${namedRange},${rowIdx + 1})`;
+            const planCellRef = `INDEX(${namedRange},${rowIdx})`;
             const val         = computeHelperValue(w.shifts[d] || '-', key);
             helperSums[key][d] += val;
             helperWs[excelCell(rowIdx, helperCol)] = { t:'n', v: val, f: excelHelperFormulaPending(planCellRef, key) };
@@ -5229,7 +5229,7 @@ async function downloadExcelWithFormulas() {
     XLSX.utils.book_append_sheet(wb, legendWs,  'Legend');
 
     // ── Analysis sheet — same logic as the in-app AI Analysis button ──
-    const analysisWs = buildAnalysisSheet(de);
+    const analysisWs = buildAnalysisSheet(de, cfg);
     XLSX.utils.book_append_sheet(wb, analysisWs, de ? 'Analyse' : 'Analysis');
 
     const rtWs = buildDienstplanRTSheet();
@@ -5361,6 +5361,7 @@ async function downloadExcelWithFormulas() {
                 }
 
                 // Fix 10: inject tab colours into each visible sheet XML
+                // sheetPr must precede sheetViews in the xlsx element order
                 const tabColors = [
                     { file: 'xl/worksheets/sheet1.xml', rgb: 'FF1F4E79' }, // Plan — dark blue
                     { file: 'xl/worksheets/sheet3.xml', rgb: 'FF888888' }, // Legend — grey
@@ -5373,7 +5374,13 @@ async function downloadExcelWithFormulas() {
                     let tcXml = await tc.async('string');
                     const tabTag = `<sheetPr><tabColor rgb="${rgb}"/></sheetPr>`;
                     if (tcXml.includes('<sheetPr>') || tcXml.includes('<sheetPr ')) {
+                        // Already has sheetPr — inject tabColor inside it
                         tcXml = tcXml.replace(/<sheetPr([^>]*)>/, `<sheetPr$1><tabColor rgb="${rgb}"/>`);
+                    } else if (tcXml.includes('<sheetViews')) {
+                        // Insert before sheetViews to maintain valid element order
+                        tcXml = tcXml.replace('<sheetViews', tabTag + '<sheetViews');
+                    } else if (tcXml.includes('<sheetFormatPr')) {
+                        tcXml = tcXml.replace('<sheetFormatPr', tabTag + '<sheetFormatPr');
                     } else {
                         tcXml = tcXml.replace('<sheetData', tabTag + '<sheetData');
                     }
@@ -5712,7 +5719,7 @@ function buildDienstplanRTSheet() {
             // Pre-compute cached values from the already-computed matchingAbbrevs
             const summaryCell = ws[addr(r, SUMMARY_START + i * 2)];
             const summaryVal  = summaryCell ? String(summaryCell.v || '') : '';
-            const laengeVal   = summaryVal.replace(/ /g, '').length || '';
+            const laengeVal   = summaryVal.replace(/,/g, '').length || '';
             const anzVal      = laengeVal !== '' ? Math.floor(Number(laengeVal) / 3) : 0;
 
             // Fix 7: Anz = comma-count + 1 (non-empty); works for any abbreviation length
@@ -5845,8 +5852,8 @@ function copyColorfulExcel() {
             <td style="background:#dff0f8;">${sImE}</td>
             <td style="background:#cce0e8;">${sImL}</td>
             <td style="background:#e8f4fc; font-weight:bold;">${sWork}</td>
-            <td style="color:red;">${exSickNames.join(', ')||''}</td>
-            <td>${exVacNames.join(', ')||''}</td><td>${dailyComments[d]||''}</td></tr>`;
+            <td style="color:red;">${exSickNames.map(escHtml).join(', ')||''}</td>
+            <td>${exVacNames.map(escHtml).join(', ')||''}</td><td>${escHtml(dailyComments[d]||'')}</td></tr>`;
         html += row;
     }
 
@@ -8013,11 +8020,23 @@ function renderMobileView() {
         }
     };
 
-    // Open from button click
-    window.openSetupPopup = suShow;
+    // Open from button click — use new wizard when available and setup not yet done
+    window.openSetupPopup = function() {
+        var done = localStorage.getItem('spWizDone');
+        var wiz  = document.getElementById('spWizard');
+        if (!done && wiz) {
+            var old = document.getElementById('setupPopup');
+            if (old) old.style.display = 'none';
+            wiz.classList.add('sp-vis');
+        } else {
+            suShow();
+        }
+    };
 
-    // Auto-show on first visit
+    // Auto-show on first visit — suppressed if new wizard is already showing
     setTimeout(function() {
+        if (document.getElementById('spWizard') &&
+            document.getElementById('spWizard').classList.contains('sp-vis')) return;
         var saved = localStorage.getItem('shiftPlannerSPConfig');
         var hasCfg = false;
         if (saved) { try { var c = JSON.parse(saved); hasCfg = !!(c.siteUrl && c.folderPath); } catch(e){} }
