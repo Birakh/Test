@@ -235,7 +235,38 @@
         body.dark .status-chip.chip-warn { background:#2c2000; color:#ffd60a; border-color:#4a3800; }
         body.dark .status-chip.chip-off  { background:var(--dm-card); color:var(--dm-muted); border-color:var(--dm-border); }
 
-        /* Dark mode toggle button */
+        /* ── Dark Mode: cell state colours ── */
+        body.dark .warning        { background-color:#3a0a0a !important; color:#ff8080 !important; }
+        body.dark .warning-yellow { background-color:#2a1e00 !important; color:#ffc94a !important; }
+        body.dark .optimal        { background-color:#0a2a0a !important; color:#5bda5b !important; }
+
+        /* ── Dark Mode: inline-styled helper boxes (reached by JS remapper;
+              these rules cover the rare cases where remapper hasn't run yet) ── */
+        body.dark #fieldGuideBox {
+            background:var(--dm-card) !important; color:var(--dm-text) !important;
+            border-color:var(--dm-border) !important; }
+        body.dark details > summary {
+            background:var(--dm-card) !important; color:var(--dm-accent) !important;
+            border-color:var(--dm-border) !important; }
+        body.dark details > div, body.dark details > div > div {
+            background:var(--dm-row2) !important; border-color:var(--dm-border) !important;
+            color:var(--dm-text) !important; }
+        body.dark #shiftLegend h4, body.dark #shiftLegend .leg-item { color:var(--dm-text) !important; }
+        body.dark #cusOverlapInfo  { background:var(--dm-card) !important; color:var(--dm-text) !important; }
+        body.dark #lssWorkerList   { border-color:var(--dm-border) !important; background:var(--dm-row2) !important; }
+        /* spStatusBar: base fallback — JS remapper gives it semantic tints */
+        body.dark #spStatusBar, body.dark #azureStatusBar { filter:brightness(0.92); }
+        /* setupPopup inner card */
+        body.dark #setupPopup > div {
+            background:var(--dm-panel) !important; color:var(--dm-text) !important; }
+        body.dark #setupPopup input {
+            background:var(--dm-card) !important; color:var(--dm-text) !important;
+            border-color:var(--dm-border) !important; }
+        /* sync modal tab bar */
+        body.dark #syncModal .modal-content > div:first-of-type { border-bottom-color:var(--dm-border) !important; }
+        body.dark #syncTabGH, body.dark #syncTabAZ { color:var(--dm-text) !important; background:none !important; }
+
+
         #darkModeBtn { position:fixed; top:10px; right:120px; z-index:500; padding:5px 10px;
             font-size:16px; border:none; border-radius:20px; cursor:pointer;
             box-shadow:0 2px 6px rgba(0,0,0,0.25); transition:background 0.2s;
@@ -2274,7 +2305,129 @@ function applyDarkMode(on) {
     const btn = $('darkModeBtn');
     if (btn) btn.textContent = on ? '☀️' : '🌙';
     try { localStorage.setItem('shiftPlannerDarkMode', on ? '1' : '0'); } catch(e) {}
+    dmApplyInlineOverrides(on);
 }
+
+// ── Dark mode inline-style remapper ──────────────────────────────────────
+// Inline style="background:#xxxxxx" values can't be reached by CSS selectors,
+// so we walk the DOM on every dark-mode toggle and swap them out.
+(function() {
+    // Light bg hex  →  dark replacement
+    const BG = {
+        '#f6f8fa':'#232325','#f8f9fa':'#232325','#f9f9f9':'#232325','#f8f8f8':'#232325',
+        '#f0f0f0':'#2a2a2c','#f4f7f6':'#1c1c1e',
+        '#eaf4ff':'#0d1c2b','#e8f4fc':'#0d1c2b','#f0f6ff':'#0d1a2b','#e8f4fc':'#0d1c2b',
+        '#aed6f1':'#1a3a55',  // border used as bg in some old blocks
+        '#f0fff4':'#0a1e12','#eaffea':'#0a1e12','#e8f8f0':'#091a10',
+        '#fff8e1':'#201800','#fffbe6':'#201800','#fff3cd':'#201800','#fffbcc':'#201800',
+        '#fff4e5':'#201000','#ffecb3':'#2a1800',
+        '#ffeaea':'#1e0808','#fef2f2':'#1e0808','#ffcccc':'#2a0808',
+        '#f3e5ff':'#170d28','#e8d5f5':'#1a0d28',
+        '#fffff0':'#1c1c10',
+        'white'  :'#2c2c2e','#ffffff':'#2c2c2e',
+        // info-box accent backgrounds
+        '#fffbe6':'#201800',
+    };
+    // Inline text colours that become unreadable on a dark panel
+    const FG = {
+        '#24292f':'#e8e8ed','#333':'#e8e8ed','#333333':'#e8e8ed',
+        '#444':'#d8d8e0','#444444':'#d8d8e0',
+        '#555':'#c0c0c8','#555555':'#c0c0c8',
+        '#666':'#aeaeb2','#666666':'#aeaeb2',
+        '#856404':'#ffc94a',    // yellow warning text
+        '#0550ae':'#64d2ff',    // blue heading text
+        '#0056b3':'#64d2ff',
+        '#1a7f37':'#5bda5b',
+        '#6c3483':'#c39bd3',
+    };
+
+    // Normalise a value string to lowercase hex or keyword
+    function norm(v){ return (v||'').trim().toLowerCase().replace(/\s+/g,''); }
+
+    function remapEl(el, on) {
+        const sty = el.getAttribute('style');
+        if (!sty) return;
+
+        if (on) {
+            // ── background / background-color ──
+            const bgRx = /background(?:-color)?\s*:\s*([^;!]+)/gi;
+            let m;
+            while ((m = bgRx.exec(sty)) !== null) {
+                const val = norm(m[1]);
+                const dark = BG[val];
+                if (dark) {
+                    el.dataset.dmOrigBg = el.dataset.dmOrigBg || val;
+                    el.style.setProperty('background', dark, 'important');
+                    break;
+                }
+            }
+            // ── color ──
+            const clRx = /(?:^|;)\s*color\s*:\s*([^;!]+)/gi;
+            while ((m = clRx.exec(sty)) !== null) {
+                const val = norm(m[1]);
+                const dark = FG[val];
+                if (dark) {
+                    el.dataset.dmOrigFg = el.dataset.dmOrigFg || val;
+                    el.style.setProperty('color', dark, 'important');
+                    break;
+                }
+            }
+            // ── border-color (subtle: only convert pure whites / near-white) ──
+            const brdRx = /border(?:-color)?\s*:\s*([^;!]+)/gi;
+            while ((m = brdRx.exec(sty)) !== null) {
+                const val = norm(m[1].split(/\s/)[0]);  // first token of shorthand
+                if (val === '#ddd' || val === '#dee2e6' || val === '#ccc' || val === '#d0d7de') {
+                    el.style.setProperty('border-color', '#48484a', 'important');
+                }
+                break;
+            }
+        } else {
+            // Restore originals
+            if (el.dataset.dmOrigBg !== undefined) {
+                el.style.removeProperty('background');
+                el.style.removeProperty('background-color');
+                delete el.dataset.dmOrigBg;
+            }
+            if (el.dataset.dmOrigFg !== undefined) {
+                el.style.removeProperty('color');
+                delete el.dataset.dmOrigFg;
+            }
+            el.style.removeProperty('border-color');
+        }
+    }
+
+    function walkTargets() {
+        const sel = [
+            '.modal-content', '.modal-content *',
+            '#setupPopup', '#setupPopup *',
+            '#spWizard *', '#spLock *',
+            '#spStatusBar', '#azureStatusBar',
+            '#spModalStatus', '#azureModalStatus', '#azureLoginBanner',
+            '#cmtStatus', '#diffContent *',
+            '#fieldGuideBox', '#fieldGuideBox *',
+            '#viewerLegendBar',
+            'details', 'details > *', 'details > div', 'details > div *',
+            '#shiftLegend', '#shiftLegend *',
+            '.vac-range-panel *',
+        ].join(',');
+        return Array.from(document.querySelectorAll(sel));
+    }
+
+    window.dmApplyInlineOverrides = function(on) {
+        walkTargets().forEach(el => remapEl(el, on));
+    };
+
+    // Re-run whenever a modal is opened (handles dynamically generated content)
+    document.addEventListener('click', function(e) {
+        if (!darkMode) return;
+        // Small delay so the modal has rendered before we walk it
+        setTimeout(function() {
+            walkTargets().forEach(el => remapEl(el, true));
+        }, 60);
+    });
+})();
+
+
 
 function toggleDarkMode() {
     applyDarkMode(!darkMode);
@@ -6851,6 +7004,14 @@ function spSetStatus(msg, bg, color) {
     const bar = $('spStatusBar');
     if (!bar) return;
     bar.textContent = msg;
+    if (darkMode) {
+        // Remap light status tints to eye-friendly dark equivalents
+        const bgN = (bg||'').toLowerCase().replace(/\s/g,'');
+        if (bgN==='#e6ffe6'||bgN==='#f0fff4'||bgN==='#eaffea')      { bg='#0a2014'; color='#5bda5b'; }
+        else if (bgN==='#fff3cd'||bgN==='#fffbe6'||bgN==='#fff8e1') { bg='#201800'; color='#ffc94a'; }
+        else if (bgN==='#fef2f2'||bgN==='#ffeaea')                  { bg='#1e0808'; color='#ff8080'; }
+        else { bg='#2c2c2e'; color='#e8e8ed'; }
+    }
     bar.style.background = bg;
     bar.style.color = color;
     bar.style.display = 'block';
@@ -6862,10 +7023,18 @@ function spShowModalStatus(msg, bg, color) {
     const el = $('spModalStatus');
     if (!el) return;
     el.textContent = msg;
+    if (darkMode) {
+        const bgN = (bg||'').toLowerCase().replace(/\s/g,'');
+        if (bgN==='#e6ffe6'||bgN==='#f0fff4'||bgN==='#eaffea')      { bg='#0a2014'; color='#5bda5b'; }
+        else if (bgN==='#fff3cd'||bgN==='#fffbe6'||bgN==='#fff8e1') { bg='#201800'; color='#ffc94a'; }
+        else if (bgN==='#fef2f2'||bgN==='#ffeaea')                  { bg='#1e0808'; color='#ff8080'; }
+        else { bg='#2c2c2e'; color='#e8e8ed'; }
+    }
     el.style.background = bg;
     el.style.color = color;
     el.style.display = 'block';
 }
+
 
 
 // Test GitHub connection
