@@ -300,14 +300,22 @@
         .app-viewer #redoBtn,
         .app-viewer #syncStatusBadgeBar,
         .app-viewer #spStatusBar,
-        .app-viewer #statsToggleRow { display:none !important; }
+        .app-viewer #statsToggleRow  { display:none !important; }
 
         /* Viewer essentials — always visible */
-        .app-viewer #btnPersonal   { display:block !important; }
-        .app-viewer #btnSPSync     { display:block !important; }
-        .app-viewer #btnRefresh    { display:block !important; float:none !important; width:100% !important; }
-        .app-viewer #selectModeBtn { display:block !important; }
-        .app-viewer #quickSyncRow  { display:flex  !important; }
+        .app-viewer #btnPersonal    { display:block !important; }
+        .app-viewer #btnSPSync      { display:block !important; }
+        .app-viewer #selectModeBtn  { display:block !important; }
+        .app-viewer #quickSyncRow   { display:flex  !important; }
+
+        /* Refresh: hide the shared Help/Refresh container, show Refresh as standalone full-width */
+        .app-viewer #helpRefreshRow { display:block !important; overflow:visible !important; }
+        .app-viewer #btnRefresh {
+            display:block !important;
+            float:none   !important;
+            width:100%   !important;
+            margin-left:0 !important;
+        }
 
         /* Compact viewer legend strip */
         #viewerLegendBar {
@@ -478,7 +486,7 @@
             <button id="btnAI"       class="btn-ai    btn-half-l" onclick="runAIAnalysis()">AI Analysis</button>
             <button id="btnPersonal" class="btn-personal btn-half-r" onclick="openPersonalModal()">Personal Export</button>
         </div>
-        <div style="clear:both; overflow:hidden;">
+        <div id="helpRefreshRow" style="clear:both; overflow:hidden;">
             <button id="btnHelp"    class="btn-help    btn-half-l" onclick="document.getElementById('helpModal').style.display='block'">Help &amp; Guide</button>
             <button id="btnRefresh" class="btn-refresh btn-half-r" onclick="refreshBoard()">Refresh</button>
         </div>
@@ -725,7 +733,7 @@
 </div>
 
 <!-- Stats toggle -->
-<div class="no-print desktop-only" style="margin-bottom:8px; padding:0 4px;">
+<div class="no-print" style="margin-bottom:8px; padding:0 4px;">
     <label style="cursor:pointer; font-size:13px; font-weight:bold; color:#34495e;">
         <input type="checkbox" id="statsToggle" onchange="toggleStatsPanel()">
         Show Worker Stats Panel
@@ -5177,8 +5185,9 @@ const namedRange  = `SP_W_${wIdx}`;
         }
 
         let xml = '', count = 0;
-        xml += dv(`C2:C${lastRow}`, ynRef); count++;
-        xml += dv(`D2:D${lastRow}`, ynRef); count++;
+        // KW=A, Date=B, Weekday=C, Holiday=D, LSS=E — DV dropdowns on D and E
+        xml += dv(`D2:D${lastRow}`, ynRef); count++;  // Holiday?
+        xml += dv(`E2:E${lastRow}`, ynRef); count++;  // LSS?
         for (let wIdx = 0; wIdx < workers.length; wIdx++) {
             const col = excelCol(cfg.workerStartCol + wIdx);
             xml += dv(`${col}2:${col}${lastRow}`, shiftRef); count++;
@@ -8319,15 +8328,18 @@ function renderMobileView() {
       if (typeof window.COMMENTS_SHARED_TOKEN !== 'undefined') window.COMMENTS_SHARED_TOKEN = shared;
     }
     if (typeof window.saveDataPassword === 'function' && enc) window.saveDataPassword(enc);
-    // Load remote config (password hashes etc.) before pulling data
-    if (typeof window.spLoadConfig === 'function') window.spLoadConfig();
-    if (typeof window._renderSyncStatusBadges === 'function') window._renderSyncStatusBadges();
 
-    // Close wizard — small delay so spLoadConfig can start
+    // Load remote config (password hashes) — await so hashes are ready before pull
+    if (typeof window.spLoadConfig === 'function') {
+      try { await window.spLoadConfig(); } catch(e) {}
+    }
+    if (typeof window._renderSyncStatusBadges === 'function') window._renderSyncStatusBadges();
+    // Update body role class so viewer/editor UI switches correctly
+    if (typeof window.applyLockState === 'function') window.applyLockState();
+
+    // Close wizard then pull
     document.getElementById('spWizard').classList.remove('sp-vis');
-    setTimeout(function() {
-      if (typeof window.spPull === 'function') window.spPull(true);
-    }, 400);
+    if (typeof window.spPull === 'function') window.spPull(true);
   };
 
   /* ══ LOCK SCREEN ══════════════════════════════════════════ */
