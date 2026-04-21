@@ -41,6 +41,9 @@
         th { background-color: #eee; position: sticky; top: 0; z-index: 10; }
         .sticky-col { position: sticky; left: 0; background-color: #f9f9f9; z-index: 5; font-weight: bold; }
         th.sticky-col { z-index: 15; background-color: #eee; }
+        /* Sticky col 2 (Holiday) and col 3 (LSS) — offset right of date column */
+        th.sticky-col:nth-child(2), td.sticky-col:nth-child(2) { left: 72px; }
+        th.sticky-col:nth-child(3), td.sticky-col:nth-child(3) { left: 104px; }
 
         .weekend     { background-color: #f0f0f0 !important; }
         .holiday-row { background-color: #e8daef !important; }
@@ -211,6 +214,12 @@
         body.dark #shiftLegend { background:var(--dm-panel) !important; border-color:var(--dm-border) !important; }
         body.dark #monthReadyBanner { background:linear-gradient(90deg,#1a3a1a,#1f4a1f); }
         body.dark #viewerLegendBar  { background:var(--dm-panel); border-bottom-color:var(--dm-border); color:var(--dm-text); }
+        /* Vacation range panel dark mode */
+        body.dark .vac-range-panel { background:var(--dm-card) !important; border-color:var(--dm-border) !important; color:var(--dm-text) !important; }
+        body.dark .vac-range-panel h3 { color:var(--dm-accent) !important; }
+        body.dark .vac-range-grid input,
+        body.dark .vac-range-grid select { background:var(--dm-panel) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+        body.dark .vac-range-result { color:var(--dm-muted) !important; }
         body.dark .spW-card, body.dark .spL-card { background:var(--dm-panel); color:var(--dm-text); }
         body.dark .spW-field input  { background:var(--dm-card); color:var(--dm-text); border-color:var(--dm-border); }
         body.dark .spW-hint  { background:#1a2c3a; border-color:var(--dm-border); color:#a0d4f5; }
