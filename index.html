@@ -170,13 +170,21 @@
         .mob-full-link { text-align: center; padding: 10px; color: #7f8c8d; font-size: 12px; margin-top: 8px; }
         .mob-full-link a { color: #0969da; text-decoration: none; }
 
-        /* ── Dark Mode — CSS vars on body.dark ── */
-        :root { --dm-bg:#1a1a2e; --dm-panel:#16213e; --dm-card:#0f3460; --dm-border:#2a3a5c;
-                --dm-row2:#1a2a4a; --dm-text:#e0e0e0; }
+        /* ── Dark Mode — eye-friendly warm-neutral palette ── */
+        :root {
+            --dm-bg:      #1c1c1e;   /* warm near-black, easier than pure #000 */
+            --dm-panel:   #2c2c2e;   /* panel surfaces */
+            --dm-card:    #3a3a3c;   /* inputs, cards */
+            --dm-border:  #48484a;   /* subtle dividers */
+            --dm-row2:    #2a2a2c;   /* alternate table rows */
+            --dm-text:    #f2f2f7;   /* iOS-standard off-white, no blue tint */
+            --dm-muted:   #aeaeb2;   /* secondary text */
+            --dm-accent:  #64d2ff;   /* links / highlights — softer cyan */
+        }
         body.dark { background-color:var(--dm-bg); color:var(--dm-text); }
-        body.dark h1, body.dark h2 { color:var(--dm-text); }
+        body.dark h1, body.dark h2, body.dark h3 { color:var(--dm-text); }
         body.dark .panel, body.dark .modal-content, body.dark table,
-        body.dark #statsPanel { background:var(--dm-panel); }
+        body.dark #statsPanel { background:var(--dm-panel); border-color:var(--dm-border); }
         body.dark th, body.dark th.sticky-col, body.dark #statsPanel thead th,
         body.dark #selectionBar { background-color:var(--dm-card); color:var(--dm-text); }
         body.dark td { border-color:var(--dm-border); color:var(--dm-text); }
@@ -184,20 +192,39 @@
         body.dark .table-wrapper { border-color:var(--dm-border); }
         body.dark input, body.dark select, body.dark textarea,
         body.dark .comment-input { background:var(--dm-card); color:var(--dm-text); border-color:var(--dm-border); }
-        body.dark .tgt-input { background:#1a3a6a !important; color:#ffe082 !important; }
-        body.dark .shift-select { color:#222 !important; }
-        body.dark .weekend { background-color:#1e2d4a !important; }
-        body.dark .holiday-row { background-color:#2d1f4a !important; }
-        body.dark .lss-row { background-color:#1a2e1a !important; }
+        body.dark .tgt-input { background:#2a2a3c !important; color:#ffd60a !important; }
+        body.dark .shift-select { color:#1c1c1e !important; }
+        body.dark .weekend { background-color:#252528 !important; }
+        body.dark .holiday-row { background-color:#2c2228 !important; }
+        body.dark .lss-row { background-color:#222820 !important; }
         body.dark .role-targets-panel { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
-        body.dark .stats-good { color:#4ade80; } body.dark .stats-warn { color:#fbbf24; } body.dark .stats-bad { color:#f87171; }
+        body.dark .stats-good { color:#32d74b; }
+        body.dark .stats-warn { color:#ffd60a; }
+        body.dark .stats-bad  { color:#ff453a; }
         body.dark #statsPanel tbody tr:nth-child(even) { background:var(--dm-row2); }
-        body.dark .close-btn { color:#aaa; } body.dark .close-btn:hover { color:#fff; }
-        body.dark .btn-delete-worker { background-color:#2a3a5c !important; color:#ccc !important; border-color:#3a4a6c !important; }
-        body.dark #roleBadge.viewer { background:#4a1010; color:#f87171; }
-        body.dark #roleBadge.editor { background:#0a2a4a; color:#60a5fa; }
-        body.dark #roleBadge.admin  { background:#0a2a1a; color:#4ade80; }
+        body.dark .close-btn  { color:var(--dm-muted); }
+        body.dark .close-btn:hover { color:var(--dm-text); }
+        body.dark .btn-delete-worker { background-color:var(--dm-card) !important; color:var(--dm-muted) !important; border-color:var(--dm-border) !important; }
+        body.dark #roleBadge.viewer { background:#2c1a1a; color:#ff6b6b; }
+        body.dark #roleBadge.editor { background:#1a2c3a; color:#64d2ff; }
+        body.dark #roleBadge.admin  { background:#1a2c1a; color:#32d74b; }
         body.dark #shiftLegend { background:var(--dm-panel) !important; border-color:var(--dm-border) !important; }
+        body.dark #monthReadyBanner { background:linear-gradient(90deg,#1a3a1a,#1f4a1f); }
+        body.dark #viewerLegendBar  { background:var(--dm-panel); border-bottom-color:var(--dm-border); color:var(--dm-text); }
+        body.dark .spW-card, body.dark .spL-card { background:var(--dm-panel); color:var(--dm-text); }
+        body.dark .spW-field input  { background:var(--dm-card); color:var(--dm-text); border-color:var(--dm-border); }
+        body.dark .spW-hint  { background:#1a2c3a; border-color:var(--dm-border); color:#a0d4f5; }
+        body.dark .spW-warn  { background:#2c1f00; border-color:#5c3a00; color:#ffd60a; }
+        /* shift dropdowns keep their colour coding — only soften text */
+        body.dark .shift-select option { background:#3a3a3c; }
+        /* name chips */
+        body.dark .name-chip { opacity:0.85; }
+        /* selection bar */
+        body.dark #selectionBar { background:var(--dm-card); border-top-color:var(--dm-border); }
+        /* sync status chips */
+        body.dark .status-chip.chip-ok   { background:#1a2c1a; color:#32d74b; border-color:#1f4a1f; }
+        body.dark .status-chip.chip-warn { background:#2c2000; color:#ffd60a; border-color:#4a3800; }
+        body.dark .status-chip.chip-off  { background:var(--dm-card); color:var(--dm-muted); border-color:var(--dm-border); }
 
         /* Dark mode toggle button */
         #darkModeBtn { position:fixed; top:10px; right:120px; z-index:500; padding:5px 10px;
@@ -255,10 +282,8 @@
 
         /* ── Viewer mode — show only essential info ── */
         .app-viewer #panelSetup,
-        .app-viewer #panelWorkers   { display:none !important; }
-
-        /* Legend panel stays but is compacted */
-        .app-viewer #panelLegend    { flex: 0 0 auto; max-width:240px; }
+        .app-viewer #panelWorkers,
+        .app-viewer #panelLegend   { display:none !important; }
 
         /* Hide non-essential toolbar items */
         .app-viewer #statsPanel,
@@ -269,20 +294,21 @@
         .app-viewer #btnHTML,
         .app-viewer #btnAI,
         .app-viewer #btnDiff,
-        .app-viewer #syncStatusBadgeBar,
-        .app-viewer #spStatusBar,
-        .app-viewer #statsToggleRow,
         .app-viewer #btnHelp,
         .app-viewer #btnAutoFill,
         .app-viewer #undoBtn,
-        .app-viewer #redoBtn      { display:none !important; }
+        .app-viewer #redoBtn,
+        .app-viewer #syncStatusBadgeBar,
+        .app-viewer #spStatusBar,
+        .app-viewer #statsToggleRow { display:none !important; }
 
-        /* Viewer gets Pull + Personal export only */
+        /* Viewer essentials — always visible */
         .app-viewer #btnPersonal  { display:block !important; }
-        .app-viewer #btnSPSync    { display:block !important; opacity:0.7; }
+        .app-viewer #btnSPSync    { display:block !important; }
         .app-viewer #btnRefresh   { display:block !important; }
+        .app-viewer #selectModeBtn { display:block !important; }
 
-        /* Compact viewer legend bar below header */
+        /* Compact viewer legend strip */
         #viewerLegendBar {
             display:none;
             flex-wrap:wrap;
@@ -304,6 +330,11 @@
             border-radius:3px;
             border:1px solid rgba(0,0,0,.12);
             display:inline-block;
+        }
+        body.dark #viewerLegendBar {
+            background:#16213e;
+            border-bottom-color:#2a3a5c;
+            color:#e0e0e0;
         }
         </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
