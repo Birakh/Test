@@ -303,10 +303,11 @@
         .app-viewer #statsToggleRow { display:none !important; }
 
         /* Viewer essentials — always visible */
-        .app-viewer #btnPersonal  { display:block !important; }
-        .app-viewer #btnSPSync    { display:block !important; }
-        .app-viewer #btnRefresh   { display:block !important; }
+        .app-viewer #btnPersonal   { display:block !important; }
+        .app-viewer #btnSPSync     { display:block !important; }
+        .app-viewer #btnRefresh    { display:block !important; float:none !important; width:100% !important; }
         .app-viewer #selectModeBtn { display:block !important; }
+        .app-viewer #quickSyncRow  { display:flex  !important; }
 
         /* Compact viewer legend strip */
         #viewerLegendBar {
@@ -490,7 +491,7 @@
         <button id="btnXLSX" style="background:#0f766e; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#115e59'" onmouseout="this.style.background='#0f766e'" onclick="downloadExcelWithFormulas()">Download Excel (.xlsx)</button>
         <button id="btnHTML"   style="background:#1e8449; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#196f3d'" onmouseout="this.style.background='#1e8449'" onclick="downloadAsHTML()">Download as HTML</button>
         <button id="btnSPSync" style="background:#24292f; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='#24292f'" onclick="openSyncModal('github')">GitHub Sync</button>
-        <div style="display:flex; gap:4px; margin-top:4px;">
+        <div id="quickSyncRow" style="display:flex; gap:4px; margin-top:4px;">
             <button onclick="syncQuickPull()" title="Pull from active sync backend" style="flex:1; background:#0969da; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#0752b0'" onmouseout="this.style.background='#0969da'">Pull</button>
             <button onclick="syncQuickPush()" title="Push to active sync backend" style="flex:1; background:#1a7f37; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#156a2e'" onmouseout="this.style.background='#1a7f37'">Push</button>
         </div>
@@ -6303,10 +6304,13 @@ function applyLang() {
     set('helpTitle',     t.helpTitle,    'text');
     set('helpContent',   t.helpContent);
 
-    // Stats toggle label
+    // Stats toggle label — preserve checked state when replacing innerHTML
     const stLbl = document.querySelector('label[for="statsToggle"]') ||
                   document.querySelector('#statsToggle')?.closest('label');
-    if (stLbl) stLbl.innerHTML = `<input type="checkbox" id="statsToggle" onchange="toggleStatsPanel()"> ${t.statsToggle}`;
+    if (stLbl) {
+        const wasChecked = $('statsToggle') && $('statsToggle').checked;
+        stLbl.innerHTML = `<input type="checkbox" id="statsToggle" onchange="toggleStatsPanel()"${wasChecked ? ' checked' : ''}> ${t.statsToggle}`;
+    }
 
     // Day-of-week abbreviations in Fixed Days Off checkboxes
     const dow = currentLang==='de'
