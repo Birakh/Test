@@ -197,9 +197,9 @@
         body.dark .comment-input { background:var(--dm-card); color:var(--dm-text); border-color:var(--dm-border); }
         body.dark .tgt-input { background:#2a2a3c !important; color:#ffd60a !important; }
         body.dark .shift-select { color:#1c1c1e !important; }
-        body.dark .weekend { background-color:#252528 !important; }
-        body.dark .holiday-row { background-color:#2c2228 !important; }
-        body.dark .lss-row { background-color:#222820 !important; }
+        body.dark .weekend     { background-color:#252528 !important; }   /* cool near-black */
+        body.dark .holiday-row { background-color:#2d2500 !important; }   /* warm amber-gold — clearly distinct from weekend */
+        body.dark .lss-row     { background-color:#222820 !important; }
         body.dark .role-targets-panel { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
         body.dark .stats-good { color:#32d74b; }
         body.dark .stats-warn { color:#ffd60a; }
@@ -326,6 +326,59 @@
             margin-left:0 !important;
         }
 
+        /* ── Viewer Control Panel ── */
+        #viewerCtrlPanel {
+            display:none; flex-direction:column; gap:0;
+            background:white; padding:14px; border-radius:8px;
+            box-shadow:0 2px 4px rgba(0,0,0,.1); min-width:210px; max-width:240px;
+            flex-shrink:0;
+        }
+        .app-viewer #viewerCtrlPanel { display:flex !important; }
+        body.dark #viewerCtrlPanel   { background:var(--dm-panel); color:var(--dm-text); border:1px solid var(--dm-border); }
+
+        #viewerCtrlPanel h2 { font-size:14px; margin:0 0 10px 0; color:#333; }
+        body.dark #viewerCtrlPanel h2 { color:var(--dm-text); }
+
+        .vcp-month-nav {
+            display:flex; align-items:center; gap:6px; margin-bottom:10px;
+            background:#f0f4f8; border-radius:6px; padding:5px 8px;
+        }
+        body.dark .vcp-month-nav { background:var(--dm-card); }
+        .vcp-nav-btn {
+            background:none; border:none; cursor:pointer; font-size:16px;
+            color:#0056b3; padding:0 4px; line-height:1; font-weight:bold;
+        }
+        body.dark .vcp-nav-btn { color:var(--dm-accent); }
+        .vcp-nav-btn:hover { color:#003d82; }
+        #vcpMonthLabel {
+            flex:1; text-align:center; font-size:13px; font-weight:bold;
+            color:#1a1a2e; white-space:nowrap;
+        }
+        body.dark #vcpMonthLabel { color:var(--dm-text); }
+
+        .vcp-btn {
+            display:block; width:100%; margin-top:5px; padding:7px 10px;
+            border:none; border-radius:4px; font-size:11px; font-weight:bold;
+            cursor:pointer; color:white; text-align:center;
+        }
+        .vcp-btn:hover { opacity:.88; }
+        .vcp-pull   { background:#0969da; }
+        .vcp-push   { background:#1a7f37; }
+        .vcp-gh     { background:#24292f; }
+        .vcp-select { background:#34495e; }
+        .vcp-select.active { background:#e67e22; }
+        .vcp-export { background:#27ae60; }
+        .vcp-divider { border:none; border-top:1px solid #e0e0e0; margin:8px 0; }
+        body.dark .vcp-divider { border-top-color:var(--dm-border); }
+
+        /* Vacation range panel inside viewer panel — override vac-range-panel width */
+        #viewerCtrlPanel .vac-range-panel {
+            margin-top:8px; width:100%; box-sizing:border-box;
+        }
+        #viewerCtrlPanel .vac-range-grid {
+            grid-template-columns:1fr;
+        }
+
         /* Compact viewer legend strip */
         #viewerLegendBar {
             display:none;
@@ -414,6 +467,33 @@
 </div>
 
 <div class="container no-print desktop-only">
+
+    <!-- ═══ VIEWER PANEL (shown only when app-viewer class is on body) ═══ -->
+    <div id="viewerCtrlPanel">
+        <h2>📅 My Planner</h2>
+
+        <!-- Month navigation -->
+        <div class="vcp-month-nav">
+            <button class="vcp-nav-btn" onclick="vcpChangeMonth(-1)" title="Previous month">◀</button>
+            <span id="vcpMonthLabel">—</span>
+            <button class="vcp-nav-btn" onclick="vcpChangeMonth(1)"  title="Next month">▶</button>
+        </div>
+
+        <!-- Sync -->
+        <button class="vcp-btn vcp-pull" onclick="syncQuickPull()" title="Pull latest schedule from GitHub">⬇ Pull Latest</button>
+        <button class="vcp-btn vcp-push" onclick="syncQuickPush()" title="Push vacation requests to GitHub">⬆ Push Changes</button>
+        <button class="vcp-btn vcp-gh"   onclick="openSyncModal('github')" title="Open GitHub sync settings">⚙ GitHub Sync</button>
+
+        <hr class="vcp-divider">
+
+        <!-- Actions -->
+        <button class="vcp-btn vcp-select" id="vcpSelectBtn" onclick="toggleSelectMode()">✋ Request Leave</button>
+        <button class="vcp-btn vcp-export" onclick="openPersonalModal()">📄 My Schedule</button>
+
+        <hr class="vcp-divider">
+
+        <!-- Vacation range panel injected here by extension JS -->
+    </div>
 
     <!-- ═══ PANEL 1: Setup & Action ═══ -->
     <div id="panelSetup" class="panel" style="flex: 1.2;">
@@ -8453,6 +8533,62 @@ function renderMobileView() {
 
 <script>
 (function(){
+  // ── month names helper ──
+  const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTHS_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  function _months(){ return _de() ? MONTHS_DE : MONTHS_EN; }
+
+  // ── Viewer class management ──
+  function applyViewerClass(){
+    const isViewer = (window.currentRole === 'viewer' && !window.isEditMode);
+    document.body.classList.toggle('app-viewer', isViewer);
+    updateViewerCtrlPanel();
+  }
+
+  function updateViewerCtrlPanel(){
+    // Update month label
+    const lbl = $('vcpMonthLabel');
+    if(lbl){
+      const m = window.currentMonth || (new Date().getMonth() + 1);
+      const y = window.currentYear  || new Date().getFullYear();
+      lbl.textContent = _months()[m - 1] + ' ' + y;
+    }
+    // Sync select mode button state
+    const btn = $('vcpSelectBtn');
+    if(btn){
+      const isViewer = (window.currentRole === 'viewer' && !window.isEditMode);
+      const de = _de();
+      btn.textContent = window.selectMode
+        ? (isViewer ? (de ? '✋ Urlaubsauswahl AN' : '✋ Leave Select ON')
+                    : (de ? '✋ Auswahlmodus AN'   : '✋ Select Mode ON'))
+        : (isViewer ? (de ? '✋ Urlaub beantragen'  : '✋ Request Leave')
+                    : (de ? '✋ Auswahlmodus'        : '✋ Select Mode'));
+      btn.classList.toggle('active', !!window.selectMode);
+    }
+  }
+
+  // Month navigation called from viewerCtrlPanel
+  window.vcpChangeMonth = function(delta){
+    const mSel = $('monthPickerMonth');
+    const ySel = $('monthPickerYear');
+    if(!mSel || !ySel) return;
+    let m = parseInt(mSel.value, 10);
+    let y = parseInt(ySel.value, 10);
+    m += delta;
+    if(m < 1){ m = 12; y--; }
+    if(m > 12){ m = 1; y++; }
+    mSel.value = String(m);
+    // Ensure year option exists
+    if(!Array.from(ySel.options).some(function(o){ return parseInt(o.value,10) === y; })){
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      ySel.appendChild(opt);
+    }
+    ySel.value = String(y);
+    if(typeof window.changeMonthFromDropdowns === 'function') window.changeMonthFromDropdowns();
+    updateViewerCtrlPanel();
+  };
+
   function extInjectStyles(){
     if($('ext-v3-style')) return;
     const st = document.createElement('style');
@@ -8465,6 +8601,7 @@ function renderMobileView() {
       '.chip-ok{background:#e8f7ec;color:#1a7f37;}',
       '.chip-warn{background:#fff4ce;color:#8a6d1f;}',
       '.chip-off{background:#f3f4f6;color:#555;}',
+      /* vac-range-panel inside viewerCtrlPanel uses single-col grid (set via main CSS) */
       '.vac-range-panel{margin-top:10px;background:#f8fbff;border:1px solid #cfe2f3;border-radius:6px;padding:10px;font-size:11px;}',
       '.vac-range-panel h3{margin:0 0 8px 0;font-size:13px;color:#0b5394;}',
       '.vac-range-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}',
@@ -8513,6 +8650,7 @@ function renderMobileView() {
     if(lbl)   lbl.textContent   = isViewer ? (de ? 'Urlaubsantrag' : 'Leave Request') : (de ? 'Auswahlmodus' : 'Select Mode');
     if(apply) apply.textContent = isViewer ? (de ? 'Urlaubsantrag übermitteln' : 'Submit Leave Request') : (de ? 'Auf Auswahl anwenden' : '✔ Apply to Selected');
     setBulkSelectOptionsByRole();
+    updateViewerCtrlPanel();
   }
 
   function ensureBadgeBar(){
@@ -8552,29 +8690,47 @@ function renderMobileView() {
 
   function ensureVacationRangePanel(){
     if($('vacRangePanel')) return;
-    const clearBtn = $('btnClearAll');
-    if(!clearBtn || !clearBtn.parentNode) return;
+
+    // Prefer to anchor inside viewerCtrlPanel (stays visible in app-viewer mode)
+    const viewerCtrl = $('viewerCtrlPanel');
+    let anchor = null;
+    if(viewerCtrl){
+      anchor = viewerCtrl;
+    } else {
+      // fallback: after btnClearAll (legacy position)
+      const clearBtn = $('btnClearAll');
+      if(!clearBtn || !clearBtn.parentNode) return;
+      anchor = clearBtn;
+    }
+
     const panel = document.createElement('div');
     panel.id = 'vacRangePanel';
     panel.className = 'vac-range-panel';
     panel.innerHTML = ''
-      + '<h3>Vacation Range Request</h3>'
+      + '<h3>' + (_de() ? 'Urlaubsantrag (Zeitraum)' : 'Vacation Range Request') + '</h3>'
       + '<div class="vac-range-grid">'
       + '  <div class="worker-search-row">'
-      + '    <label style="display:block; margin-bottom:3px; font-weight:bold;">Search worker</label>'
-      + '    <input id="vacRangeWorkerSearch" type="text" placeholder="Type to filter workers..." style="margin-bottom:6px;">'
-      + '    <label style="display:block; margin-bottom:3px; font-weight:bold;">Select worker</label>'
+      + '    <label style="display:block; margin-bottom:3px; font-weight:bold;">' + (_de() ? 'Mitarbeiter suchen' : 'Search worker') + '</label>'
+      + '    <input id="vacRangeWorkerSearch" type="text" placeholder="' + (_de() ? 'Filtern...' : 'Type to filter...') + '" style="margin-bottom:6px;">'
+      + '    <label style="display:block; margin-bottom:3px; font-weight:bold;">' + (_de() ? 'Mitarbeiter' : 'Select worker') + '</label>'
       + '    <select id="vacRangeWorkerSelect"></select>'
       + '  </div>'
-      + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">Vacation type</label><select id="vacRangeType"><option value="Urlaub IR">U-IR</option><option value="Urlaub-ZA">U-ZA</option><option value="U-Immo">U-Immo</option></select></div>'
+      + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">' + (_de() ? 'Urlaubsart' : 'Vacation type') + '</label><select id="vacRangeType"><option value="Urlaub IR">U-IR</option><option value="Urlaub-ZA">U-ZA</option><option value="U-Immo">U-Immo</option></select></div>'
       + '  <div></div>'
-      + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">Start date</label><input type="date" id="vacRangeStart"></div>'
-      + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">End date</label><input type="date" id="vacRangeEnd"></div>'
+      + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">' + (_de() ? 'Startdatum' : 'Start date') + '</label><input type="date" id="vacRangeStart"></div>'
+      + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">' + (_de() ? 'Enddatum' : 'End date') + '</label><input type="date" id="vacRangeEnd"></div>'
       + '</div>'
-      + '<button id="vacRangeApplyBtn" style="margin-top:8px; background:#8e44ad; color:white; border:none; border-radius:4px; padding:7px 12px; font-weight:bold; cursor:pointer; width:100%;">Apply Vacation Range</button>'
-      + '<div class="viewer-only-select-note">Skips weekends, holidays and the worker\'s fixed days off.</div>'
+      + '<button id="vacRangeApplyBtn" style="margin-top:8px; background:#8e44ad; color:white; border:none; border-radius:4px; padding:7px 12px; font-weight:bold; cursor:pointer; width:100%;">'
+      + (_de() ? 'Urlaubsantrag übermitteln' : 'Apply Vacation Range') + '</button>'
+      + '<div class="viewer-only-select-note">' + (_de() ? 'Überspringt Wochenenden, Feiertage und feste Freitage.' : 'Skips weekends, holidays and fixed days off.') + '</div>'
       + '<div class="vac-range-result" id="vacRangeResult"></div>';
-    clearBtn.insertAdjacentElement('afterend', panel);
+
+    if(viewerCtrl){
+      viewerCtrl.appendChild(panel);
+    } else {
+      anchor.insertAdjacentElement('afterend', panel);
+    }
+
     $('vacRangeApplyBtn').addEventListener('click', window.applyVacationRange);
     const search = $('vacRangeWorkerSearch');
     if(search) search.addEventListener('input', window.filterVacationWorkerSelect);
@@ -8732,6 +8888,7 @@ function renderMobileView() {
   window.renderTable = function(){
     const r = origRenderTable.apply(this, arguments);
     ensureSelectModeButtonForViewer();
+    updateViewerCtrlPanel();
     // Only rebuild vacation-worker select when the roster actually changed
     const fp = _rosterFingerprint();
     if(fp !== _lastRosterFingerprint){
@@ -8763,9 +8920,11 @@ function renderMobileView() {
   if(typeof origApplyLockState === 'function'){
     window.applyLockState = function(){
       const r = origApplyLockState.apply(this, arguments);
+      applyViewerClass();
       ensureSelectModeButtonForViewer();
       renderSyncStatusBadges();
       updateSelectModeUI();
+      updateViewerCtrlPanel();
       return r;
     };
   }
@@ -8815,6 +8974,7 @@ function renderMobileView() {
 
   function refreshEnhancements(){
     extInjectStyles();
+    applyViewerClass();
     ensureSelectModeButtonForViewer();
     ensureBadgeBar();
     ensureVacationRangePanel();
@@ -8822,6 +8982,7 @@ function renderMobileView() {
     populateVacationRangeWorkerSelect();
     renderSyncStatusBadges();
     updateSelectModeUI();
+    updateViewerCtrlPanel();
   }
 
   const origOnload = window.onload;
