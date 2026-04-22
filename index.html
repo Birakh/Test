@@ -4875,8 +4875,8 @@ function buildAnalysisSheet(de, cfg) {
         const planRng  = `Plan!${planCol}$2:${planCol}$${dataRows + 1}`;
 
         const hoursFormula =
-            `SUMPRODUCT((${planRng}<>"")*` +
-            `(${planRng}<>"-")*` +
+            `SUMPRODUCT(NOT(${planRng}="")*` +
+            `NOT(${planRng}="-")*` +
             `IF(LEFT(${planRng},3)="13H",13,` +
             `IF(LEFT(${planRng},2)="6H",6,8)))`;
 
@@ -5171,7 +5171,7 @@ async function downloadExcelWithFormulas() {
         const wkNum = Math.ceil(((dt - jan4) / 86400000 + jan4.getDay() + 1) / 7);
         planWs[`A${excelRow}`] = {
             t: 'str', v: 'KW ' + wkNum,
-            f: `IFERROR("KW "&WEEKNUM(B${excelRow}),"")`,
+            f: `IFERROR(CONCATENATE("KW ",WEEKNUM(B${excelRow})),"")`,
             s: xlsCellStyle('#FAFAFA', { border:true, align:'center', fontColor:'#888888', sz:10 })
         };
     }
@@ -5697,10 +5697,15 @@ const namedRange  = `SP_W_${wIdx}`;
                     let tcXml = await tc.async('string');
                     const tabTag = `<sheetPr><tabColor rgb="${rgb}"/></sheetPr>`;
                     if (tcXml.includes('<sheetPr>') || tcXml.includes('<sheetPr ')) {
-                        // Already has sheetPr — inject tabColor inside it
+                        // Already has sheetPr — inject tabColor as first child
                         tcXml = tcXml.replace(/<sheetPr([^>]*)>/, `<sheetPr$1><tabColor rgb="${rgb}"/>`);
+                    } else if (tcXml.includes('<dimension')) {
+                        // OOXML order: sheetPr → dimension → sheetViews → …
+                        // Insert BEFORE <dimension> so the order is always valid.
+                        // Inserting after <dimension> (e.g. before <sheetViews>) would put
+                        // sheetPr out of sequence and causes Excel recovery prompts.
+                        tcXml = tcXml.replace('<dimension', tabTag + '<dimension');
                     } else if (tcXml.includes('<sheetViews')) {
-                        // Insert before sheetViews to maintain valid element order
                         tcXml = tcXml.replace('<sheetViews', tabTag + '<sheetViews');
                     } else if (tcXml.includes('<sheetFormatPr')) {
                         tcXml = tcXml.replace('<sheetFormatPr', tabTag + '<sheetFormatPr');
@@ -5902,7 +5907,7 @@ function buildDienstplanRTSheet() {
         // A – KW (string formula — t:'str')
         const kwVal = `KW ${new Date(currentYear, currentMonth-1, d+1).toLocaleDateString('de-DE',{week:'long'}).split(',')[0]}`;
         const wkNum = (() => { const jan4 = new Date(currentYear,0,4); return Math.ceil(((dateObj-jan4)/86400000+jan4.getDay()+1)/7); })();
-        ws[addr(r, 1)] = frmStr(`IFERROR("KW "&WEEKNUM(${col1(2)}${r}),"")`,
+        ws[addr(r, 1)] = frmStr(`IFERROR(CONCATENATE("KW ",WEEKNUM(${col1(2)}${r})),"")`,
             'KW ' + wkNum, bg, { fontColor:'#999999' });
         // B – date
         const dc = dat(dateObj, bg, {});
@@ -6043,8 +6048,8 @@ function buildDienstplanRTSheet() {
             const summaryVal  = summaryCell ? String(summaryCell.v || '') : '';
             const laengeVal   = summaryVal.replace(/,/g, '').length || '';
 
-            const anzFormula  = `IF(${sLet}${r}<>"",LEN(${sLet}${r})-LEN(SUBSTITUTE(${sLet}${r},",",""))+1,0)`;
-            const lenFormula  = `IF(${sLet}${r}<>"",LEN(SUBSTITUTE(${sLet}${r},",","")),0)`;
+            const anzFormula  = `IF(NOT(${sLet}${r}=""),LEN(${sLet}${r})-LEN(SUBSTITUTE(${sLet}${r},",",""))+1,0)`;
+            const lenFormula  = `IF(NOT(${sLet}${r}=""),LEN(SUBSTITUTE(${sLet}${r},",","")),0)`;
             const anzValFixed = summaryVal !== '' ? summaryVal.split(',').filter(Boolean).length : 0;
             ws[addr(r, lCol)]     = frmNum(lenFormula, laengeVal || 0, bg, { fontColor:'#666666' });
             ws[addr(r, lCol + 1)] = frmNum(anzFormula, anzValFixed,    bg, { fontColor:'#666666' });
