@@ -197,9 +197,32 @@
         body.dark .comment-input { background:var(--dm-card); color:var(--dm-text); border-color:var(--dm-border); }
         body.dark .tgt-input { background:#2a2a3c !important; color:#ffd60a !important; }
         body.dark .shift-select { background:inherit !important; color:var(--dm-text) !important; border-color:transparent !important; }
-        body.dark .weekend     { background-color:#252528 !important; }   /* cool near-black */
-        body.dark .holiday-row { background-color:#2d2500 !important; }   /* warm amber-gold — clearly distinct from weekend */
-        body.dark .lss-row     { background-color:#222820 !important; }
+        body.dark .weekend     { background-color:#1a1a2e !important; }   /* deep navy — clearly distinct from normal #2a2a2c rows */
+        body.dark .holiday-row { background-color:#2d2500 !important; }   /* warm amber-gold */
+        body.dark .lss-row     { background-color:#0d1e0d !important; }   /* deep forest green */
+
+        /* ── Admin / Editor panels ── */
+        body.dark .app-editor .role-targets-panel,
+        body.dark .app-admin  .role-targets-panel  { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
+        body.dark .app-locked .role-targets-panel  { background:#1e1e20 !important; }
+        body.dark .app-editor .tgt-input,
+        body.dark .app-locked .tgt-input           { background:#1e1e26 !important; color:#aeaeb2 !important; }
+        body.dark .app-admin  .tgt-input           { background:#2a2a3c !important; color:#ffd60a !important; }
+        /* Role badge */
+        body.dark #roleBadge.viewer { background:#2c1a1a; color:#ff6b6b; }
+        body.dark #roleBadge.editor { background:#1a2c3a; color:#64d2ff; }
+        body.dark #roleBadge.admin  { background:#1a2c1a; color:#32d74b; }
+        /* Inline green-tint info boxes (eaffea, e.g. admin-only success areas) */
+        body.dark div[style*="background:#eaffea"],
+        body.dark div[style*="background: #eaffea"] { background:#0a2010 !important; border-color:#1a4a20 !important; color:var(--dm-text) !important; }
+        /* Inline light-grey boxes (f9f9f9, f8f8f8 textareas, info notes) */
+        body.dark textarea[style*="background:#f9f9f9"],
+        body.dark div[style*="background:#f8f8f8"],
+        body.dark div[style*="background:#f9f9f9"] { background:var(--dm-card) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+        /* inline-styled role-targets-panel form-group in HTML */
+        body.dark .role-targets-panel              { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
+        /* Diff / changed row highlight */
+        body.dark tr[style*="background:#fffde7"]  { background:#1e1c00 !important; }
         body.dark .role-targets-panel { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
         body.dark .stats-good { color:#32d74b; }
         body.dark .stats-warn { color:#ffd60a; }
@@ -208,9 +231,6 @@
         body.dark .close-btn  { color:var(--dm-muted); }
         body.dark .close-btn:hover { color:var(--dm-text); }
         body.dark .btn-delete-worker { background-color:var(--dm-card) !important; color:var(--dm-muted) !important; border-color:var(--dm-border) !important; }
-        body.dark #roleBadge.viewer { background:#2c1a1a; color:#ff6b6b; }
-        body.dark #roleBadge.editor { background:#1a2c3a; color:#64d2ff; }
-        body.dark #roleBadge.admin  { background:#1a2c1a; color:#32d74b; }
         body.dark #shiftLegend { background:var(--dm-panel) !important; border-color:var(--dm-border) !important; }
         body.dark #monthReadyBanner { background:linear-gradient(90deg,#1a3a1a,#1f4a1f); }
         body.dark #viewerLegendBar  { background:var(--dm-panel); border-bottom-color:var(--dm-border); color:var(--dm-text); }
@@ -2447,6 +2467,7 @@ function applyDarkMode(on) {
             'details', 'details > *', 'details > div', 'details > div *',
             '#shiftLegend', '#shiftLegend *',
             '.vac-range-panel *',
+            '#su_status',
         ].join(',');
         return Array.from(document.querySelectorAll(sel));
     }
@@ -3426,8 +3447,8 @@ function renderTable() {
             const emptyCell = bgColor === '#ffffff' || bgColor === DARK_EMPTY;
             if (emptyCell) {
                 if (isHol)      cellBg = darkMode ? '#2d2500' : '#e8daef';
-                else if (isWE)  cellBg = darkMode ? '#252528' : '#f0f0f0';
-                else if (isLSS) cellBg = darkMode ? '#222820' : '#e8f8e8';
+                else if (isWE)  cellBg = darkMode ? '#1a1a2e' : '#f0f0f0';
+                else if (isLSS) cellBg = darkMode ? '#0d1e0d' : '#e8f8e8';
             }
 
             rowWorkerCells += `<td data-cell="${cellKey}" data-w="${wIndex}" class="${selClass}" onclick="handleCellClick(event,${wIndex},${d})" style="background-color:${cellBg};">
