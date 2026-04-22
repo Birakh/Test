@@ -5376,6 +5376,20 @@ const namedRange  = `SP_W_${wIdx}`;
         ['8E', '#CFE2F3'], ['8L', '#F4CCCC'], ['8M', '#F9CB9C'], ['13H', '#FFE599'],
         ['6H', '#D9EAD3'], ['VAC (approved)', '#B6D7A8'], ['VAC ⏳ (pending)', '#FFFFFF'],
         ['SICK', '#F5B7B1'], ['OFF/DF', '#E0E0E0'],
+        [''],
+        [de?'Dienstplan RT — Spaltenerklärung':'Dienstplan RT — Column Guide'],
+        [de?'Spalte':'Column', de?'Bedeutung':'Meaning', de?'Werte/Beispiel':'Values / Example'],
+        ['Sh',
+         de?'Schicht-Nummer (numerischer Hilfsindikator je Mitarbeiter)':'Shift number — numeric helper per worker column',
+         de?'1=Früh  2=Spät  3=Mitte(8M)  0=Abwesend':'1=Early  2=Late  3=Mid(8M)  0=Absent/Off'],
+        ['Lg IR2F / Lg IR3S …',
+         de?'Länge: Zeichenanzahl der verketteten Kürzel in dieser Raum-/Schicht-Zelle':'Länge: character count of concatenated abbreviations in that room/shift cell',
+         de?'"Mül,Hof" → 7  (Hilfsspalte)':'"Mül,Hof" → 7  (helper column)'],
+        ['Anz IR2F / Anz IR3S …',
+         de?'Anzahl: Personenanzahl in diesem Raum und dieser Schicht — wichtige Lesezahl':'Anzahl: headcount of workers in that room + shift — the key read column',
+         de?'Anz IR2F = Frühdienstmitarbeiter in IR2':'Anz IR2F = early-shift workers in IR2'],
+        ['',
+         de?'Abkürzungen: F=Frühdienst  M=Mitteldienst  S=Spätdienst':'Suffixes: F=Früh (Early)  M=Mitte (Mid)  S=Spät (Late)', ''],
     ];
     const legendWs = XLSX.utils.aoa_to_sheet(legendRows);
 
@@ -5408,8 +5422,34 @@ const namedRange  = `SP_W_${wIdx}`;
     const maxLegendRow = Math.max(legendRows.length, shiftCodes.length, 2);
     legendWs['!ref'] = `A1:E${maxLegendRow}`;
     legendWs['!cols'] = legendWs['!cols'] || [];
-    legendWs['!cols'][3] = { wch: 16 }; // col D — shift codes
-    legendWs['!cols'][4] = { wch:  4 }; // col E — Y/N (narrow, helper column)
+    legendWs['!cols'][0] = { wch: 30 }; // col A — labels / shift names
+    legendWs['!cols'][1] = { wch: 52 }; // col B — meanings / colour hex
+    legendWs['!cols'][2] = { wch: 36 }; // col C — examples
+    legendWs['!cols'][3] = { wch: 16 }; // col D — shift codes (dropdown source)
+    legendWs['!cols'][4] = { wch:  4 }; // col E — Y/N
+
+    // Style the RT section header row and column-guide header row
+    const rtSectionIdx  = legendRows.findIndex(r => r[0] && String(r[0]).includes('Dienstplan RT'));
+    const rtHdrIdx      = rtSectionIdx + 1; // the Column/Meaning/Example header row
+    if (rtSectionIdx >= 0) {
+        const sHdr  = xlsCellStyle('#1F4E79', { bold:true, fontColor:'#FFFFFF', sz:11, border:false });
+        const cHdr  = xlsCellStyle('#BDD7EE', { bold:true, sz:10, border:true });
+        const cData = xlsCellStyle(null, { sz:10, border:true, align:'left' });
+
+        ['A','B','C'].forEach(col => {
+            const sAddr = `${col}${rtSectionIdx + 1}`;
+            const hAddr = `${col}${rtHdrIdx + 1}`;
+            if (legendWs[sAddr]) legendWs[sAddr].s = sHdr;
+            if (legendWs[hAddr]) legendWs[hAddr].s = cHdr;
+        });
+        // Style the three data rows below the header
+        for (let ri = rtHdrIdx + 1; ri <= rtHdrIdx + 4; ri++) {
+            ['A','B','C'].forEach(col => {
+                const a = `${col}${ri + 1}`;
+                if (legendWs[a]) legendWs[a].s = cData;
+            });
+        }
+    }
 
     // ── Data validation — built as raw OOXML and injected via JSZip post-processing ──
     // (xlsx-js-style does not serialise ws['!dataValidation']; we inject directly into the ZIP)
@@ -6524,7 +6564,13 @@ function getHelpContent(lang) {
   ${de?'<strong>PAT</strong> und <strong>Verschlüsselungspasswort</strong> werden <em>sofort beim Tippen</em> gespeichert — kein Speichern-Button nötig.<br><strong>Geteiltes Kommentar-Token</strong> wird ebenfalls sofort in den Speicher übernommen.<br><strong>JSON-Sicherung</strong> speichert alle Daten. <strong>JSON wiederherstellen</strong> lädt sie neu.<br><strong>GitHub-Sync:</strong> Owner, Repo-Name und PAT eingeben. Pull = Daten holen, Push = Daten hochladen.':'<strong>PAT</strong> and <strong>encryption password</strong> are applied <em>immediately as you type</em> — no Save button needed.<br><strong>Shared comment token</strong> is also applied instantly to memory.<br><strong>Backup JSON</strong> saves all data. <strong>Restore JSON</strong> reloads it.<br><strong>GitHub Sync:</strong> Enter owner, repo, and PAT. Pull = fetch shared data, Push = upload your data.'}
 
   <h3>${de?'Schritt 17: Excel-Export':'Step 17: Excel Export'}</h3>
-  ${de?'Enthält vier Blätter: <strong>Plan</strong> (Hauptblatt mit Farben, Dropdowns und Formeln), <strong>Helpers</strong> (Formel-Logik, versteckt), <strong>Legend</strong> (Farbschlüssel + Dropdown-Quelle), <strong>Analyse</strong> (Fairness, Gesetzesprüfung, Tauschvorschläge). Formeln werden beim Öffnen automatisch neu berechnet. Jeder Dienst-Spaltenkopf zeigt <strong>✔</strong> (fair, 30–50% Spätdienste) oder <strong>⚠</strong>.':'Contains four sheets: <strong>Plan</strong> (main sheet with colours, dropdowns and formulas), <strong>Helpers</strong> (formula engine, hidden), <strong>Legend</strong> (colour key + dropdown source), <strong>Analysis</strong> (fairness, law checks, swap suggestions). Formulas recalculate automatically on open. Each worker column header shows <strong>✔</strong> (fair, 30–50% lates) or <strong>⚠</strong>.'}
+  ${de?'Enthält <strong>fünf</strong> Blätter: <strong>Plan</strong> (Hauptblatt mit Farben, Dropdowns und Formeln), <strong>Helpers</strong> (Formel-Logik, versteckt), <strong>Legend</strong> (Farbschlüssel + Spaltenhilfe), <strong>Analyse</strong> (Fairness, Gesetzesprüfung, Tauschvorschläge), <strong>Dienstplan RT</strong> (Raum-Ansicht).':'Contains <strong>five</strong> sheets: <strong>Plan</strong> (main sheet with colours, dropdowns and formulas), <strong>Helpers</strong> (formula engine, hidden), <strong>Legend</strong> (colour key + column guide), <strong>Analysis</strong> (fairness, law checks, swap suggestions), <strong>Dienstplan RT</strong> (room-assignment view).'}
+  <div style="margin:6px 0;padding:8px 10px;background:#e8f4fc;border:1px solid #a8d4f5;border-radius:4px;font-size:12px;">
+    <strong>${de?'📋 Dienstplan RT — Spaltenerklärung:':'📋 Dienstplan RT — Column Guide:'}</strong><br>
+    <strong>Sh</strong> — ${de?'<em>Schicht-Nummer</em>: numerischer Hilfsindikator je Mitarbeiter. <strong>1</strong> = Frühdienst, <strong>2</strong> = Spätdienst, <strong>3</strong> = Mitteldienst (8M), <strong>0</strong> = abwesend/frei. Wird von den Zusammenfassungsformeln verwendet, um z.B. IR2-Früh von IR2-Spät zu unterscheiden.':'<em>Shift number</em>: numeric helper column per worker. <strong>1</strong> = Early shift, <strong>2</strong> = Late shift, <strong>3</strong> = Mid shift (8M), <strong>0</strong> = absent/off. Used by summary formulas to distinguish e.g. IR2 Early from IR2 Late.'}<br><br>
+    <strong>Lg [Raum][Schicht] / Lg [Room][Shift]</strong> — ${de?'<em>Länge</em>: Zeichenanzahl der verketteten Mitarbeiterkürzel in dieser Raum-/Schicht-Zelle (z.B. "Mül,Hof" = 7). Hilfsspalte für Längenberechnungen.':'<em>Länge</em> (length): character count of the concatenated worker abbreviations for that room/shift cell (e.g. "Mül,Hof" = 7). Helper column for length calculations.'}<br>
+    <strong>Anz [Raum][Schicht] / Anz [Room][Shift]</strong> — ${de?'<em>Anzahl</em>: Personenanzahl in diesem Raum und dieser Schicht (z.B. <strong>Anz IR2F</strong> = Anzahl Frühdienstmitarbeiter in IR2). Die wichtige Lesezahl.':'<em>Anzahl</em> (count): headcount of workers in that specific room and shift (e.g. <strong>Anz IR2F</strong> = number of early-shift workers in IR2). This is the useful read column.'}
+  </div>
 
   <hr style="margin-top:20px;border:0;border-top:1px solid #eee;">
   <p style="text-align:right;color:#888;font-style:italic;font-size:11px;">Created and Designed with ❤️ by Anis :) | v6 — Fair templates, live PAT/encryption, LSS/HOL auth, Analysis sheet, cell colours</p>`;
@@ -6572,6 +6618,13 @@ function getFieldGuide(lang) {
 <div style="margin-top:6px; padding:5px 7px; background:#eafaf1; border-left:3px solid #27ae60; border-radius:0 3px 3px 0; font-size:11px;">
     <strong style="color:#1a7f37;">⚖️ ${de?'Fairness-Indikator (Excel-Export)':'Fairness Indicator (Excel Export)'}</strong><br>
     ${de?'Jeder Mitarbeiter-Spaltenkopf im Excel zeigt <strong>✔</strong> (fair: 30–50% Spätdienste) oder <strong>⚠</strong> (zu wenige oder zu viele Spätdienste). Das Analyse-Blatt zeigt die genaue Spät-Prozent pro Person.':'Each worker column header in Excel shows <strong>✔</strong> (fair: 30–50% late shifts) or <strong>⚠</strong> (too few or too many lates). The Analysis sheet shows the exact late % per person.'}
+</div>
+
+<div style="margin-top:6px; padding:5px 7px; background:#e8f4fc; border-left:3px solid #1a7f8a; border-radius:0 3px 3px 0; font-size:11px;">
+    <strong style="color:#0b5394;">📋 ${de?'Dienstplan RT — Spaltenerklärung':'Dienstplan RT — Column Guide'}</strong><br>
+    <strong>Sh</strong> — ${de?'<em>Schicht-Nummer</em> (numerischer Hilfswert): <strong>1</strong>=Frühdienst, <strong>2</strong>=Spätdienst, <strong>3</strong>=Mitteldienst (8M), <strong>0</strong>=abwesend. Ermöglicht Formeln wie z.B. &ldquo;Wie viele Mitarbeiter sind in IR2 im Frühdienst?&rdquo;':'<em>Shift number</em> (numeric helper): <strong>1</strong>=Early, <strong>2</strong>=Late, <strong>3</strong>=Mid (8M), <strong>0</strong>=absent/off. Powers formulas such as &ldquo;how many workers are in IR2 Early?&rdquo;'}<br>
+    <strong>Lg …</strong> — ${de?'<em>Länge</em>: Zeichenlänge der Namensliste (z.B. "Mül,Hof" = 7). Hilfsspalte.':'<em>Länge</em> (length): character count of the names string (e.g. "Mül,Hof" = 7). Helper column.'}<br>
+    <strong>Anz …</strong> — ${de?'<em>Anzahl</em>: Personenanzahl in diesem Raum &amp; dieser Schicht. <strong>Das ist die wichtige Lesezahl</strong>, z.B. Anz IR2F = Frühdienstmitarbeiter in IR2.':'<em>Anzahl</em> (count): headcount for that room &amp; shift. <strong>This is the key read column</strong>, e.g. Anz IR2F = early-shift workers in IR2.'}
 </div>`;
 }
 
@@ -9281,6 +9334,11 @@ function renderMobileView() {
     <div class="leg-item"><span class="leg-swatch" style="background:#f5b7b1;"></span>SICK / Krank</div>
     <div class="leg-item"><span class="leg-swatch" style="background:#e0e0e0;"></span>OFF / DF / -</div>
     <div class="leg-item"><span class="leg-swatch" style="background:#aed6f1;"></span>FB / LSS / Offc</div>
+    <hr style="margin:6px 0; border-color:#eee;">
+    <h4 style="margin:6px 0 4px 0; font-size:11px; color:#0b5394;">Dienstplan RT Columns</h4>
+    <div class="leg-item" style="font-size:11px;"><strong>Sh</strong> — Shift number: 1=Early, 2=Late, 3=Mid, 0=Off</div>
+    <div class="leg-item" style="font-size:11px;"><strong>Lg&nbsp;…</strong> — Länge: character count of names (helper)</div>
+    <div class="leg-item" style="font-size:11px;"><strong>Anz&nbsp;…</strong> — Anzahl: worker headcount for room+shift</div>
     <hr style="margin:6px 0; border-color:#eee;">
     <small style="color:#888;">Click any cell dropdown to assign</small>
 </div>
