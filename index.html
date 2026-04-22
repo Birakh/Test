@@ -5674,6 +5674,8 @@ const namedRange  = `SP_W_${wIdx}`;
                 const rtSheetFile = zip.file('xl/worksheets/sheet5.xml');
                 if (rtSheetFile) {
                     let rtXml = await rtSheetFile.async('string');
+
+                    // ── Freeze panes ──
                     const freezeXml =
                         '<sheetViews><sheetView workbookViewId="0">' +
                         '<pane xSplit="3" ySplit="5" topLeftCell="D6" activePane="bottomRight" state="frozen"/>' +
@@ -5682,6 +5684,100 @@ const namedRange  = `SP_W_${wIdx}`;
                     rtXml = rtXml.includes('<sheetViews')
                         ? rtXml.replace(/<sheetViews>[\s\S]*?<\/sheetViews>/, freezeXml)
                         : rtXml.replace('<sheetData', freezeXml + '<sheetData');
+
+                    // ── Conditional Formatting — same colour palette as Plan sheet ──
+                    // Each worker block: col D+i*3 = room, D+i*3+1 = shift(numeric), D+i*3+2 = note
+                    // RT_WORKER_START=4 (1-based) → 0-based index = 3
+                    const RT_WORKER_START_0 = 3; // 0-based
+                    const RT_DATA_ROW       = 6;
+                    const rtLastRow         = RT_DATA_ROW + daysInMonth - 1;
+
+                    // sqref: all room columns across all workers
+                    const rtRoomSqref = workers.map((_, i) => {
+                        const col = excelCol(RT_WORKER_START_0 + i * 3);
+                        return `${col}${RT_DATA_ROW}:${col}${rtLastRow}`;
+                    }).join(' ');
+
+                    // Relative references from the top-left cell of the first range (D6)
+                    const rR = excelCol(RT_WORKER_START_0) + RT_DATA_ROW;         // room  "D6"
+                    const sR = excelCol(RT_WORKER_START_0 + 1) + RT_DATA_ROW;     // shift "E6"
+
+                    // Rules — dxfId values match buildDxfsXml() palette (Plan sheet)
+                    const rtShiftRules = [
+                        // Immo checked first to distinguish ImE (shift=1) from ImL (shift=2)
+                        [8,  `AND(${rR}="Immo",${sR}=1)`],   // ImE  — teal
+                        [9,  `AND(${rR}="Immo",${sR}=2)`],   // ImL  — darker teal
+                        [0,  `${rR}="IR 2"`],                 // IR2  — yellow
+                        [1,  `${rR}="IR 3"`],                 // IR3  — blue
+                        [2,  `${rR}="IR 4"`],                 // IR4  — purple
+                        [3,  `${rR}="13H"`],                  // 13H  — pale yellow
+                        [4,  `${rR}="8E"`],                   // 8E   — light blue
+                        [5,  `${rR}="8L"`],                   // 8L   — pink
+                        [6,  `${rR}="8M"`],                   // 8M   — peach
+                        [7,  `${rR}="6H"`],                   // 6H   — green
+                        [11, `OR(${rR}="U-IR",${rR}="U-Immo")`], // VAC — green
+                        [12, `${rR}="K"`],                    // SICK — red
+                        [13, `${rR}="FB"`],                   // FB   — steel blue
+                        [14, `${rR}="PF"`],                   // PF   — rose
+                        [10, `${rR}="DF"`],                   // DF   — grey
+                        [15, `${rR}="LSS"`],                  // LSS  — mid-grey
+                        [16, `${rR}="Offc"`],                 // Offc — pale yellow
+                        [17, `${rR}="CUS"`],                  // CUS  — lavender
+                        [18, `${rR}="RB"`],                   // RB   — peach-orange
+                    ];
+
+                    // Row-level background — same logic as Plan sheet, using date col B
+                    // (col B = excelCol(1) = "B"; holiday col doesn't exist on RT, use WEEKDAY)
+                    // Holiday rows already have static HOL_BG fill; weekend rows static WE_BG.
+                    // We also add CF so non-worker cells on those rows keep the right colour
+                    // even if the static fill was null. (worker cells: CF shift-colour wins)
+                    const rtLastCol  = excelCol(
+                        RT_WORKER_START_0 + workers.length * 3   // includes note cols + summaries
+                        + 12 * 2 + 4 + 12 * 2 + 10              // ROOM_SUM*2 + COUNTIF + Länge + extra
+                    );
+                    // Keep it simple: just re-use full-row sqref like Plan sheet
+                    const rtRowSqref = `A${RT_DATA_ROW}:${rtLastCol}${rtLastRow}`;
+
+                    // Row rules — dxfId 20=holiday, 22=weekend, 21=LSS (no LSS col on RT so skip)
+                    const rtRowRules = [
+                        [20, `OR(WEEKDAY(B${RT_DATA_ROW},2)=0,WEEKDAY(B${RT_DATA_ROW},2)=0)`], // placeholder — see note
+                        [22, `OR(WEEKDAY(B${RT_DATA_ROW},2)=6,WEEKDAY(B${RT_DATA_ROW},2)=7)`],
+                    ];
+                    // Note: the RT sheet has no Holiday? column, so row holiday CF is skipped.
+                    // Static fill from xlsCellStyle already handles it correctly.
+                    // Only weekend CF is added so live formula recalculation keeps the row tinted.
+                    const rtWeekendCF =
+                        `<conditionalFormatting sqref="${rtRowSqref}">` +
+                        `<cfRule type="expression" dxfId="22" priority="100" stopIfTrue="0">` +
+                        `<formula>OR(WEEKDAY(B${RT_DATA_ROW},2)=6,WEEKDAY(B${RT_DATA_ROW},2)=7)</formula>` +
+                        `</cfRule></conditionalFormatting>`;
+
+                    if (workers.length > 0 && rtRoomSqref) {
+                        let pri = 1;
+                        const rtShiftCFXml =
+                            `<conditionalFormatting sqref="${rtRoomSqref}">` +
+                            rtShiftRules.map(([dxfId, formula]) => {
+                                const r = `<cfRule type="expression" dxfId="${dxfId}" priority="${pri}" stopIfTrue="0">` +
+                                          `<formula>${formula}</formula></cfRule>`;
+                                pri++;
+                                return r;
+                            }).join('') +
+                            `</conditionalFormatting>`;
+
+                        const rtPayload = rtShiftCFXml + rtWeekendCF;
+                        // Remove any stale CF first, then inject before </worksheet>
+                        rtXml = rtXml.replace(/<conditionalFormatting[\s\S]*?<\/conditionalFormatting>/g, '');
+                        const rtAnchors = ['<ignoredErrors', '<pageMargins', '<pageSetup', '<extLst', '</worksheet>'];
+                        let rtInserted = false;
+                        for (const anchor of rtAnchors) {
+                            if (rtXml.includes(anchor)) {
+                                rtXml = rtXml.replace(anchor, rtPayload + anchor);
+                                rtInserted = true; break;
+                            }
+                        }
+                        if (!rtInserted) rtXml = rtXml.replace('</worksheet>', rtPayload + '</worksheet>');
+                    }
+
                     zip.file('xl/worksheets/sheet5.xml', rtXml);
                 }
 
@@ -6009,11 +6105,13 @@ function buildDienstplanRTSheet() {
                 } else {
                     cond = `${rRef}="${rs.room}"`;
                 }
-                return `IF(${cond},"${abbrev}","")`;
+                return `IF(${cond},","&"${abbrev}","")`;
             });
 
+            // MID(...,2,999) strips the leading "," produced by the first matching worker.
+            // Cached value uses JS-side join(",") so the printed output matches the formula result.
             ws[addr(r, sumCol)] = parts.length
-                ? frmStr(parts.join('&'), matchingAbbrevs, bg, { fontColor:'#1F4E79' })
+                ? frmStr(`MID(${parts.join('&')},2,999)`, matchingAbbrevs, bg, { fontColor:'#1F4E79' })
                 : dat(matchingAbbrevs, bg, { fontColor:'#1F4E79' });
             ws[addr(r, sumCol + 1)] = dat('', bg, {});
         });
