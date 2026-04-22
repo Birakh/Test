@@ -5914,8 +5914,8 @@ function buildDienstplanRTSheet() {
     // ── Style helpers ──────────────────────────────────────────────────────
     const HDR_BG  = '1F4E79';
     const HDR_LT  = 'BDD7EE';
-    const WE_BG   = 'F0F0F0';
-    const HOL_BG  = 'FFF2CC';
+    const WE_BG   = 'F0F0F0';   // weekend — neutral grey  (same as Plan sheet)
+    const HOL_BG  = 'E8DAEF';   // holiday — lavender/purple (same as Plan sheet dxfId 20)
 
     function hdr(v, bg, fontDark, sz) {
         return { t:'s', v: String(v ?? ''), s: xlsCellStyle('#'+bg, {
