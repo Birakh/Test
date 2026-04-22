@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://alcdn.msauth.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://login.microsoftonline.com https://*.blob.core.windows.net; img-src 'self' data:; frame-ancestors 'none';">
-    <title>Shift Planner V2</title>
+    <title>Shift Planner</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 20px; font-size: 13px; }
         h1, h2 { color: #333; margin-top: 0; }
@@ -449,12 +449,12 @@
 <!-- Init error bar — hidden unless onload crashes -->
 <div id="initErrorBar" style="display:none; background:#c0392b; color:white; padding:10px 16px; font-size:13px; font-weight:bold; position:fixed; top:0; left:0; right:0; z-index:9999; cursor:pointer;" onclick="this.style.display='none'">❌ Loading error — click to dismiss</div>
 
-<h1 id="pageTitle" class="no-print" style="display:inline-block; margin-right:16px;" data-month="">Shift Planner V2</h1>
+<h1 id="pageTitle" class="no-print" style="display:inline-block; margin-right:16px;" data-month="">Shift Planner</h1>
 
 <!-- ═══ MOBILE VIEW ═══ -->
 <div id="mobileView">
     <div class="mob-header">
-        <h2>📅 Shift Planner V2</h2>
+        <h2>📅 Shift Planner</h2>
         <p id="mobMonthLabel">Loading...</p>
     </div>
     <div class="mob-month-nav">
@@ -5362,7 +5362,7 @@ const namedRange  = `SP_W_${wIdx}`;
     // ── Legend sheet ──
     // Column A: notes. Column D onward: shift code list (used as dropdown source).
     const legendRows = [
-        [de?'Schichtplaner V1 – Export mit Formeln':'Shift Planner V2 – Formula Export'],
+        [de?'Schichtplaner – Export mit Formeln':'Shift Planner – Formula Export'],
         [monthTitle], [''],
         [de?'Hinweise':'Notes'],
         [de?'• Plan: Hauptblatt. Wenn Dienstcodes geändert werden, berechnen sich Summen automatisch neu.':'• Plan: Main sheet. Changing a shift code in any cell immediately recalculates all totals.'],
@@ -5766,26 +5766,11 @@ const namedRange  = `SP_W_${wIdx}`;
                         [18, `${rR}="RB"`],                   // RB   — peach-orange
                     ];
 
-                    // Row-level background — same logic as Plan sheet, using date col B
-                    // (col B = excelCol(1) = "B"; holiday col doesn't exist on RT, use WEEKDAY)
-                    // Holiday rows already have static HOL_BG fill; weekend rows static WE_BG.
-                    // We also add CF so non-worker cells on those rows keep the right colour
-                    // even if the static fill was null. (worker cells: CF shift-colour wins)
-                    const rtLastCol  = excelCol(
-                        RT_WORKER_START_0 + workers.length * 3   // includes note cols + summaries
-                        + 12 * 2 + 4 + 12 * 2 + 10              // ROOM_SUM*2 + COUNTIF + Länge + extra
-                    );
-                    // Keep it simple: just re-use full-row sqref like Plan sheet
+                    // Row-level weekend CF — keeps rows tinted after live formula recalculation.
+                    // Holiday rows use static xlsCellStyle fill (no Holiday? col on RT sheet).
+                    // lastCol: 3(fixed cols) + nW*3(worker blocks) + 1(Kommentar) + 12*2(ROOM_SUM) + 4(COUNTIF) + 12*2(Länge/Anz) - 1
+                    const rtLastCol  = excelCol(workers.length * 3 + 55);
                     const rtRowSqref = `A${RT_DATA_ROW}:${rtLastCol}${rtLastRow}`;
-
-                    // Row rules — dxfId 20=holiday, 22=weekend, 21=LSS (no LSS col on RT so skip)
-                    const rtRowRules = [
-                        [20, `OR(WEEKDAY(B${RT_DATA_ROW},2)=0,WEEKDAY(B${RT_DATA_ROW},2)=0)`], // placeholder — see note
-                        [22, `OR(WEEKDAY(B${RT_DATA_ROW},2)=6,WEEKDAY(B${RT_DATA_ROW},2)=7)`],
-                    ];
-                    // Note: the RT sheet has no Holiday? column, so row holiday CF is skipped.
-                    // Static fill from xlsCellStyle already handles it correctly.
-                    // Only weekend CF is added so live formula recalculation keeps the row tinted.
                     const rtWeekendCF =
                         `<conditionalFormatting sqref="${rtRowSqref}">` +
                         `<cfRule type="expression" dxfId="22" priority="100" stopIfTrue="0">` +
@@ -5853,7 +5838,7 @@ const namedRange  = `SP_W_${wIdx}`;
 
                 finalBytes = await zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } });
             } catch (zipErr) {
-                console.error('[ShiftPlanner V1] XLSX post-processing failed:', zipErr);
+                console.error('[ShiftPlanner] XLSX post-processing failed:', zipErr);
             }
         }
 
@@ -6041,7 +6026,6 @@ function buildDienstplanRTSheet() {
         const dayRTs = workers.map(w => shiftToRTView(w.shifts[d] || '-'));
 
         // A – KW (string formula — t:'str')
-        const kwVal = `KW ${new Date(currentYear, currentMonth-1, d+1).toLocaleDateString('de-DE',{week:'long'}).split(',')[0]}`;
         const wkNum = (() => { const jan4 = new Date(currentYear,0,4); return Math.ceil(((dateObj-jan4)/86400000+jan4.getDay()+1)/7); })();
         ws[addr(r, 1)] = frmStr(`IFERROR(CONCATENATE("KW ",WEEKNUM(${col1(2)}${r})),"")`,
             'KW ' + wkNum, bg, { fontColor:'#999999' });
@@ -6159,15 +6143,6 @@ function buildDienstplanRTSheet() {
         // ── COUNTIF formulas (numeric result → t:'n') ──────────────────────
         const range = `${firstDataLet}${r}:${lastDataLet}${r}`;
         COUNTIF_FIELDS.forEach((cf, i) => {
-            const countVal = workers.filter((w, wi) => {
-                const rt = dayRTs[wi];
-                return rt && rt.room === cf.code;
-            }).length + workers.filter(w => {
-                // also count raw status codes stored in worker cols
-                const s = (w.shifts[d] || '').toUpperCase();
-                return s === cf.code;
-            }).length;
-            // Use simpler direct count from JS — formula for recalculation
             const cfVal = workers.filter(w => {
                 const rt = shiftToRTView(w.shifts[d] || '-');
                 return rt && rt.room === cf.code;
@@ -6352,7 +6327,7 @@ function copyColorfulExcel() {
 // ─────────────────────────────────────────────────────────
 const T = {
   en: {
-    pageTitle:      'Shift Planner V2',
+    pageTitle:      'Shift Planner',
     langBtn:        '🌐 Deutsch',
     months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
     p1title:        '1. Setup & Action',
@@ -6410,11 +6385,11 @@ const T = {
     btnApplyBulk:   '✔ Apply to Selected',
     btnClearSel:    'Clear Selection',
     btnExitSel:     'Exit',
-    helpTitle:      'A to Z User Guide — v6',
+    helpTitle:      'A to Z User Guide',
     helpContent:    getHelpContent('en'),
   },
   de: {
-    pageTitle:      'Dienstplaner V2',
+    pageTitle:      'Dienstplaner',
     langBtn:        'English',
     months: ['Jänner','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
     p1title:        '1. Einrichtung & Aktionen',
@@ -6472,7 +6447,7 @@ const T = {
     btnApplyBulk:   '✔ Auf Auswahl anwenden',
     btnClearSel:    'Auswahl aufheben',
     btnExitSel:     'Beenden',
-    helpTitle:      'Vollständige Benutzeranleitung — v6',
+    helpTitle:      'Vollständige Benutzeranleitung',
     helpContent:    getHelpContent('de'),
   }
 };
@@ -6573,7 +6548,7 @@ function getHelpContent(lang) {
   </div>
 
   <hr style="margin-top:20px;border:0;border-top:1px solid #eee;">
-  <p style="text-align:right;color:#888;font-style:italic;font-size:11px;">Created and Designed with ❤️ by Anis :) | v6 — Fair templates, live PAT/encryption, LSS/HOL auth, Analysis sheet, cell colours</p>`;
+  <p style="text-align:right;color:#888;font-style:italic;font-size:11px;">Created and Designed with ❤️ by Anis</p>`;
 }
 
 
