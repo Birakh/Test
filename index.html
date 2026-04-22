@@ -1805,7 +1805,44 @@ function cusOverlap(shift) {
     return { early, late, star, room, label:`${m[1]}:${m[2]}–${m[3]}:${m[4]} (${hrs}h)${room ? ' · ' + room : ''}` };
 }
 
+// ── Dark-mode colour palette (mirrors getColor light palette) ────────────
+// Saturated-but-muted hues: readable on dark backgrounds, clearly distinct
+const DARK_SHIFT_COLORS = {
+    '13H': '#3d2e00',   // deep gold
+    '8E' : '#0d2233',   // deep blue
+    '8L' : '#2e0d0d',   // deep red/crimson
+    '8M' : '#2a1a00',   // deep amber
+    '6H' : '#0d2010',   // deep green
+    'ImE': '#0d2226',   // deep teal
+    'ImL': '#0a1c22',   // darker teal
+    'OFF': '#1e1e20',   // near-black grey
+    'DF' : '#1e1e20',
+    'VAC': '#0a2010',   // deep forest green
+    'SICK':'#2a0c0a',   // deep crimson
+    'FB' : '#0c1e30',   // deep navy
+    'PF' : '#260d18',   // deep rose
+    'LSS': '#1c1c1e',   // charcoal
+    'Offc':'#1e1c00',   // deep olive-yellow
+    'CUS': '#1a0d28',   // deep purple
+    'RB1': '#261200',   // deep burnt orange
+    'RB2': '#261200',
+};
+const DARK_ROOM_COLORS  = { IR2:'#2d2600', IR3:'#0d1a2e', IR4:'#1e0d28' };
+const DARK_VAC_APPROVED = '#0a2010';
+const DARK_EMPTY        = '#232325';   // unassigned / pending-vac / #ffffff fallback
+
 function getColor(shift) {
+    if (darkMode) {
+        const room = getRoomAssignment(shift);
+        if (room && DARK_ROOM_COLORS[room]) return DARK_ROOM_COLORS[room];
+        if (isPendingVacationShift(shift)) return DARK_EMPTY;
+        const b = getBaseShift(shift);
+        const dc = DARK_SHIFT_COLORS[b];
+        if (dc) return dc;
+        if (b==='VAC'||b==='Urlaub IR'||b==='Urlaub-ZA'||b==='U-Immo') return DARK_VAC_APPROVED;
+        return DARK_EMPTY;
+    }
+    // ── Light mode ───────────────────────────────────────────────────────
     const room = getRoomAssignment(shift); if (room && roomColorMap[room]) return roomColorMap[room]; if (isPendingVacationShift(shift)) return '#ffffff';
     const b = getBaseShift(shift);
     if (b==='13H') return '#ffe599'; if (b==='8E') return '#cfe2f3'; if (b==='8L') return '#f4cccc'; if (b==='8M') return '#f9cb9c'; if (b==='6H') return '#d9ead3'; if (b==='ImE') return '#a2c4c9'; if (b==='ImL') return '#76a5af'; if (b==='OFF'||b==='DF') return '#e0e0e0'; if (b==='VAC'||b==='Urlaub IR'||b==='Urlaub-ZA'||b==='U-Immo') return vacationApprovedColor; if (b==='SICK') return '#f5b7b1'; if (b==='FB') return '#9fc5e8'; if (b==='PF') return '#ead1dc'; if (b==='LSS') return '#d9d9d9'; if (b==='Offc') return '#fffde7'; if (b==='CUS') return '#e8d5f5'; if (b==='RB1'||b==='RB2') return '#fce5cd'; return '#ffffff';
@@ -2305,6 +2342,8 @@ function applyDarkMode(on) {
     const btn = $('darkModeBtn');
     if (btn) btn.textContent = on ? '☀️' : '🌙';
     try { localStorage.setItem('shiftPlannerDarkMode', on ? '1' : '0'); } catch(e) {}
+    // Re-render the table so getColor() produces the correct palette for the new mode
+    if (typeof renderTable === 'function') renderTable();
     dmApplyInlineOverrides(on);
 }
 
@@ -2312,9 +2351,9 @@ function applyDarkMode(on) {
 // Inline style="background:#xxxxxx" values can't be reached by CSS selectors,
 // so we walk the DOM on every dark-mode toggle and swap them out.
 (function() {
-    // Light bg hex  →  dark replacement
+    // Light bg hex  →  dark replacement  (modals, panels, info-boxes only)
+    // Shift cell colours are handled at source by getColor() / DARK_SHIFT_COLORS.
     const BG = {
-        // ── Modal / panel backgrounds ──
         '#f6f8fa':'#232325','#f8f9fa':'#232325','#f9f9f9':'#232325','#f8f8f8':'#232325',
         '#f0f0f0':'#2a2a2c','#f4f7f6':'#1c1c1e',
         '#eaf4ff':'#0d1c2b','#e8f4fc':'#0d1c2b','#f0f6ff':'#0d1a2b',
@@ -2326,25 +2365,6 @@ function applyDarkMode(on) {
         '#f3e5ff':'#170d28','#e8d5f5':'#1a0d28',
         '#fffff0':'#1c1c10',
         'white'  :'#2c2c2e','#ffffff':'#2c2c2e',
-
-        // ── Shift cell colours (getColor() return values) ──
-        '#ffe599':'#2d2100',   // 13H  — deep gold
-        '#cfe2f3':'#0d2233',   // 8E   — deep blue
-        '#f4cccc':'#2e0d0d',   // 8L   — deep red
-        '#f9cb9c':'#2a1200',   // 8M   — deep amber
-        '#d9ead3':'#0d2010',   // 6H   — deep green
-        '#a2c4c9':'#0d2226',   // ImE  — deep teal
-        '#76a5af':'#0a1c22',   // ImL  — darker teal
-        '#e0e0e0':'#272729',   // OFF/DF — near-black grey
-        '#b6d7a8':'#0a2010',   // VAC approved — deep green
-        '#f5b7b1':'#2a0c0a',   // SICK — deep crimson
-        '#9fc5e8':'#0c1e30',   // FB   — deep navy
-        '#ead1dc':'#260d18',   // PF   — deep rose
-        '#d9d9d9':'#232325',   // LSS  — charcoal
-        '#fffde7':'#1e1c00',   // Offc — deep yellow
-        '#fce5cd':'#261200',   // RB   — deep orange
-        // ImmoRow/room colours (roomColorMap values are same as ImE/ImL above)
-        // weekend/holiday row fallbacks already in main CSS !important rules
     };
     // Inline text colours that become unreadable on a dark panel
     const FG = {
@@ -2427,10 +2447,6 @@ function applyDarkMode(on) {
             'details', 'details > *', 'details > div', 'details > div *',
             '#shiftLegend', '#shiftLegend *',
             '.vac-range-panel *',
-            // ── Shift table: cells and name chips carry inline background-color ──
-            '#tableBody td', '#tableBody .name-chip',
-            '#tableHead th',
-            '#tableFoot td', '#tableFoot th',
         ].join(',');
         return Array.from(document.querySelectorAll(sel));
     }
@@ -3407,10 +3423,11 @@ function renderTable() {
             // For empty/white cells on special rows, inherit the row background colour
             // so the row colouring shows through (inline style overrides CSS class)
             let cellBg = bgColor;
-            if (bgColor === '#ffffff') {
-                if (isHol)      cellBg = '#e8daef';
-                else if (isWE)  cellBg = '#f0f0f0';
-                else if (isLSS) cellBg = '#e8f8e8';
+            const emptyCell = bgColor === '#ffffff' || bgColor === DARK_EMPTY;
+            if (emptyCell) {
+                if (isHol)      cellBg = darkMode ? '#2d2500' : '#e8daef';
+                else if (isWE)  cellBg = darkMode ? '#252528' : '#f0f0f0';
+                else if (isLSS) cellBg = darkMode ? '#222820' : '#e8f8e8';
             }
 
             rowWorkerCells += `<td data-cell="${cellKey}" data-w="${wIndex}" class="${selClass}" onclick="handleCellClick(event,${wIndex},${d})" style="background-color:${cellBg};">
@@ -3460,9 +3477,9 @@ function renderTable() {
             <td class="${cls(c8L,tgt8L)}"><strong>${c8L}</strong> / <input type="number" class="tgt-input no-print" value="${tgt8L}" onchange="updateDailyTarget(${d},'t8L',this.value)"></td>
             ${use13H ? `<td class="${cls(c13H,tgt13)}"><strong>${c13H}</strong> / <input type="number" class="tgt-input no-print" value="${tgt13}" onchange="updateDailyTarget(${d},'t13',this.value)"></td>` : ''}
             ${use6H  ? `<td class="${cls(c6H,tgt6)}"><strong>${c6H}</strong>  / <input type="number" class="tgt-input no-print" value="${tgt6}"  onchange="updateDailyTarget(${d},'t6',this.value)"></td>`  : ''}
-            <td class="${clsImmo(cImE,tgtImE)}" style="background-color:${clsImmo(cImE,tgtImE)?'':'#f0f8fb'};"><strong>${cImE}</strong> / <input type="number" class="tgt-input no-print" value="${tgtImE}" onchange="updateDailyTarget(${d},'tImE',this.value)"><br><small style="color:#888; font-size:9px;">${cImE<tgtImE?'⚠ Jump-in':''}</small></td>
-            <td class="${clsImmo(cImL,tgtImL)}" style="background-color:${clsImmo(cImL,tgtImL)?'':'#e8f4f8'};"><strong>${cImL}</strong> / <input type="number" class="tgt-input no-print" value="${tgtImL}" onchange="updateDailyTarget(${d},'tImL',this.value)"><br><small style="color:#888; font-size:9px;">${cImL<tgtImL?'⚠ Jump-in':''}</small></td>
-            <td style="background:${minAlert?'#ff6b6b':workingCount===0&&!isWE&&!isHol?'#fff3cd':'#e8f4fc'}; color:${minAlert?'white':'#1a5276'}; font-size:15px; font-weight:bold; text-align:center; vertical-align:middle;">${workingCount>0?workingCount:isWE||isHol?'':'-'}</td>`;
+            <td class="${clsImmo(cImE,tgtImE)}" style="background-color:${clsImmo(cImE,tgtImE)?'':(darkMode?'#0d2226':'#f0f8fb')};"><strong>${cImE}</strong> / <input type="number" class="tgt-input no-print" value="${tgtImE}" onchange="updateDailyTarget(${d},'tImE',this.value)"><br><small style="color:#888; font-size:9px;">${cImE<tgtImE?'⚠ Jump-in':''}</small></td>
+            <td class="${clsImmo(cImL,tgtImL)}" style="background-color:${clsImmo(cImL,tgtImL)?'':(darkMode?'#0a1c22':'#e8f4f8')};"><strong>${cImL}</strong> / <input type="number" class="tgt-input no-print" value="${tgtImL}" onchange="updateDailyTarget(${d},'tImL',this.value)"><br><small style="color:#888; font-size:9px;">${cImL<tgtImL?'⚠ Jump-in':''}</small></td>
+            <td style="background:${minAlert?(darkMode?'#7a1010':'#ff6b6b'):workingCount===0&&!isWE&&!isHol?(darkMode?'#201800':'#fff3cd'):(darkMode?'#0d1c2b':'#e8f4fc')}; color:${minAlert?(darkMode?'#ff8080':'white'):(darkMode?'#64d2ff':'#1a5276')}; font-size:15px; font-weight:bold; text-align:center; vertical-align:middle;">${workingCount>0?workingCount:isWE||isHol?'':'-'}</td>`;
 
         // Room columns
         let roomCols = '', warnings = [];
@@ -3496,10 +3513,10 @@ function renderTable() {
         bodyHTML += `${roomCols}
             <td style="text-align:left; vertical-align:middle;">${warnHtml}</td>
             <td style="vertical-align:top; font-size:11px; min-width:90px;">
-                ${sickNames.map(n=>`<span class="name-chip" style="background:#f5b7b1; display:block; margin-bottom:2px;">${n}</span>`).join('')}
+                ${sickNames.map(n=>`<span class="name-chip" style="background:${darkMode?'#2a0c0a':'#f5b7b1'}; display:block; margin-bottom:2px;">${n}</span>`).join('')}
             </td>
             <td class="${vacClass}" style="vertical-align:top; font-size:11px; min-width:90px;">
-                ${vacNames.map(n=>`<span class="name-chip" style="background:${vacationApprovedColor}; display:block; margin-bottom:2px;">${n}</span>`).join('')}
+                ${vacNames.map(n=>`<span class="name-chip" style="background:${darkMode?DARK_VAC_APPROVED:vacationApprovedColor}; display:block; margin-bottom:2px;">${n}</span>`).join('')}
             </td>
             <td title="${titleOrDash(fbNames)}" style="font-weight:bold;">${cFB || '-'}</td>
             <td title="${titleOrDash(pfNames)}" style="font-weight:bold;">${cPF || '-'}</td>
@@ -6297,7 +6314,10 @@ function copyColorfulExcel() {
         const exSickNames=[], exVacNames=[];
         workers.forEach(w => {
             const sh=w.shifts[d], b=getBaseShift(sh);
+            // Personal export is a standalone light-mode HTML file — always use light colours.
+            const _wasDark = darkMode; darkMode = false;
             const bgColor = getColor(sh);
+            darkMode = _wasDark;
             const reqStr  = (w.requests&&w.requests[d]) ? ' (*)' : '';
             row += `<td style="background-color:${bgColor}; text-align:center; font-weight:bold;">${sh!=='-'?sh+reqStr:''}</td>`;
             if (b==='8E') s8E++; if (b==='8M') s8M++; if (b==='8L') s8L++;
@@ -9211,10 +9231,6 @@ function renderMobileView() {
     const r = origRenderTable.apply(this, arguments);
     ensureSelectModeButtonForViewer();
     updateViewerCtrlPanel();
-    // Re-apply dark mode remapper so newly rendered shift cells get correct colours
-    if (window.darkMode && typeof window.dmApplyInlineOverrides === 'function') {
-      window.dmApplyInlineOverrides(true);
-    }
     // Only rebuild vacation-worker select when the roster actually changed
     const fp = _rosterFingerprint();
     if(fp !== _lastRosterFingerprint){
