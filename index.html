@@ -190,13 +190,13 @@
         body.dark #statsPanel { background:var(--dm-panel); border-color:var(--dm-border); }
         body.dark th, body.dark th.sticky-col, body.dark #statsPanel thead th,
         body.dark #selectionBar { background-color:var(--dm-card); color:var(--dm-text); }
-        body.dark td { border-color:var(--dm-border); color:var(--dm-text); }
+        body.dark td { background-color:var(--dm-row2); border-color:var(--dm-border); color:var(--dm-text); }
         body.dark .sticky-col { background-color:var(--dm-row2); color:var(--dm-text); }
         body.dark .table-wrapper { border-color:var(--dm-border); }
         body.dark input, body.dark select, body.dark textarea,
         body.dark .comment-input { background:var(--dm-card); color:var(--dm-text); border-color:var(--dm-border); }
         body.dark .tgt-input { background:#2a2a3c !important; color:#ffd60a !important; }
-        body.dark .shift-select { color:#1c1c1e !important; }
+        body.dark .shift-select { background:inherit !important; color:var(--dm-text) !important; border-color:transparent !important; }
         body.dark .weekend     { background-color:#252528 !important; }   /* cool near-black */
         body.dark .holiday-row { background-color:#2d2500 !important; }   /* warm amber-gold — clearly distinct from weekend */
         body.dark .lss-row     { background-color:#222820 !important; }
@@ -2314,10 +2314,11 @@ function applyDarkMode(on) {
 (function() {
     // Light bg hex  →  dark replacement
     const BG = {
+        // ── Modal / panel backgrounds ──
         '#f6f8fa':'#232325','#f8f9fa':'#232325','#f9f9f9':'#232325','#f8f8f8':'#232325',
         '#f0f0f0':'#2a2a2c','#f4f7f6':'#1c1c1e',
-        '#eaf4ff':'#0d1c2b','#e8f4fc':'#0d1c2b','#f0f6ff':'#0d1a2b','#e8f4fc':'#0d1c2b',
-        '#aed6f1':'#1a3a55',  // border used as bg in some old blocks
+        '#eaf4ff':'#0d1c2b','#e8f4fc':'#0d1c2b','#f0f6ff':'#0d1a2b',
+        '#aed6f1':'#1a3a55',
         '#f0fff4':'#0a1e12','#eaffea':'#0a1e12','#e8f8f0':'#091a10',
         '#fff8e1':'#201800','#fffbe6':'#201800','#fff3cd':'#201800','#fffbcc':'#201800',
         '#fff4e5':'#201000','#ffecb3':'#2a1800',
@@ -2325,8 +2326,25 @@ function applyDarkMode(on) {
         '#f3e5ff':'#170d28','#e8d5f5':'#1a0d28',
         '#fffff0':'#1c1c10',
         'white'  :'#2c2c2e','#ffffff':'#2c2c2e',
-        // info-box accent backgrounds
-        '#fffbe6':'#201800',
+
+        // ── Shift cell colours (getColor() return values) ──
+        '#ffe599':'#2d2100',   // 13H  — deep gold
+        '#cfe2f3':'#0d2233',   // 8E   — deep blue
+        '#f4cccc':'#2e0d0d',   // 8L   — deep red
+        '#f9cb9c':'#2a1200',   // 8M   — deep amber
+        '#d9ead3':'#0d2010',   // 6H   — deep green
+        '#a2c4c9':'#0d2226',   // ImE  — deep teal
+        '#76a5af':'#0a1c22',   // ImL  — darker teal
+        '#e0e0e0':'#272729',   // OFF/DF — near-black grey
+        '#b6d7a8':'#0a2010',   // VAC approved — deep green
+        '#f5b7b1':'#2a0c0a',   // SICK — deep crimson
+        '#9fc5e8':'#0c1e30',   // FB   — deep navy
+        '#ead1dc':'#260d18',   // PF   — deep rose
+        '#d9d9d9':'#232325',   // LSS  — charcoal
+        '#fffde7':'#1e1c00',   // Offc — deep yellow
+        '#fce5cd':'#261200',   // RB   — deep orange
+        // ImmoRow/room colours (roomColorMap values are same as ImE/ImL above)
+        // weekend/holiday row fallbacks already in main CSS !important rules
     };
     // Inline text colours that become unreadable on a dark panel
     const FG = {
@@ -2409,6 +2427,10 @@ function applyDarkMode(on) {
             'details', 'details > *', 'details > div', 'details > div *',
             '#shiftLegend', '#shiftLegend *',
             '.vac-range-panel *',
+            // ── Shift table: cells and name chips carry inline background-color ──
+            '#tableBody td', '#tableBody .name-chip',
+            '#tableHead th',
+            '#tableFoot td', '#tableFoot th',
         ].join(',');
         return Array.from(document.querySelectorAll(sel));
     }
@@ -4307,10 +4329,10 @@ function runAIAnalysis() {
     if (latesData.length>=2) {
         const hi=latesData[0], lo=latesData[latesData.length-1];
         report += `<h3>⚖️ Fairness Check (Full-Time Mixed)</h3>
-            <p>Most late shifts: <strong>${hi.name}</strong> (${hi.count})<br>
-               Least late shifts: <strong>${lo.name}</strong> (${lo.count})</p>`;
+            <p>Most late shifts: <strong>${escHtml(hi.name)}</strong> (${hi.count})<br>
+               Least late shifts: <strong>${escHtml(lo.name)}</strong> (${lo.count})</p>`;
         report += hi.count-lo.count>2
-            ? `<p style="color:red;"><em>Suggestion: Swap a late shift from ${hi.name} to ${lo.name}.</em></p>`
+            ? `<p style="color:red;"><em>Suggestion: Swap a late shift from ${escHtml(hi.name)} to ${escHtml(lo.name)}.</em></p>`
             : `<p style="color:green;"><em>Status: Fairly balanced!</em></p>`;
     }
 
@@ -4325,11 +4347,11 @@ function runAIAnalysis() {
         w.shifts.forEach((s,d) => {
             const bs = getBaseShift(s);
             if (workShifts.includes(bs)) streak++; else streak=0;
-            if (streak>maxConsec) consecViol.push(`${w.name} (around Day ${d+1})`);
+            if (streak>maxConsec) consecViol.push(`${escHtml(w.name)} (around Day ${d+1})`);
 
             const prevBs = d>0 ? getBaseShift(w.shifts[d-1]) : getBaseShift(pShifts[pShifts.length-1]);
             if (['8L','8M'].includes(prevBs) && morningShifts.includes(bs))
-                restViol.push(`${w.name} (Day ${d===0?'last month':d} → Day ${d+1})`);
+                restViol.push(`${escHtml(w.name)} (Day ${d===0?'last month':d} → Day ${d+1})`);
         });
     });
 
@@ -4369,7 +4391,7 @@ function runAIAnalysis() {
     workers.forEach(w => {
         w.shifts.forEach((s,d) => {
             if (isPendingVacationShift(s)) {
-                pendingVac.push(`${w.name} — Day ${d+1} (${stripPendingVacation(s)})`);
+                pendingVac.push(`${escHtml(w.name)} — Day ${d+1} (${escHtml(stripPendingVacation(s))})`);
             }
         });
     });
@@ -4400,8 +4422,8 @@ function runAIAnalysis() {
                     const dow = new Date(currentYear,currentMonth-1,d+1).getDay();
                     if (dow===0||dow===6||isHoliday(d)) continue;
                     swapSuggestions.push(
-                        `<strong>Fairness:</strong> Day ${d+1} — give <em>${hiBase}</em> to <strong>${lo.name}</strong> ` +
-                        `(currently ${loBase||'free'}) instead of <strong>${hi.name}</strong>. ` +
+                        `<strong>Fairness:</strong> Day ${d+1} — give <em>${escHtml(hiBase)}</em> to <strong>${escHtml(lo.name)}</strong> ` +
+                        `(currently ${escHtml(loBase)||'free'}) instead of <strong>${escHtml(hi.name)}</strong>. ` +
                         `Reduces imbalance from ${hi.count-lo.count} to ${hi.count-lo.count-1}.`
                     );
                     break;
@@ -4431,8 +4453,8 @@ function runAIAnalysis() {
         });
         if (candidate) {
             swapSuggestions.push(
-                `<strong>Rest fix:</strong> Day ${dayNum+1} — move <em>${problematicShift}</em> from <strong>${wName}</strong> ` +
-                `to <strong>${candidate.name}</strong> (currently free that day). Fixes the rest violation.`
+                `<strong>Rest fix:</strong> Day ${dayNum+1} — move <em>${escHtml(problematicShift)}</em> from <strong>${escHtml(wName)}</strong> ` +
+                `to <strong>${escHtml(candidate.name)}</strong> (currently free that day). Fixes the rest violation.`
             );
         }
     });
@@ -4457,10 +4479,10 @@ function runAIAnalysis() {
         });
         if (candidate) {
             swapSuggestions.push(
-                `<strong>Understaffed:</strong> Day ${d+1} needs more <em>${shortType}</em> — ` +
-                `<strong>${candidate.name}</strong> is free that day and could be assigned <em>${shortType}</em>.`
+                `<strong>Understaffed:</strong> Day ${d+1} needs more <em>${escHtml(shortType)}</em> — ` +
+                `<strong>${escHtml(candidate.name)}</strong> is free that day and could be assigned <em>${escHtml(shortType)}</em>.`
             );
-            break; // one suggestion per scan is enough to avoid flooding
+            break;
         }
     }
 
@@ -9189,6 +9211,10 @@ function renderMobileView() {
     const r = origRenderTable.apply(this, arguments);
     ensureSelectModeButtonForViewer();
     updateViewerCtrlPanel();
+    // Re-apply dark mode remapper so newly rendered shift cells get correct colours
+    if (window.darkMode && typeof window.dmApplyInlineOverrides === 'function') {
+      window.dmApplyInlineOverrides(true);
+    }
     // Only rebuild vacation-worker select when the roster actually changed
     const fp = _rosterFingerprint();
     if(fp !== _lastRosterFingerprint){
