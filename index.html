@@ -2108,7 +2108,14 @@ window.onload = () => { try {
                 delete parsed.fileName;
                 localStorage.setItem('shiftPlannerSPConfig', JSON.stringify(parsed));
             }
-            spConfig = { ...spConfig, ...parsed };
+            // Merge: localStorage values take precedence only when non-empty.
+            // BAKED_CONFIG values (already in spConfig) survive if localStorage has '' for the same key —
+            // this prevents old cached empty configs from wiping the admin-baked org/repo.
+            Object.keys(parsed).forEach(k => {
+                if (parsed[k] !== '' && parsed[k] !== null && parsed[k] !== undefined) {
+                    spConfig[k] = parsed[k];
+                }
+            });
             if (spConfig.dataFile)      spDataFile        = spConfig.dataFile;
             if (spConfig.cmtFile)       spCmtFile         = spConfig.cmtFile;
             if (spConfig.internalToken) SP_INTERNAL_TOKEN = spConfig.internalToken;
@@ -2195,7 +2202,7 @@ window.onload = () => { try {
     $('monthPicker').value = initKey;
     changeMonth(true);
     if (typeof initMobileView === 'function') initMobileView();
-    if (currentLang === 'de') applyLang();
+    applyLang();  // always populate helpContent, field guide, and translation strings on init
     updateFieldGuide();
 
     // Restore SP status bar if configured
