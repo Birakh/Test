@@ -255,7 +255,71 @@
         body.dark .status-chip.chip-warn { background:#2c2000; color:#ffd60a; border-color:#4a3800; }
         body.dark .status-chip.chip-off  { background:var(--dm-card); color:var(--dm-muted); border-color:var(--dm-border); }
 
-        /* ── Dark Mode: cell state colours ── */
+        /* ── Dark mode: Field Guide ── */
+        body.dark #fieldGuideBox {
+            background:var(--dm-panel) !important; color:var(--dm-text) !important;
+            border-color:var(--dm-border) !important; }
+        body.dark #fieldGuideBox strong  { color:var(--dm-text) !important; }
+        body.dark #fieldGuideBox em      { color:var(--dm-muted) !important; }
+        body.dark #fieldGuideBox small   { color:var(--dm-muted) !important; }
+        /* Coloured info boxes inside fieldGuideBox */
+        body.dark #fieldGuideBox div[style*="background:#f3e5ff"],
+        body.dark #fieldGuideBox div[style*="background:#eaf0fb"],
+        body.dark #fieldGuideBox div[style*="background:#e8f4fc"],
+        body.dark #fieldGuideBox div[style*="background:#eafaf1"],
+        body.dark #fieldGuideBox div[style*="background:#e8f8e8"] {
+            background:var(--dm-card) !important; border-color:var(--dm-border) !important;
+            color:var(--dm-text) !important; }
+        body.dark #fieldGuideBox div[style*="border-left"] strong[style*="color"] { color:var(--dm-accent) !important; }
+
+        /* ── Dark mode: Shift Legend popup ── */
+        body.dark #shiftLegend {
+            background:var(--dm-panel) !important; border-color:var(--dm-border) !important;
+            color:var(--dm-text) !important; }
+        body.dark #shiftLegend h4  { color:var(--dm-text) !important; }
+        body.dark #shiftLegend hr  { border-color:var(--dm-border) !important; }
+        body.dark .leg-item        { color:var(--dm-text) !important; }
+        body.dark .leg-item small  { color:var(--dm-muted) !important; }
+        /* Keep swatches visible against dark bg */
+        body.dark .leg-swatch      { border-color:rgba(255,255,255,0.25) !important; opacity:0.88; }
+
+        /* ── Dark mode: Viewer legend bar chips ── */
+        body.dark #viewerLegendBar  { background:var(--dm-panel) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+        body.dark .vl-chip          { color:var(--dm-text) !important; }
+        body.dark .vl-chip strong   { color:var(--dm-text) !important; }
+        body.dark .vl-swatch        { border-color:rgba(255,255,255,0.2) !important; opacity:0.85; }
+
+        /* ── Dark mode: rowImmo / row22h / inline light info boxes in panels ── */
+        body.dark #rowImmo,
+        body.dark #row22h {
+            background:var(--dm-card) !important; border-color:var(--dm-border) !important;
+            color:var(--dm-text) !important; }
+        body.dark #rowImmo small, body.dark #row22h small { color:var(--dm-muted) !important; }
+        body.dark #rowImmo select, body.dark #row22h select {
+            background:var(--dm-panel) !important; color:var(--dm-text) !important;
+            border-color:var(--dm-border) !important; }
+        body.dark #immoRatioLabel  { color:var(--dm-accent) !important; }
+
+        /* ── Dark mode: details / summary (Summer Schedule etc.) ── */
+        body.dark details > summary {
+            background:var(--dm-card) !important; color:var(--dm-accent) !important;
+            border-color:var(--dm-border) !important; }
+        body.dark details[open] > div,
+        body.dark details > div {
+            background:var(--dm-panel) !important; border-color:var(--dm-border) !important;
+            color:var(--dm-text) !important; }
+        body.dark details label,
+        body.dark details small    { color:var(--dm-text) !important; }
+        body.dark details select, body.dark details input[type="range"] {
+            background:var(--dm-card) !important; color:var(--dm-text) !important;
+            border-color:var(--dm-border) !important; }
+
+        /* ── Dark mode: generic inline color:#555 / #444 / #333 paragraph text in panels ── */
+        body.dark .panel small,
+        body.dark .panel p,
+        body.dark .spW-card small,
+        body.dark .spL-card small  { color:var(--dm-muted) !important; }
+        body.dark .panel label     { color:var(--dm-text) !important; }
         body.dark .warning        { background-color:#3a0a0a !important; color:#ff8080 !important; }
         body.dark .warning-yellow { background-color:#2a1e00 !important; color:#ffc94a !important; }
         body.dark .optimal        { background-color:#0a2a0a !important; color:#5bda5b !important; }
@@ -2377,12 +2441,13 @@ function applyDarkMode(on) {
         '#f6f8fa':'#232325','#f8f9fa':'#232325','#f9f9f9':'#232325','#f8f8f8':'#232325',
         '#f0f0f0':'#2a2a2c','#f4f7f6':'#1c1c1e',
         '#eaf4ff':'#0d1c2b','#e8f4fc':'#0d1c2b','#f0f6ff':'#0d1a2b',
+        '#f0f8ff':'#0d1c2b','#e8f0fb':'#0d1c2b','#eaf0fb':'#0d1c2b',
         '#aed6f1':'#1a3a55',
-        '#f0fff4':'#0a1e12','#eaffea':'#0a1e12','#e8f8f0':'#091a10',
+        '#f0fff4':'#0a1e12','#eaffea':'#0a1e12','#e8f8f0':'#091a10','#e8f8e8':'#091a10',
         '#fff8e1':'#201800','#fffbe6':'#201800','#fff3cd':'#201800','#fffbcc':'#201800',
         '#fff4e5':'#201000','#ffecb3':'#2a1800',
         '#ffeaea':'#1e0808','#fef2f2':'#1e0808','#ffcccc':'#2a0808',
-        '#f3e5ff':'#170d28','#e8d5f5':'#1a0d28',
+        '#f3e5ff':'#170d28','#e8d5f5':'#1a0d28','#e8d5f5':'#1a0d28',
         '#fffff0':'#1c1c10',
         'white'  :'#2c2c2e','#ffffff':'#2c2c2e',
     };
@@ -2392,11 +2457,16 @@ function applyDarkMode(on) {
         '#444':'#d8d8e0','#444444':'#d8d8e0',
         '#555':'#c0c0c8','#555555':'#c0c0c8',
         '#666':'#aeaeb2','#666666':'#aeaeb2',
+        '#888':'#8e8e93','#888888':'#8e8e93',
         '#856404':'#ffc94a',    // yellow warning text
         '#0550ae':'#64d2ff',    // blue heading text
-        '#0056b3':'#64d2ff',
-        '#1a7f37':'#5bda5b',
-        '#6c3483':'#c39bd3',
+        '#0056b3':'#64d2ff',    // blue link/heading text
+        '#1a5276':'#64d2ff',    // darker blue heading
+        '#1a7f37':'#5bda5b',    // green success text
+        '#6c3483':'#c39bd3',    // purple fieldGuide heading
+        '#34495e':'#90a4b0',    // dark-grey fieldGuide heading
+        '#0b5394':'#64d2ff',    // vac-range panel heading
+        '#c0392b':'#ff6b6b',    // red totals text
     };
 
     // Normalise a value string to lowercase hex or keyword
@@ -2463,7 +2533,9 @@ function applyDarkMode(on) {
             '#spModalStatus', '#azureModalStatus', '#azureLoginBanner',
             '#cmtStatus', '#diffContent *',
             '#fieldGuideBox', '#fieldGuideBox *',
-            '#viewerLegendBar',
+            '#rowImmo', '#rowImmo *',
+            '#row22h', '#row22h *',
+            '#viewerLegendBar', '#viewerLegendBar *',
             'details', 'details > *', 'details > div', 'details > div *',
             '#shiftLegend', '#shiftLegend *',
             '.vac-range-panel *',
