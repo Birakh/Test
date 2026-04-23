@@ -255,6 +255,57 @@
         body.dark .status-chip.chip-warn { background:#2c2000; color:#ffd60a; border-color:#4a3800; }
         body.dark .status-chip.chip-off  { background:var(--dm-card); color:var(--dm-muted); border-color:var(--dm-border); }
 
+        /* ═══════════════════════════════════════════════════════════════
+           DARK MODE — exhaustive overrides for every remaining bright element
+           ═══════════════════════════════════════════════════════════════ */
+
+        /* Stats panel */
+        body.dark #statsPanel                          { background:var(--dm-panel) !important; color:var(--dm-text) !important; }
+        body.dark #statsPanel thead th                 { background:#2c2c3a !important; color:var(--dm-text) !important; }
+        body.dark #statsPanel tbody tr                 { background:var(--dm-row2) !important; color:var(--dm-text) !important; }
+        body.dark #statsPanel tbody tr:nth-child(even) { background:var(--dm-card) !important; }
+        body.dark #statsPanel td                       { color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+        /* Sticky column */
+        body.dark .sticky-col                          { background:var(--dm-panel) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+        /* Mobile header */
+        body.dark .mob-header                          { background:#1c1c2e !important; }
+        /* Select / bulk bar */
+        body.dark #selectBar, body.dark #bulkBar       { background:#1c1c2e !important; border-color:var(--dm-border) !important; color:var(--dm-text) !important; }
+        /* LSS worker list */
+        body.dark #lssWorkerList                       { background:var(--dm-card) !important; border-color:var(--dm-border) !important; color:var(--dm-text) !important; }
+        body.dark #lssWorkerList label                 { color:var(--dm-text) !important; }
+        /* CUS overlap info */
+        body.dark #cusOverlapInfo                      { background:var(--dm-card) !important; color:var(--dm-text) !important; }
+        /* Login tab description */
+        body.dark #loginTabDesc                        { background:var(--dm-card) !important; color:var(--dm-muted) !important; }
+        /* Wizard hints / errors */
+        body.dark .spW-hint  { background:#1a2c1a !important; color:#9fe89f !important; border-color:#2a5a2a !important; }
+        body.dark .spW-err   { background:#2e0d0d !important; color:#ff8080 !important; }
+        body.dark .spW-label { color:var(--dm-text) !important; }
+        body.dark .spW-input, body.dark .spL-input { background:var(--dm-card) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+        body.dark .spW-btn.ghost { background:#2c2c3a !important; color:var(--dm-text) !important; }
+        body.dark .spL-err   { color:#ff8080 !important; }
+        /* Green inline info box */
+        body.dark div[style*="background:#f0faf0"] { background:#0a1e0a !important; border-color:#2a5a2a !important; color:#9fe89f !important; }
+        /* Min-staff alert */
+        body.dark .min-staff-alert  { background-color:#7a0000 !important; color:#ffb3b3 !important; }
+        /* Consecutive warning */
+        body.dark .consecutive-warning { background-color:#2a1200 !important; color:#ffb347 !important; }
+        /* Locked inputs */
+        body.dark .app-locked .role-targets-panel input,
+        body.dark .app-locked .role-targets-panel select { background:#1a1a1e !important; color:#555 !important; border-color:transparent !important; }
+        /* Status chips */
+        body.dark .chip-ok   { background:#0a2010 !important; color:#5bda5b !important; }
+        body.dark .chip-warn { background:#201800 !important; color:#ffc94a !important; }
+        body.dark .chip-off  { background:#232325 !important; color:var(--dm-muted) !important; }
+        /* Diff modal */
+        body.dark #diffContent          { background:var(--dm-panel) !important; color:var(--dm-text) !important; }
+        body.dark #diffContent td       { background:var(--dm-row2) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+        body.dark #diffContent thead th { background:#2c2c3a !important; color:var(--dm-text) !important; }
+        /* Table head and foot */
+        body.dark #tableFoot th, body.dark #tableFoot td { background:var(--dm-panel) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+        body.dark #tableHead th { background:var(--dm-panel) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+
         /* ── Dark mode: Field Guide ── */
         body.dark #fieldGuideBox {
             background:var(--dm-panel) !important; color:var(--dm-text) !important;
@@ -2439,6 +2490,8 @@ function applyDarkMode(on) {
     // Light bg hex  →  dark replacement  (modals, panels, info-boxes only)
     // Shift cell colours are handled at source by getColor() / DARK_SHIFT_COLORS.
     const BG = {
+        '#f0faf0':'#0a1e0a',   // green info box
+        '#e8f4ec':'#0a1e0a',
         '#f6f8fa':'#232325','#f8f9fa':'#232325','#f9f9f9':'#232325','#f8f8f8':'#232325',
         '#f0f0f0':'#2a2a2c','#f4f7f6':'#1c1c1e',
         '#eaf4ff':'#0d1c2b','#e8f4fc':'#0d1c2b','#f0f6ff':'#0d1a2b',
@@ -3816,12 +3869,13 @@ function autoGenerate() {
         // go first so their per-type budget has the best chance of being honoured.
         const lateCounts = mixedIndices.map(i => {
             const w = workers[i];
-            const n8L = w.shifts.filter(s => getBaseShift(s) === '8L').length;
-            const n8M = w.shifts.filter(s => getBaseShift(s) === '8M').length;
+            const n8L  = w.shifts.filter(s => getBaseShift(s) === '8L').length;
+            const n8M  = w.shifts.filter(s => getBaseShift(s) === '8M').length;
+            const n13H = use13H ? w.shifts.filter(s => getBaseShift(s) === '13H').length : 0;
             return {
                 i,
-                lates:     n8L + n8M,
-                typeSkew:  Math.abs(n8L - n8M), // bigger = more imbalanced → needs type correction sooner
+                lates:     n8L + n8M + n13H,  // consistent with fair-check definition
+                typeSkew:  Math.abs(n8L - n8M),
                 remain8L:  w._remain8L || 0,
                 remain8M:  w._remain8M || 0,
             };
@@ -4997,7 +5051,8 @@ function buildAnalysisSheet(de, cfg) {
     workers.forEach((w, wi) => {
         const totalH      = w.shifts.reduce((s,sh) => s + getShiftHours(sh), 0);
         const totalShifts = w.shifts.filter(s => s !== '-').length;
-        const lateCount   = w.shifts.filter(s => ['8L','8M'].includes(getBaseShift(s))).length;
+        const lateShifts  = ['8L','8M'].concat(use13H ? ['13H'] : []);
+        const lateCount   = w.shifts.filter(s => lateShifts.includes(getBaseShift(s))).length;
         const latePct     = totalShifts > 0 ? Math.round((lateCount / totalShifts) * 100) : 0;
         const isFair      = latePct >= 30 && latePct <= 50;
         const vacN        = w.shifts.filter(s => isVacationBase(getBaseShift(s))).length;
@@ -5256,7 +5311,8 @@ async function downloadExcelWithFormulas() {
     const planHeader = ['KW', de?'Datum':'Date', de?'Wochentag':'Weekday', de?'Feiertag?':'Holiday?', 'LSS?'];
     workers.forEach(w => {
         const totalShifts = w.shifts.filter(s => s !== '-' && !isPendingVacationShift(s)).length;
-        const lateShifts  = w.shifts.filter(s => ['8L','8M'].includes(getBaseShift(s))).length;
+        const lateTypes   = ['8L','8M'].concat(use13H ? ['13H'] : []);
+        const lateShifts  = w.shifts.filter(s => lateTypes.includes(getBaseShift(s))).length;
         const latePct     = totalShifts > 0 ? Math.round((lateShifts / totalShifts) * 100) : 0;
         const isFair      = latePct >= 30 && latePct <= 50;
         planHeader.push(`${w.name} (${w.contract}h)${isFair ? ' ✔' : ' ⚠'}`);
