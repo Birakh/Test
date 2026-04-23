@@ -1654,13 +1654,11 @@ let spConfig = { siteUrl:'', folderPath:'', fileName:'', autoSync:false, dataRep
 // Users will only see a PAT + password prompt — no repo fields needed.
 // Leave all values as empty strings '' to use the normal full setup flow.
 const BAKED_CONFIG = {
-    owner:    '',   // e.g. 'myorg'
-    pagesRepo:'',   // e.g. 'shift-planner'
-    dataRepo: '',   // e.g. 'shift-planner-data'  (leave '' to use pagesRepo)
-    // Optional: bake in the shared comment token (read-only viewers need no PAT at all)
-    sharedToken: '',
-    // Optional: bake in the data password (everyone shares this — only do this for low-sensitivity data)
-    dataPwd: '',
+    owner:    '',   // e.g. 'myorg'           — __BAKE_OWNER__
+    pagesRepo:'',   // e.g. 'shift-planner'   — __BAKE_PAGES_REPO__
+    dataRepo: '',   // e.g. 'shift-planner-data' — __BAKE_DATA_REPO__
+    sharedToken: '', // read-only viewer token — __BAKE_SHARED_TOKEN__
+    dataPwd: '',     // shared encryption pwd  — __BAKE_DATA_PWD__
 };
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -2039,6 +2037,9 @@ window.onload = () => { try {
         if (BAKED_CONFIG.dataRepo)    spConfig.dataRepo   = BAKED_CONFIG.dataRepo;
         if (BAKED_CONFIG.sharedToken) {
             try { if (!localStorage.getItem('shiftPlannerCmtToken')) localStorage.setItem('shiftPlannerCmtToken', BAKED_CONFIG.sharedToken); } catch(e){}
+            // Also seed live vars so first-load comments work without a page refresh
+            if (typeof window.SHARED_COMMENT_TOKEN  !== 'undefined' && !window.SHARED_COMMENT_TOKEN)  window.SHARED_COMMENT_TOKEN  = BAKED_CONFIG.sharedToken;
+            if (typeof window.COMMENTS_SHARED_TOKEN !== 'undefined' && !window.COMMENTS_SHARED_TOKEN) window.COMMENTS_SHARED_TOKEN = BAKED_CONFIG.sharedToken;
         }
         if (BAKED_CONFIG.dataPwd) {
             if (typeof saveDataPassword === 'function') saveDataPassword(BAKED_CONFIG.dataPwd);
@@ -6348,7 +6349,31 @@ function downloadAsHTML() {
 })();
 <\/script>`;
 
+    // ── Safe snapshot: temporarily remove dark-mode state so the downloaded
+    //    file opens in light mode regardless of the admin's current preference.
+    //    We also strip data-dm-orig* attributes the remapper injected, and any
+    //    !important inline style overrides the remapper applied.
+    const wasDark = document.body.classList.contains('dark');
+    if (wasDark) {
+        // Temporarily revert so outerHTML captures clean light-mode state
+        document.body.classList.remove('dark');
+        if (typeof dmApplyInlineOverrides === 'function') dmApplyInlineOverrides(false);
+        if (typeof renderTable === 'function') renderTable();
+    }
+
     let html = document.documentElement.outerHTML;
+
+    if (wasDark) {
+        // Restore dark mode immediately after snapshot
+        document.body.classList.add('dark');
+        if (typeof dmApplyInlineOverrides === 'function') dmApplyInlineOverrides(true);
+        if (typeof renderTable === 'function') renderTable();
+    }
+
+    // Strip residual data-dm-orig* attributes (set by the inline-style remapper)
+    html = html.replace(/\s+data-dm-orig(?:bg|fg)="[^"]*"/g, '');
+    // Strip sp-vis class so wizard/lock overlays are never shown on first open
+    html = html.replace(/\s+sp-vis\b/g, '');
     // Bake current password hashes into downloaded HTML so new browsers are protected
     // Bake password hashes using exact sentinel markers — immune to minification or variable reordering
     const ADMIN_SENTINEL  = 'let adminHash   = null; // __BAKE_ADMIN_HASH__';
@@ -6363,6 +6388,23 @@ function downloadAsHTML() {
         html = html.replace(CMT_SENTINEL, `let spCmtFile        = '${spCmtFile}'; // __BAKE_CMT_FILE__`);
     if (SP_INTERNAL_TOKEN && html.includes(TOKEN_SENTINEL))
         html = html.replace(TOKEN_SENTINEL, `let SP_INTERNAL_TOKEN = '${SP_INTERNAL_TOKEN}'; // __BAKE_INTERNAL_TOKEN__`);
+
+    // ── Bake BAKED_CONFIG (org, repos, shared token, data password) ──────────
+    // Collect the shared read token from localStorage (where wizard stored it)
+    let _sharedTok = '';
+    try { _sharedTok = localStorage.getItem('shiftPlannerCmtToken') || ''; } catch(e){}
+    // Collect the data encryption password from sessionStorage
+    let _dataPwd = '';
+    try { _dataPwd = sessionStorage.getItem('shiftPlannerDataPwd') || ''; } catch(e){}
+
+    const BC_SENTINEL = `const BAKED_CONFIG = {\n    owner:    '',   // e.g. 'myorg'           — __BAKE_OWNER__\n    pagesRepo:'',   // e.g. 'shift-planner'   — __BAKE_PAGES_REPO__\n    dataRepo: '',   // e.g. 'shift-planner-data' — __BAKE_DATA_REPO__\n    sharedToken: '', // read-only viewer token — __BAKE_SHARED_TOKEN__\n    dataPwd: '',     // shared encryption pwd  — __BAKE_DATA_PWD__\n};`;
+    const bcBaked = `const BAKED_CONFIG = {\n    owner:    ${JSON.stringify(spConfig.siteUrl    || '')},\n    pagesRepo:${JSON.stringify(spConfig.folderPath || '')},\n    dataRepo: ${JSON.stringify(spConfig.dataRepo  || '')},\n    sharedToken: ${JSON.stringify(_sharedTok)},\n    dataPwd: ${JSON.stringify(_dataPwd)},\n};`;
+    if (html.includes(BC_SENTINEL)) {
+        html = html.replace(BC_SENTINEL, bcBaked);
+    } else {
+        // Fallback: regex replace if sentinel text drifted
+        html = html.replace(/const BAKED_CONFIG\s*=\s*\{[\s\S]*?\};/, bcBaked);
+    }
     if (adminHash && html.includes(ADMIN_SENTINEL)) {
         html = html.replace(ADMIN_SENTINEL, 'let adminHash   = ' + JSON.stringify(adminHash) + '; // __BAKE_ADMIN_HASH__');
     } else if (adminHash) {
