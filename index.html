@@ -187,7 +187,13 @@
         body.dark { background-color:var(--dm-bg); color:var(--dm-text); }
         body.dark h1, body.dark h2, body.dark h3 { color:var(--dm-text); }
         body.dark .panel, body.dark .modal-content, body.dark table,
-        body.dark #statsPanel { background:var(--dm-panel); border-color:var(--dm-border); }
+        body.dark #statsPanel { background:var(--dm-panel) !important; border-color:var(--dm-border) !important; color:var(--dm-text) !important; }
+        body.dark .modal-content h2, body.dark .modal-content h3, body.dark .modal-content h4 { color:var(--dm-text) !important; }
+        body.dark #helpContent, body.dark #aiReportContent { color:var(--dm-text) !important; background:transparent !important; }
+        body.dark #helpContent h3, body.dark #helpContent p, body.dark #helpContent li,
+        body.dark #helpContent strong, body.dark #helpContent em, body.dark #helpContent small { color:var(--dm-text) !important; }
+        body.dark #helpContent a { color:var(--dm-accent) !important; }
+        body.dark #helpContent div[style*="background"] { filter:brightness(0.25) saturate(0.8); }
         body.dark th, body.dark th.sticky-col, body.dark #statsPanel thead th,
         body.dark #selectionBar { background-color:var(--dm-card); color:var(--dm-text); }
         body.dark td { background-color:var(--dm-row2); border-color:var(--dm-border); color:var(--dm-text); }
@@ -323,7 +329,8 @@
             color:var(--dm-text) !important; }
         body.dark #fieldGuideBox div[style*="border-left"] strong[style*="color"] { color:var(--dm-accent) !important; }
 
-        /* ── Dark mode: Shift Legend popup ── */
+        body.dark #aiModal .modal-content > p { background:#232325 !important; border-color:var(--dm-border) !important; color:var(--dm-muted) !important; }
+        body.dark #aiModal .modal-content > p strong { color:var(--dm-text) !important; }
         body.dark #shiftLegend {
             background:var(--dm-panel) !important; border-color:var(--dm-border) !important;
             color:var(--dm-text) !important; }
@@ -1225,7 +1232,12 @@
 <div id="aiModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="document.getElementById('aiModal').style.display='none'">&times;</span>
-        <h2>AI Schedule Analysis</h2>
+        <h2>📊 Schedule Analysis</h2>
+        <p style="font-size:11px; color:#888; margin:0 0 10px 0; padding:6px 10px; background:#f8f9fa; border-radius:4px; border-left:3px solid #ccc;">
+            ℹ️ <strong>Rule-based analysis only</strong> — no AI or machine learning is used.
+            This report applies fixed scheduling rules (fairness thresholds, labour law limits, staffing targets)
+            to the current month's data.
+        </p>
         <div id="aiReportContent" style="line-height:1.6; font-size:14px;"></div>
     </div>
 </div>
@@ -6586,7 +6598,7 @@ const T = {
     btnAutoFill:    'Auto-Fill',
     undoBtn:        '↩ Undo',
     redoBtn:        '↪ Redo',
-    btnAI:          'AI Analysis',
+    btnAI:          'Schedule Analysis',
     btnPersonal:    'Personal Export',
     btnHelp:        'Help & Guide',
     btnRefresh:     'Refresh',
@@ -6648,7 +6660,7 @@ const T = {
     btnAutoFill:    'Auto-Befüllung',
     undoBtn:        '↩ Rückgängig',
     redoBtn:        '↪ Wiederholen',
-    btnAI:          'KI-Analyse',
+    btnAI:          'Dienstplan-Analyse',
     btnPersonal:    'Persönlicher Export',
     btnHelp:        'Hilfe & Anleitung',
     btnRefresh:     'Aktualisieren',
