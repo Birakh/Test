@@ -222,6 +222,10 @@
         }
         body.dark { background-color:var(--dm-bg); color:var(--dm-text); }
         body.dark #monthLockChip { background:#b35a00 !important; color:#ffe0b2 !important; }
+        body.dark #firstRunOverlay > div { background:var(--dm-panel) !important; color:var(--dm-text) !important; border:1px solid var(--dm-border); }
+        body.dark #firstRunOverlay h2 { color:var(--dm-text) !important; }
+        body.dark #firstRunOverlay li, body.dark #firstRunOverlay p { color:var(--dm-muted) !important; }
+        body.dark #firstRunOverlay strong { color:var(--dm-text) !important; }
         /* ── No-flash: make panels dark immediately when body.dark class loads ──
            This fires before any JS runs, preventing white flash on page load
            when dark mode was saved from a previous session.             ── */
@@ -653,6 +657,24 @@
 <body>
 
 <!-- Init error bar — hidden unless onload crashes -->
+<!-- ── First-run checklist overlay — shown once to new admins ── -->
+<div id="firstRunOverlay" style="display:none; position:fixed; inset:0; z-index:15000; background:rgba(15,23,42,0.85); backdrop-filter:blur(3px); align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:12px; padding:28px 32px; max-width:460px; width:92%; box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+        <h2 style="margin:0 0 6px; font-size:18px; color:#1e293b;">👋 Welcome to Shift Planner</h2>
+        <p style="margin:0 0 18px; font-size:13px; color:#64748b;">Here's how to get started in 4 steps:</p>
+        <ol style="margin:0 0 20px; padding-left:22px; font-size:13px; line-height:2.2; color:#334155;">
+            <li><strong>Add your team members</strong> — middle panel → "+ Add Worker"</li>
+            <li><strong>Choose the month</strong> — dropdown at the top left</li>
+            <li><strong>Run Auto-Fill</strong> — the app distributes shifts fairly</li>
+            <li><strong>Save &amp; Publish</strong> — "📤 Save &amp; Publish" so your team can see it</li>
+        </ol>
+        <p style="margin:0 0 18px; font-size:12px; color:#94a3b8; background:#f8fafc; padding:8px 12px; border-radius:6px; border:1px solid #e2e8f0;">
+            💡 The <strong>Help &amp; Guide</strong> button has a full A–Z walkthrough whenever you need it.
+        </p>
+        <button onclick="dismissFirstRun()" style="width:100%; background:#0969da; color:white; border:none; border-radius:6px; padding:10px; font-size:14px; font-weight:bold; cursor:pointer;">Let's go →</button>
+    </div>
+</div>
+
 <div id="initErrorBar" style="display:none; background:#c0392b; color:white; padding:10px 16px; font-size:13px; font-weight:bold; position:fixed; top:0; left:0; right:0; z-index:9999; cursor:pointer;" onclick="this.style.display='none'">❌ Loading error — click to dismiss</div>
 
 <!-- Offline / CDN failure banner -->
@@ -684,7 +706,7 @@
 <button id="langToggleBtn" class="desktop-only" onclick="toggleLang()" style="padding:4px 12px; font-size:12px; font-weight:bold; background:#2c3e50; color:white; border:none; border-radius:4px; cursor:pointer; vertical-align:middle; margin-bottom:6px;">🌐 Deutsch</button>
 <div id="roleBadge" class="viewer desktop-only" style="display:inline-block; margin-left:10px; font-size:11px; vertical-align:middle; padding:3px 10px; border-radius:12px; font-weight:bold;">👁 Viewer</div>
 <!-- Fixed lock/unlock button top-right -->
-<button id="darkModeBtn" class="desktop-only" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
+<button id="darkModeBtn" class="desktop-only" onclick="toggleDarkMode()" title="Switch between light and dark screen mode">🌙</button>
 <button id="lockBtn" class="locked desktop-only" onclick="toggleLock()">🔒 Login</button>
 
 <!-- Month Ready Banner -->
@@ -725,8 +747,8 @@
         </div>
 
         <!-- Sync -->
-        <button class="vcp-btn vcp-pull" onclick="syncQuickPull()" title="Pull latest schedule from GitHub">⬇ Pull Latest</button>
-        <button class="vcp-btn vcp-push" onclick="syncQuickPush()" title="Push vacation requests to GitHub">⬆ Push Changes</button>
+        <button class="vcp-btn vcp-pull" onclick="syncQuickPull()" title="Pull latest schedule from GitHub">🔄 Load Latest</button>
+        <button class="vcp-btn vcp-push" onclick="syncQuickPush()" title="Push vacation requests to GitHub">📤 Save & Publish</button>
         <button class="vcp-btn vcp-gh"   onclick="openSyncModal('github')" title="Open GitHub sync settings">⚙ GitHub Sync</button>
 
         <hr class="vcp-divider">
@@ -832,14 +854,14 @@
         <button id="btnExcel"  class="btn-export btn-full" onclick="copyColorfulExcel()">Copy Table (HTML → Excel)</button>
         <button id="btnXLSX" style="background:#0f766e; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#115e59'" onmouseout="this.style.background='#0f766e'" onclick="downloadExcelWithFormulas()">Download Excel (.xlsx)</button>
         <button id="btnHTML"   style="background:#1e8449; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#196f3d'" onmouseout="this.style.background='#1e8449'" onclick="downloadAsHTML()">Download as HTML</button>
-        <button id="btnSPSync" style="background:#24292f; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='#24292f'" onclick="openSyncModal('github')">GitHub Sync</button>
+        <button id="btnSPSync" style="background:#24292f; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#1c2128'" onmouseout="this.style.background='#24292f'" onclick="openSyncModal('github')" title="Configure how the schedule syncs with your team">⚙ Team Sync Settings</button>
         <div id="quickSyncRow" style="display:flex; gap:4px; margin-top:4px;">
-            <button onclick="syncQuickPull()" title="Pull from active sync backend" style="flex:1; background:#0969da; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#0752b0'" onmouseout="this.style.background='#0969da'">Pull</button>
-            <button onclick="syncQuickPush()" title="Push to active sync backend" style="flex:1; background:#1a7f37; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#156a2e'" onmouseout="this.style.background='#1a7f37'">Push</button>
+            <button onclick="syncQuickPull()" title="Load the latest schedule your team has saved online" style="flex:1; background:#0969da; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#0752b0'" onmouseout="this.style.background='#0969da'">🔄 Load Latest</button>
+            <button onclick="syncQuickPush()" title="Save and publish your schedule so the whole team can see it" style="flex:1; background:#1a7f37; color:white; border:none; padding:5px 4px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer;" onmouseover="this.style.background='#156a2e'" onmouseout="this.style.background='#1a7f37'">📤 Save &amp; Publish</button>
         </div>
         <div id="azurePullPushRow" style="display:none;"></div>
         <div id="azureStatusBar" style="display:none; margin-top:3px; padding:4px 7px; border-radius:3px; font-size:10px; font-weight:bold;"></div>
-        <button onclick="clearAppCache()" style="background:#7f8c8d; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#6c7a7a'" onmouseout="this.style.background='#7f8c8d'">Clear Cache</button>
+        <button onclick="clearAppCache()" title="Clears temporary browser data — use if the app behaves unexpectedly" style="background:#7f8c8d; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onmouseover="this.style.background='#6c7a7a'" onmouseout="this.style.background='#7f8c8d'">🔁 Reset App (Clear Cache)</button>
         <div id="spStatusBar" style="display:none; margin-top:3px; padding:4px 7px; border-radius:3px; font-size:10px; font-weight:bold;"></div>
         <button id="btnDiff"   style="background:#2980b9; margin-top:6px; width:100%; font-size:11px; font-weight:bold; clear:both; display:block; padding:6px; border:none; border-radius:4px; color:white; cursor:pointer;" onclick="openMonthDiff()">Month Comparison</button>
         <div style="clear:both; overflow:hidden; margin-top:6px;">
@@ -1402,8 +1424,9 @@
                         </small>
                     </div>
                     <div>
-                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Personal Access Token (PAT)</label>
-                        <input id="spFileName" type="password" placeholder="ghp_xxxxxxxxxxxx"
+                        <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:2px;">Access Token <span style="font-weight:normal; color:#888;">(your private key to save the schedule)</span></label>
+                        <input id="spFileName" type="password" placeholder="Paste your token here (starts with ghp_...)"
+                            title="Your GitHub Personal Access Token — a private key that lets the app save to your team's shared schedule. Get it from: GitHub → Your Profile → Settings → Developer Settings → Personal Access Tokens → Tokens (classic)."
                             oninput="liveUpdatePAT(this.value)"
                             style="width:100%; box-sizing:border-box; padding:6px; font-size:12px; border:1px solid #aaa; border-radius:4px;">
                         <small id="spFileNameStatus" style="color:#1a7f37; display:none;">✔ PAT updated</small>
@@ -2349,6 +2372,7 @@ window.onload = () => { try {
         // can find all .panel and shift-cell elements. loadDarkMode() ran earlier when
         // the DOM was empty — this second pass eliminates the white flash on load.
         if (darkMode) applyDarkMode(true);
+        maybeShowFirstRun();
     });
 } catch(e) {
     console.error('ShiftPlanner init error:', e);
@@ -4724,7 +4748,7 @@ function renderMonthDiff() {
 }
 
 // ─────────────────────────────────────────────────────────
-//  AI Analysis
+//  Schedule Analysis
 // ─────────────────────────────────────────────────────────
 function runAIAnalysis() {
     const maxConsec = parseInt($('maxConsecutive').value) || 5;
@@ -6055,7 +6079,7 @@ const namedRange  = `SP_W_${wIdx}`;
     XLSX.utils.book_append_sheet(wb, helperWs,  'Helpers');
     XLSX.utils.book_append_sheet(wb, legendWs,  'Legend');
 
-    // ── Analysis sheet — same logic as the in-app AI Analysis button ──
+    // ── Analysis sheet — same logic as the in-app Schedule Analysis button ──
     const analysisWs = buildAnalysisSheet(de, cfg);
     XLSX.utils.book_append_sheet(wb, analysisWs, de ? 'Analyse' : 'Analysis');
 
@@ -6858,7 +6882,7 @@ const T = {
     btnRestore:     'Restore JSON',
     btnExcel:       'Copy Table (HTML → Excel)',
     btnHTML:        'Download as HTML',
-    btnSPSync:      'GitHub Sync',
+    btnSPSync:      '⚙ Team Sync Settings',
     btnDiff:        'Month Comparison',
     selectModeBtn:  'Select Mode',
     btnClear:       'Clear Month',
@@ -6920,7 +6944,7 @@ const T = {
     btnRestore:     'JSON wiederherstellen',
     btnExcel:       'Tabelle kopieren (HTML → Excel)',
     btnHTML:        'Als HTML herunterladen',
-    btnSPSync:      'GitHub-Synchronisation',
+    btnSPSync:      '⚙ Team-Sync Einstellungen',
     btnDiff:        'Monatsvergleich',
     selectModeBtn:  'Auswahlmodus',
     btnClear:       'Monat leeren',
@@ -7259,6 +7283,20 @@ async function sha256(str) {
     return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
 
+function dismissFirstRun() {
+    const el = $('firstRunOverlay');
+    if (el) el.style.display = 'none';
+    try { localStorage.setItem('spFirstRunDone', '1'); } catch(e) {}
+}
+
+function maybeShowFirstRun() {
+    if (currentRole !== 'admin') return;
+    try { if (localStorage.getItem('spFirstRunDone') === '1') return; } catch(e) { return; }
+    if (workers && workers.length > 0) return;
+    const el = $('firstRunOverlay');
+    if (el) el.style.display = 'flex';
+}
+
 function applyLockState() {
     const body    = document.body;
     const lockBtn = $('lockBtn');
@@ -7520,8 +7558,8 @@ async function ghFetch(url, opts = {}) {
         const retry = r.headers.get('Retry-After');
         throw new Error(`GitHub rate limit reached.${retry ? ` Try again in ${retry}s.` : ' Try again in a minute.'}`);
     }
-    if (r.status === 401) throw new Error('GitHub token rejected (401). Re-enter your PAT in Sync Settings.');
-    if (r.status === 403) throw new Error('GitHub access forbidden (403). Check your PAT has Contents: Read & Write permission.');
+    if (r.status === 401) throw new Error('Access denied — your login token was rejected. Go to Team Sync Settings and re-enter your access token.');
+    if (r.status === 403) throw new Error('Access forbidden — your token does not have permission to edit this file. Check that your token has Read & Write access in the sync settings.');
     return r;
 }
 
@@ -7934,7 +7972,7 @@ async function spPush(silent = false) {
             // ── Conflict: someone else pushed while we were working ──
             if (currentRole === 'viewer') {
                 // Viewer conflict — extremely rare (two writes at exact same ms) — auto-retry
-                if (!silent) spShowModalStatus(`⚠️ Saving conflict — retrying…`, '#fff3cd', '#856404');
+                if (!silent) spShowModalStatus(`⚠️ Schedule was updated by someone else — saving your changes safely…`, '#fff3cd', '#856404');
                 setTimeout(() => spPush(silent), 1500);
             } else {
                 // Editor/Admin conflict — they need to pull and re-apply
@@ -7946,7 +7984,7 @@ async function spPush(silent = false) {
                     spShowModalStatus(_t('⚠️ Conflict — see alert for instructions','⚠️ Konflikt — siehe Hinweis'), '#fff3cd', '#856404');
                     alert(msg);
                 }
-                spSetStatus(_t('⚠️ Push conflict — Pull first, then push again','⚠️ Konflikt — zuerst laden, dann erneut hochladen'), '#fff3cd', '#856404');
+                spSetStatus(_t('⚠️ Someone else saved changes — click "Load Latest" first, then publish again.','⚠️ Jemand hat Änderungen gespeichert — zuerst "Aktuell laden" klicken, dann erneut hochladen.'), '#fff3cd', '#856404');
             }
         } else {
             if (!silent) spShowModalStatus(`❌ Push failed: ${e.message}`, '#ffe6e6', '#c0392b');
@@ -8202,7 +8240,7 @@ async function ghReadFileWith(file, token) {
     });
     if (r.status === 404) return null;
     if (r.status === 429) { const rt = r.headers.get('Retry-After'); throw new Error(`GitHub rate limit reached.${rt ? ` Try again in ${rt}s.` : ' Try again shortly.'}`); }
-    if (r.status === 401) throw new Error('GitHub token rejected (401). Check the shared comment token in Sync Settings.');
+    if (r.status === 401) throw new Error('Access denied — your shared comment token was rejected. Check the Team Sync Settings and re-enter the shared token.');
     if (!r.ok) throw new Error(`GitHub API ${r.status}: ${await r.text()}`);
     const data = await r.json();
     // ── Cache SHA for conflict detection ──
@@ -8221,7 +8259,7 @@ async function ghWriteFileWith(file, content, token, commitMsg) {
     const r = await fetch(url, { method:'PUT', headers: hdrs, body: JSON.stringify(body) });
     if (r.status === 409 || r.status === 422) { const err = new Error('CONFLICT'); err.isConflict = true; throw err; }
     if (r.status === 429) { const rt = r.headers.get('Retry-After'); throw new Error(`GitHub rate limit reached.${rt ? ` Try again in ${rt}s.` : ' Try again shortly.'}`); }
-    if (r.status === 401) throw new Error('GitHub token rejected (401). Check the shared comment token in Sync Settings.');
+    if (r.status === 401) throw new Error('Access denied — your shared comment token was rejected. Check the Team Sync Settings and re-enter the shared token.');
     if (!r.ok) throw new Error(`GitHub write ${r.status}: ${await r.text()}`);
     const result = await r.json();
     // Update SHA cache
@@ -8892,7 +8930,7 @@ function renderMobileView() {
         var r = await fetch('https://api.github.com/repos/' + owner + '/' + repo, { headers: headers });
         if (r.status === 401) throw new Error('Invalid token — check your PAT.');
         if (r.status === 404) throw new Error('Repo not found — check owner and repo name. (Private repos need a PAT.)');
-        if (!r.ok) throw new Error('GitHub error ' + r.status);
+        if (!r.ok) throw new Error('Connection to the schedule server failed (error ' + r.status + '). Check your internet connection and try again.');
         return await r.json();
     }
 
@@ -8965,8 +9003,9 @@ function renderMobileView() {
             setTimeout(function() {
                 suDismiss();
                 if (typeof spPull === 'function') spPull(true);
-                var btn2 = $('btnSPSync');
-                if (btn2) btn2.textContent = 'GitHub: ' + label;
+                // Show connected repo in status bar — keep button label clean
+                var statusEl = $('spStatusBar');
+                if (statusEl) { statusEl.style.display='block'; statusEl.textContent = _t('Connected: ','Verbunden: ') + owner + '/' + label; }
             }, 1200);
         } catch(e) {
             err.textContent = e.message;
@@ -9161,7 +9200,7 @@ function renderMobileView() {
         var r = await fetch('https://api.github.com/repos/'+owner2+'/'+testRepo, {headers:hdrs});
         if (r.status===401) throw new Error('Token rejected — check your PAT. / Token abgelehnt — PAT überprüfen.');
         if (r.status===404) throw new Error('Repo "'+testRepo+'" not found. Check the name and PAT access. / Repo nicht gefunden. Namen und PAT-Zugriff prüfen.');
-        if (!r.ok) throw new Error('GitHub error '+r.status+' / GitHub-Fehler '+r.status);
+        if (!r.ok) throw new Error('Connection failed (error '+r.status+') / Verbindungsfehler '+r.status+'. Check your internet connection. / Internetverbindung prüfen.');
         if (btn) { btn.textContent='Test & Next / Weiter →'; btn.disabled=false; }
         spWizShow(3);
         setTimeout(function(){ var l=document.getElementById('wz_lock'); if(l)l.focus(); },120);
