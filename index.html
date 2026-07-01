@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://alcdn.msauth.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://login.microsoftonline.com https://*.blob.core.windows.net; img-src 'self' data:; frame-ancestors 'none';">
     <title>Shift Planner</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f7f6; margin: 20px; font-size: 13px; }
+
         h1, h2 { color: #333; margin-top: 0; }
         .container { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
         .panel { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 300px; }
@@ -17,27 +17,27 @@
 
         .btn-half-l { margin-top: 7px; width: 48%; font-size: 11px; float: left;  padding: 5px 6px; }
         .btn-half-r { margin-top: 7px; width: 48%; font-size: 11px; float: right; padding: 5px 6px; }
-        .btn-full   { margin-top: 7px; width: 100%; font-size: 11px; clear: both; display: block; padding: 6px; }
+        .btn-full { margin-top: 7px; width: 100%; font-size: 11px; clear: both; display: block; padding: 6px; }
 
         /* Button palette — set --bc (base) and --bh (hover) per class, one rule does the rest */
         button[class*="btn-"] { background-color: var(--bc); }
         button[class*="btn-"]:hover:not(:disabled) { background-color: var(--bh); }
-        .btn-auto     { --bc:#28a745; --bh:#218838; }
-        .btn-ai       { --bc:#8e44ad; --bh:#732d91; }
+        .btn-auto { --bc:#28a745; --bh:#218838; }
+        .btn-ai { --bc:#8e44ad; --bh:#732d91; }
         .btn-personal { --bc:#27ae60; --bh:#219653; }
-        .btn-help     { --bc:#f39c12; --bh:#e67e22; }
+        .btn-help { --bc:#f39c12; --bh:#e67e22; }
         .btn-refresh,.btn-select { --bc:#34495e; --bh:#2c3e50; }
-        .btn-export   { --bc:#17a2b8; --bh:#138496; }
-        .btn-clear    { --bc:#dc3545; --bh:#c82333; }
-        .btn-backup   { --bc:#6c757d; --bh:#5a6268; }
-        .btn-restore  { --bc:#20c997; --bh:#17a589; }
+        .btn-export { --bc:#17a2b8; --bh:#138496; }
+        .btn-clear { --bc:#dc3545; --bh:#c82333; }
+        .btn-backup { --bc:#6c757d; --bh:#5a6268; }
+        .btn-restore { --bc:#20c997; --bh:#17a589; }
         .btn-select.active { --bc:#e67e22; }
         .btn-undo,.btn-redo { --bc:#5d6d7e; --bh:#4a5568; }
         .btn-undo:disabled, .btn-redo:disabled { background-color:#bdc3c7; cursor:not-allowed; opacity:0.6; }
         .min-staff-alert { background-color: #ff6b6b !important; color: white !important; font-weight: bold; }
 
-        table { width: 100%; border-collapse: collapse; background: white; white-space: nowrap; }
-        th, td { border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 12px; vertical-align: top; }
+
+
         th { background-color: #eee; position: sticky; top: 0; z-index: 10; }
         .sticky-col { position: sticky; left: 0; background-color: #f9f9f9; z-index: 5; font-weight: bold; }
         th.sticky-col { z-index: 15; background-color: #eee; }
@@ -45,19 +45,19 @@
         th.sticky-col:nth-child(2), td.sticky-col:nth-child(2) { left: 72px; }
         th.sticky-col:nth-child(3), td.sticky-col:nth-child(3) { left: 104px; }
 
-        .weekend     { background-color: #f0f0f0 !important; }
+        .weekend { background-color: #f0f0f0 !important; }
         .holiday-row { background-color: #e8daef !important; }
-        .lss-row     { background-color: #e8f8e8 !important; }
+        .lss-row { background-color: #e8f8e8 !important; }
 
         .checkbox-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
         .shift-select { width: 100%; min-width: 140px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; font-weight: bold; text-align: center; color: #222; font-size: 11px; }
 
-        .warning           { background-color: #ffcccc !important; color: #cc0000; font-weight: bold; }
-        .warning-yellow    { background-color: #fff3cd !important; color: #856404; font-weight: bold; }
-        .optimal           { background-color: #ccffcc !important; color: #006600; font-weight: bold; }
+        .warning { background-color: #ffcccc !important; color: #cc0000; font-weight: bold; }
+        .warning-yellow { background-color: #fff3cd !important; color: #856404; font-weight: bold; }
+        .optimal { background-color: #ccffcc !important; color: #006600; font-weight: bold; }
         .consecutive-warning { border: 3px solid #cc0000 !important; box-shadow: inset 0 0 5px red; }
 
-        .table-wrapper { overflow: auto; max-height: 70vh; max-width: 100vw; border: 1px solid #ccc; border-radius: 4px; }
+
         .room-box { text-align: left; font-size: 11px; min-width: 120px; line-height: 1.8; }
         .comment-input { width: 120px; font-size: 11px; padding: 4px; }
         .name-chip { display: inline-block; padding: 1px 4px; border-radius: 4px; font-weight: bold; border: 1px solid rgba(0,0,0,0.1); margin-bottom: 2px; white-space: nowrap; }
@@ -66,11 +66,11 @@
 
         /* ── Role-based Lock ── */
         /* Viewer (default locked) — nothing editable */
-        .app-locked .edit-only    { opacity:0.38; pointer-events:none; filter:grayscale(60%); }
+        .app-locked .edit-only { opacity:0.38; pointer-events:none; filter:grayscale(60%); }
         .app-locked .shift-select { pointer-events:none; background:#f0f0f0 !important; color:#888 !important; }
         .app-locked .shift-select.viewer-vac-select { pointer-events:auto; background:inherit !important; color:inherit !important; }
         .app-locked #maxVacation, .app-locked #maxConsecutive, .app-locked #minStaff { pointer-events:none; background:#f0f0f0 !important; color:#888 !important; }
-        .app-locked .tgt-input    { pointer-events:none; background:#f0f0f0 !important; }
+        .app-locked .tgt-input { pointer-events:none; background:#f0f0f0 !important; }
         .role-targets-panel { transition:opacity .2s, filter .2s; }
         .app-locked .role-targets-panel { opacity:0.55; filter:grayscale(80%); pointer-events:none; background:#efefef !important; }
         .app-locked .role-targets-panel input, .app-locked .role-targets-panel select { pointer-events:none; background:#f0f0f0 !important; color:#888 !important; }
@@ -79,30 +79,29 @@
         .app-locked .comment-input { } /* comments always free for all roles */
         .app-locked input[type="checkbox"].edit-chk { pointer-events:none; opacity:0.35; }
         /* Editor — shifts editable, admin-only items locked */
-        .app-editor .edit-only    { opacity:1 !important; pointer-events:auto !important; filter:none !important; }
+        .app-editor .edit-only { opacity:1 !important; pointer-events:auto !important; filter:none !important; }
         .app-editor .shift-select { background:inherit !important; color:inherit !important; pointer-events:auto !important; }
-        .app-editor .tgt-input    { pointer-events:none; background:#f0f0f0 !important; }
-        .app-editor .admin-only   { opacity:0.38 !important; pointer-events:none !important; filter:grayscale(60%) !important; }
+        .app-editor .tgt-input { pointer-events:none; background:#f0f0f0 !important; }
+        .app-editor .admin-only { opacity:0.38 !important; pointer-events:none !important; filter:grayscale(60%) !important; }
         /* Admin — everything unlocked */
-        .app-admin .edit-only     { opacity:1 !important; pointer-events:auto !important; filter:none !important; }
-        .app-admin .admin-only    { opacity:1 !important; pointer-events:auto !important; filter:none !important; }
-        .app-admin .shift-select  { background:inherit !important; color:inherit !important; pointer-events:auto !important; }
-        .app-admin .tgt-input     { pointer-events:auto !important; background:inherit !important; }
+        .app-admin .edit-only { opacity:1 !important; pointer-events:auto !important; filter:none !important; }
+        .app-admin .admin-only { opacity:1 !important; pointer-events:auto !important; filter:none !important; }
+        .app-admin .shift-select { background:inherit !important; color:inherit !important; pointer-events:auto !important; }
+        .app-admin .tgt-input { pointer-events:auto !important; background:inherit !important; }
         .app-admin input[type="checkbox"].edit-chk { pointer-events:auto !important; opacity:1 !important; }
         /* Role badge colours */
         #roleBadge.viewer { background:#ffecec; color:#c0392b; }
         #roleBadge.editor { background:#e8f4fc; color:#0969da; }
-        #roleBadge.admin  { background:#eaffea; color:#1a7f37; }
-        #lockBtn { position:fixed; top:10px; right:14px; z-index:500; padding:5px 12px;
-            font-size:13px; font-weight:bold; border:none; border-radius:20px; cursor:pointer;
-            box-shadow:0 2px 6px rgba(0,0,0,0.25); transition:background 0.2s; }
-        #lockBtn.locked   { background:#c0392b; color:white; }
+        #roleBadge.admin { background:#eaffea; color:#1a7f37; }
+
+        #lockBtn.locked { background:#c0392b; color:white; }
         #lockBtn.unlocked { background:#27ae60; color:white; }
         .lock-overlay { display:none; position:absolute; inset:0; z-index:2; cursor:not-allowed; border-radius:4px; }
         .app-locked .lock-overlay { display:block; }
         .select-mode-active .shift-select { pointer-events: none; }
         .select-mode-active td[data-cell] { cursor: crosshair !important; }
         td.selected-cell { outline: 3px solid #e67e22 !important; outline-offset: -2px; background-color: rgba(230,126,34,0.15) !important; }
+        td.auto-override { outline: 2px dashed #2980b9 !important; outline-offset: -2px; }
 
         /* ── Selection Bar (fixed bottom) ── */
         #selectionBar { display: none; position: fixed; bottom: 0; left: 0; right: 0;
@@ -110,8 +109,8 @@
             align-items: center; gap: 12px; z-index: 200;
             box-shadow: 0 -3px 10px rgba(0,0,0,0.35); flex-wrap: wrap; }
         #selectionBar.visible { display: flex; }
-        #selectionBar select  { padding: 6px; border-radius: 4px; font-weight: bold; font-size: 13px; }
-        #selectionBar button  { padding: 6px 14px; border-radius: 4px; font-size: 13px; }
+        #selectionBar select { padding: 6px; border-radius: 4px; font-weight: bold; font-size: 13px; }
+        #selectionBar button { padding: 6px 14px; border-radius: 4px; font-size: 13px; }
 
         /* ── Stats Panel ── */
         #statsPanel { display: none; background: white; border-radius: 8px;
@@ -123,7 +122,7 @@
         #statsPanel tbody tr:nth-child(even) { background: #f8f9fa; }
         .stats-good { color: #27ae60; font-weight: bold; }
         .stats-warn { color: #e67e22; font-weight: bold; }
-        .stats-bad  { color: #c0392b; font-weight: bold; }
+        .stats-bad { color: #c0392b; font-weight: bold; }
 
         /* ── Modals ── */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
@@ -136,17 +135,16 @@
             line-height: 1.1; border-radius: 2px; margin-left: 1px; cursor: pointer;
             background-color: #f0f0f0 !important; color: #666 !important; border: 1px solid #bbb !important; }
         .btn-delete-worker:hover { background-color: #ddd !important; color: #111 !important; }
-    
-        /* 13H and 6H wrapper spans — greyed out until enabled */
+   /* 13H and 6H wrapper spans — greyed out until enabled */
         #wd13wrap, #we13wrap { opacity: 0.35; }
-        #wd6wrap,  #we6wrap  { opacity: 0.35; }
+        #wd6wrap,  #we6wrap { opacity: 0.35; }
         
         /* ── Mobile View ── */
         @media (max-width: 768px) {
             .desktop-only { display: none !important; }
-            #mobileView { display: block !important; }
-            #pageTitle  { display: none !important; }
-            body { padding: 0; margin: 0; font-size: 14px; }
+
+            #pageTitle { display: none !important; }
+
             #lockBtn { display: none !important; }
             #initErrorBar { font-size: 11px; }
         }
@@ -157,57 +155,57 @@
         #mobileView { padding: 12px; max-width: 480px; margin: 0 auto; }
         .mob-header { background: #2c3e50; color: white; border-radius: 10px; padding: 14px 16px; margin-bottom: 12px; }
         .mob-header h2 { margin: 0 0 4px 0; font-size: 17px; }
-        .mob-header p  { margin: 0; font-size: 12px; opacity: 0.8; }
+        .mob-header p { margin: 0; font-size: 12px; opacity: 0.8; }
         .mob-worker-sel { width: 100%; padding: 10px; font-size: 15px; border-radius: 8px; border: 2px solid #ddd; margin-bottom: 12px; box-sizing: border-box; }
         .mob-day { background: white; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); border-left: 4px solid #bbb; }
         .mob-day.today { border-left-color: #e74c3c; }
         .mob-day.has-shift { border-left-color: #27ae60; }
-        .mob-day.day-off  { border-left-color: #bbb; opacity: 0.6; }
-        .mob-day-date  { font-size: 11px; color: #888; margin-bottom: 2px; }
+        .mob-day.day-off { border-left-color: #bbb; opacity: 0.6; }
+        .mob-day-date { font-size: 11px; color: #888; margin-bottom: 2px; }
         .mob-day-shift { font-size: 18px; font-weight: bold; color: #2c3e50; }
         .mob-day-label { font-size: 12px; color: #555; margin-top: 2px; }
-        .mob-day-cmt   { margin-top: 6px; font-size: 12px; color: #7f8c8d; font-style: italic; }
+        .mob-day-cmt { margin-top: 6px; font-size: 12px; color: #7f8c8d; font-style: italic; }
         .mob-month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
         .mob-month-nav button { background: #2c3e50; color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 14px; cursor: pointer; }
         .mob-month-label { font-weight: bold; font-size: 15px; }
         .mob-full-link { text-align: center; padding: 10px; color: #7f8c8d; font-size: 12px; margin-top: 8px; }
         .mob-full-link a { color: #0969da; text-decoration: none; }
 
-        /* ── Wizard & Lock screen — merged into head style block ── */#spWizard,#spLock{position:fixed;inset:0;z-index:19999;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,0.82);backdrop-filter:blur(4px);}
-#spWizard.sp-vis,#spLock.sp-vis{display:flex;}
-.spW-card{background:#fff;border-radius:16px;padding:36px 32px 28px;max-width:500px;width:94%;box-shadow:0 16px 48px rgba(0,0,0,0.35);position:relative;}
-.spW-step{display:none;}.spW-step.active{display:block;}
-.spW-logo{text-align:center;font-size:44px;margin-bottom:4px;}
-.spW-title{text-align:center;font-size:20px;font-weight:700;color:#1e293b;margin:0 0 4px;}
-.spW-sub{text-align:center;font-size:13px;color:#64748b;margin:0 0 22px;}
-.spW-progress{display:flex;gap:6px;justify-content:center;margin-bottom:24px;}
-.spW-dot{width:8px;height:8px;border-radius:50%;background:#e2e8f0;transition:background .3s;}
-.spW-dot.done{background:#22c55e;}.spW-dot.active{background:#3b82f6;}
-.spW-field{margin-bottom:14px;}
-.spW-field label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;}
-.spW-field input{width:100%;box-sizing:border-box;padding:10px 12px;font-size:14px;border:1.5px solid #d1d5db;border-radius:8px;outline:none;transition:border-color .2s;}
-.spW-field input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15);}
-.spW-field small{display:block;font-size:11px;color:#6b7280;margin-top:4px;line-height:1.5;}
-.spW-hint{background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 12px;font-size:12px;color:#0369a1;line-height:1.6;margin-bottom:16px;}
-.spW-warn{background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;line-height:1.6;margin-bottom:16px;}
-.spW-btns{display:flex;gap:8px;margin-top:18px;}
-.spW-btn{flex:1;padding:11px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;}
-.spW-btn:hover{opacity:.88;}
-.spW-btn.primary{background:#3b82f6;color:#fff;}
-.spW-btn.success{background:#22c55e;color:#fff;}
-.spW-btn.ghost{background:#f1f5f9;color:#374151;flex:0.5;}
-.spW-err{display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:8px 12px;font-size:12px;color:#dc2626;margin-top:10px;}
+        /* ── Wizard & Lock screen — merged into head style block ── */#spWizard,#spLock {position:fixed;inset:0;z-index:19999;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,0.82);backdrop-filter:blur(4px);}
+#spWizard.sp-vis,#spLock.sp-vis {display:flex;}
+.spW-card {background:#fff;border-radius:16px;padding:36px 32px 28px;max-width:500px;width:94%;box-shadow:0 16px 48px rgba(0,0,0,0.35);position:relative;}
+.spW-step {display:none;}.spW-step.active {display:block;}
+.spW-logo {text-align:center;font-size:44px;margin-bottom:4px;}
+.spW-title {text-align:center;font-size:20px;font-weight:700;color:#1e293b;margin:0 0 4px;}
+.spW-sub {text-align:center;font-size:13px;color:#64748b;margin:0 0 22px;}
+.spW-progress {display:flex;gap:6px;justify-content:center;margin-bottom:24px;}
+.spW-dot {width:8px;height:8px;border-radius:50%;background:#e2e8f0;transition:background .3s;}
+.spW-dot.done {background:#22c55e;}.spW-dot.active {background:#3b82f6;}
+.spW-field {margin-bottom:14px;}
+.spW-field label {display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px;}
+.spW-field input {width:100%;box-sizing:border-box;padding:10px 12px;font-size:14px;border:1.5px solid #d1d5db;border-radius:8px;outline:none;transition:border-color .2s;}
+.spW-field input:focus {border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+.spW-field small {display:block;font-size:11px;color:#6b7280;margin-top:4px;line-height:1.5;}
+.spW-hint {background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 12px;font-size:12px;color:#0369a1;line-height:1.6;margin-bottom:16px;}
+.spW-warn {background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;line-height:1.6;margin-bottom:16px;}
+.spW-btns {display:flex;gap:8px;margin-top:18px;}
+.spW-btn {flex:1;padding:11px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;}
+.spW-btn:hover {opacity:.88;}
+.spW-btn.primary {background:#3b82f6;color:#fff;}
+.spW-btn.success {background:#22c55e;color:#fff;}
+.spW-btn.ghost {background:#f1f5f9;color:#374151;flex:0.5;}
+.spW-err {display:none;background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:8px 12px;font-size:12px;color:#dc2626;margin-top:10px;}
 /* Lock screen */
-.spL-card{background:#fff;border-radius:16px;padding:40px 32px;max-width:360px;width:94%;box-shadow:0 16px 48px rgba(0,0,0,0.4);text-align:center;}
-.spL-icon{font-size:52px;margin-bottom:8px;}
-.spL-title{font-size:20px;font-weight:700;color:#1e293b;margin:0 0 4px;}
-.spL-sub{font-size:13px;color:#64748b;margin:0 0 24px;}
-.spL-input{width:100%;box-sizing:border-box;padding:12px;font-size:16px;border:2px solid #e2e8f0;border-radius:10px;text-align:center;letter-spacing:2px;outline:none;transition:border-color .2s;}
-.spL-input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15);}
-.spL-btn{width:100%;margin-top:12px;padding:13px;background:#3b82f6;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;}
-.spL-btn:hover{background:#2563eb;}
-.spL-err{display:none;color:#dc2626;font-size:13px;margin-top:10px;}
-.spL-hint{font-size:11px;color:#94a3b8;margin-top:16px;}
+.spL-card {background:#fff;border-radius:16px;padding:40px 32px;max-width:360px;width:94%;box-shadow:0 16px 48px rgba(0,0,0,0.4);text-align:center;}
+.spL-icon {font-size:52px;margin-bottom:8px;}
+.spL-title {font-size:20px;font-weight:700;color:#1e293b;margin:0 0 4px;}
+.spL-sub {font-size:13px;color:#64748b;margin:0 0 24px;}
+.spL-input {width:100%;box-sizing:border-box;padding:12px;font-size:16px;border:2px solid #e2e8f0;border-radius:10px;text-align:center;letter-spacing:2px;outline:none;transition:border-color .2s;}
+.spL-input:focus {border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15);}
+.spL-btn {width:100%;margin-top:12px;padding:13px;background:#3b82f6;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;}
+.spL-btn:hover {background:#2563eb;}
+.spL-err {display:none;color:#dc2626;font-size:13px;margin-top:10px;}
+.spL-hint {font-size:11px;color:#94a3b8;margin-top:16px;}
 
                 /* ── Dark Mode — eye-friendly warm-neutral palette ── */
         :root {
@@ -222,6 +220,13 @@
         }
         body.dark { background-color:var(--dm-bg); color:var(--dm-text); }
         body.dark #monthLockChip { background:#b35a00 !important; color:#ffe0b2 !important; }
+        body.dark th[style*="background:#fff8e1"], body.dark th[style*="background:#fff0e8"], body.dark th[style*="background:#f0e8ff"] { background:var(--dm-card) !important; color:var(--dm-text) !important; }
+        body.dark td[style*="background:#fff8e1"] { background:#2d1e00 !important; }
+        body.dark td[style*="background:#fff0e8"] { background:#2d1000 !important; }
+        body.dark td[style*="background:#f0e8ff"] { background:#1e0d2d !important; }
+        body.dark #rtDutyOverlay > div { background:var(--dm-panel) !important; color:var(--dm-text) !important; }
+        body.dark #rtDutyOverlay h3 { color:var(--dm-text) !important; }
+        body.dark #rtDutySel { background:var(--dm-card) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
         body.dark #firstRunOverlay > div { background:var(--dm-panel) !important; color:var(--dm-text) !important; border:1px solid var(--dm-border); }
         body.dark #firstRunOverlay h2 { color:var(--dm-text) !important; }
         body.dark #firstRunOverlay li, body.dark #firstRunOverlay p { color:var(--dm-muted) !important; }
@@ -229,43 +234,39 @@
         /* ── No-flash: make panels dark immediately when body.dark class loads ──
            This fires before any JS runs, preventing white flash on page load
            when dark mode was saved from a previous session.             ── */
-        body.dark .panel    { background-color:var(--dm-panel) !important; color:var(--dm-text) !important; }
+        body.dark .panel { background-color:var(--dm-panel) !important; color:var(--dm-text) !important; }
         body.dark #tableWrap,
         body.dark #mainTable { background-color:var(--dm-bg) !important; }
-        body.dark td         { background-color:var(--dm-row2) !important; color:var(--dm-text) !important; }
+
         body.dark h1, body.dark h2, body.dark h3 { color:var(--dm-text); }
         body.dark .panel, body.dark .modal-content, body.dark table,
         body.dark #statsPanel { background:var(--dm-panel) !important; border-color:var(--dm-border) !important; color:var(--dm-text) !important; }
-        body.dark .modal-content h2, body.dark .modal-content h3, body.dark .modal-content h4 { color:var(--dm-text) !important; }
         body.dark #helpContent, body.dark #aiReportContent { color:var(--dm-text) !important; background:transparent !important; }
         body.dark #helpContent h3, body.dark #helpContent p, body.dark #helpContent li,
         body.dark #helpContent strong, body.dark #helpContent em, body.dark #helpContent small { color:var(--dm-text) !important; }
         body.dark #helpContent a { color:var(--dm-accent) !important; }
         body.dark #helpContent div[style*="background"] { filter:brightness(0.25) saturate(0.8); }
         body.dark th, body.dark th.sticky-col, body.dark #statsPanel thead th,
-        body.dark #selectionBar { background-color:var(--dm-card); color:var(--dm-text); }
         body.dark td { background-color:var(--dm-row2); border-color:var(--dm-border); color:var(--dm-text); }
-        body.dark .sticky-col { background-color:var(--dm-row2); color:var(--dm-text); }
         body.dark .table-wrapper { border-color:var(--dm-border); }
         body.dark input, body.dark select, body.dark textarea,
         body.dark .comment-input { background:var(--dm-card); color:var(--dm-text); border-color:var(--dm-border); }
         body.dark .tgt-input { background:#2a2a3c !important; color:#ffd60a !important; }
         body.dark .shift-select { background:inherit !important; color:var(--dm-text) !important; border-color:transparent !important; }
-        body.dark .weekend     { background-color:#1a1a2e !important; }   /* deep navy — clearly distinct from normal #2a2a2c rows */
+        body.dark .weekend { background-color:#1a1a2e !important; }   /* deep navy — clearly distinct from normal #2a2a2c rows */
         body.dark .holiday-row { background-color:#2d2500 !important; }   /* warm amber-gold */
-        body.dark .lss-row     { background-color:#0d1e0d !important; }   /* deep forest green */
+        body.dark .lss-row { background-color:#0d1e0d !important; }   /* deep forest green */
 
         /* ── Admin / Editor panels ── */
         body.dark .app-editor .role-targets-panel,
-        body.dark .app-admin  .role-targets-panel  { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
-        body.dark .app-locked .role-targets-panel  { background:#1e1e20 !important; }
+        body.dark .app-admin  .role-targets-panel { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
+        body.dark .app-locked .role-targets-panel { background:#1e1e20 !important; }
         body.dark .app-editor .tgt-input,
-        body.dark .app-locked .tgt-input           { background:#1e1e26 !important; color:#aeaeb2 !important; }
-        body.dark .app-admin  .tgt-input           { background:#2a2a3c !important; color:#ffd60a !important; }
+        body.dark .app-locked .tgt-input { background:#1e1e26 !important; color:#aeaeb2 !important; }
+        body.dark .app-admin  .tgt-input { background:#2a2a3c !important; color:#ffd60a !important; }
         /* Role badge */
-        body.dark #roleBadge.viewer { background:#2c1a1a; color:#ff6b6b; }
         body.dark #roleBadge.editor { background:#1a2c3a; color:#64d2ff; }
-        body.dark #roleBadge.admin  { background:#1a2c1a; color:#32d74b; }
+        body.dark #roleBadge.admin { background:#1a2c1a; color:#32d74b; }
         /* Inline green-tint info boxes (eaffea, e.g. admin-only success areas) */
         body.dark div[style*="background:#eaffea"],
         body.dark div[style*="background: #eaffea"] { background:#0a2010 !important; border-color:#1a4a20 !important; color:var(--dm-text) !important; }
@@ -274,20 +275,19 @@
         body.dark div[style*="background:#f8f8f8"],
         body.dark div[style*="background:#f9f9f9"] { background:var(--dm-card) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
         /* inline-styled role-targets-panel form-group in HTML */
-        body.dark .role-targets-panel              { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
         /* Diff / changed row highlight */
-        body.dark tr[style*="background:#fffde7"]  { background:#1e1c00 !important; }
+        body.dark tr[style*="background:#fffde7"] { background:#1e1c00 !important; }
         body.dark .role-targets-panel { background:var(--dm-card) !important; border-color:var(--dm-border) !important; }
         body.dark .stats-good { color:#32d74b; }
         body.dark .stats-warn { color:#ffd60a; }
-        body.dark .stats-bad  { color:#ff453a; }
-        body.dark #statsPanel tbody tr:nth-child(even) { background:var(--dm-row2); }
-        body.dark .close-btn  { color:var(--dm-muted); }
+        body.dark .stats-bad { color:#ff453a; }
+
+        body.dark .close-btn { color:var(--dm-muted); }
         body.dark .close-btn:hover { color:var(--dm-text); }
         body.dark .btn-delete-worker { background-color:var(--dm-card) !important; color:var(--dm-muted) !important; border-color:var(--dm-border) !important; }
-        body.dark #shiftLegend { background:var(--dm-panel) !important; border-color:var(--dm-border) !important; }
-        body.dark #monthReadyBanner { background:linear-gradient(90deg,#1a3a1a,#1f4a1f); }
-        body.dark #viewerLegendBar  { background:var(--dm-panel); border-bottom-color:var(--dm-border); color:var(--dm-text); }
+
+
+
         /* Vacation range panel dark mode */
         body.dark .vac-range-panel { background:var(--dm-card) !important; border-color:var(--dm-border) !important; color:var(--dm-text) !important; }
         body.dark .vac-range-panel h3 { color:var(--dm-accent) !important; }
@@ -295,9 +295,8 @@
         body.dark .vac-range-grid select { background:var(--dm-panel) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
         body.dark .vac-range-result { color:var(--dm-muted) !important; }
         body.dark .spW-card, body.dark .spL-card { background:var(--dm-panel); color:var(--dm-text); }
-        body.dark .spW-field input  { background:var(--dm-card); color:var(--dm-text); border-color:var(--dm-border); }
-        body.dark .spW-hint  { background:#1a2c3a; border-color:var(--dm-border); color:#a0d4f5; }
-        body.dark .spW-warn  { background:#2c1f00; border-color:#5c3a00; color:#ffd60a; }
+        body.dark .spW-field input { background:var(--dm-card); color:var(--dm-text); border-color:var(--dm-border); }
+        body.dark .spW-warn { background:#2c1f00; border-color:#5c3a00; color:#ffd60a; }
         /* shift dropdowns keep their colour coding — only soften text */
         body.dark .shift-select option { background:#3a3a3c; }
         /* name chips */
@@ -305,56 +304,54 @@
         /* selection bar */
         body.dark #selectionBar { background:var(--dm-card); border-top-color:var(--dm-border); }
         /* sync status chips */
-        body.dark .status-chip.chip-ok   { background:#1a2c1a; color:#32d74b; border-color:#1f4a1f; }
+        body.dark .status-chip.chip-ok { background:#1a2c1a; color:#32d74b; border-color:#1f4a1f; }
         body.dark .status-chip.chip-warn { background:#2c2000; color:#ffd60a; border-color:#4a3800; }
-        body.dark .status-chip.chip-off  { background:var(--dm-card); color:var(--dm-muted); border-color:var(--dm-border); }
+        body.dark .status-chip.chip-off { background:var(--dm-card); color:var(--dm-muted); border-color:var(--dm-border); }
 
         /* ═══════════════════════════════════════════════════════════════
            DARK MODE — exhaustive overrides for every remaining bright element
            ═══════════════════════════════════════════════════════════════ */
 
         /* Stats panel */
-        body.dark #statsPanel                          { background:var(--dm-panel) !important; color:var(--dm-text) !important; }
-        body.dark #statsPanel thead th                 { background:#2c2c3a !important; color:var(--dm-text) !important; }
-        body.dark #statsPanel tbody tr                 { background:var(--dm-row2) !important; color:var(--dm-text) !important; }
+        body.dark #statsPanel { background:var(--dm-panel) !important; color:var(--dm-text) !important; }
+        body.dark #statsPanel thead th { background:#2c2c3a !important; color:var(--dm-text) !important; }
+        body.dark #statsPanel tbody tr { background:var(--dm-row2) !important; color:var(--dm-text) !important; }
         body.dark #statsPanel tbody tr:nth-child(even) { background:var(--dm-card) !important; }
-        body.dark #statsPanel td                       { color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+        body.dark #statsPanel td { color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
         /* Sticky column */
-        body.dark .sticky-col                          { background:var(--dm-panel) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+        body.dark .sticky-col { background:var(--dm-panel) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
         /* Mobile header */
-        body.dark .mob-header                          { background:#1c1c2e !important; }
+        body.dark .mob-header { background:#1c1c2e !important; }
         /* Select / bulk bar */
-        body.dark #selectBar, body.dark #bulkBar       { background:#1c1c2e !important; border-color:var(--dm-border) !important; color:var(--dm-text) !important; }
+        body.dark #selectBar, body.dark #bulkBar { background:#1c1c2e !important; border-color:var(--dm-border) !important; color:var(--dm-text) !important; }
         /* LSS worker list */
-        body.dark #lssWorkerList                       { background:var(--dm-card) !important; border-color:var(--dm-border) !important; color:var(--dm-text) !important; }
-        body.dark #lssWorkerList label                 { color:var(--dm-text) !important; }
+        body.dark #lssWorkerList label { color:var(--dm-text) !important; }
         /* CUS overlap info */
-        body.dark #cusOverlapInfo                      { background:var(--dm-card) !important; color:var(--dm-text) !important; }
         /* Login tab description */
-        body.dark #loginTabDesc                        { background:var(--dm-card) !important; color:var(--dm-muted) !important; }
+        body.dark #loginTabDesc { background:var(--dm-card) !important; color:var(--dm-muted) !important; }
         /* Wizard hints / errors */
-        body.dark .spW-hint  { background:#1a2c1a !important; color:#9fe89f !important; border-color:#2a5a2a !important; }
-        body.dark .spW-err   { background:#2e0d0d !important; color:#ff8080 !important; }
+        body.dark .spW-hint { background:#1a2c1a !important; color:#9fe89f !important; border-color:#2a5a2a !important; }
+        body.dark .spW-err { background:#2e0d0d !important; color:#ff8080 !important; }
         body.dark .spW-label { color:var(--dm-text) !important; }
         body.dark .spW-input, body.dark .spL-input { background:var(--dm-card) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
         body.dark .spW-btn.ghost { background:#2c2c3a !important; color:var(--dm-text) !important; }
-        body.dark .spL-err   { color:#ff8080 !important; }
+        body.dark .spL-err { color:#ff8080 !important; }
         /* Green inline info box */
         body.dark div[style*="background:#f0faf0"] { background:#0a1e0a !important; border-color:#2a5a2a !important; color:#9fe89f !important; }
         /* Min-staff alert */
-        body.dark .min-staff-alert  { background-color:#7a0000 !important; color:#ffb3b3 !important; }
+        body.dark .min-staff-alert { background-color:#7a0000 !important; color:#ffb3b3 !important; }
         /* Consecutive warning */
         body.dark .consecutive-warning { background-color:#2a1200 !important; color:#ffb347 !important; }
         /* Locked inputs */
         body.dark .app-locked .role-targets-panel input,
         body.dark .app-locked .role-targets-panel select { background:#1a1a1e !important; color:#555 !important; border-color:transparent !important; }
         /* Status chips */
-        body.dark .chip-ok   { background:#0a2010 !important; color:#5bda5b !important; }
+        body.dark .chip-ok { background:#0a2010 !important; color:#5bda5b !important; }
         body.dark .chip-warn { background:#201800 !important; color:#ffc94a !important; }
-        body.dark .chip-off  { background:#232325 !important; color:var(--dm-muted) !important; }
+        body.dark .chip-off { background:#232325 !important; color:var(--dm-muted) !important; }
         /* Diff modal */
-        body.dark #diffContent          { background:var(--dm-panel) !important; color:var(--dm-text) !important; }
-        body.dark #diffContent td       { background:var(--dm-row2) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+        body.dark #diffContent { background:var(--dm-panel) !important; color:var(--dm-text) !important; }
+        body.dark #diffContent td { background:var(--dm-row2) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
         body.dark #diffContent thead th { background:#2c2c3a !important; color:var(--dm-text) !important; }
         /* Table head and foot */
         body.dark #tableFoot th, body.dark #tableFoot td { background:var(--dm-panel) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
@@ -364,7 +361,7 @@
         body.dark .edit-only.admin-only[style*="background:#fff8e1"] { background:#201800 !important; border-color:#4a3800 !important; color:var(--dm-text) !important; }
         body.dark span[style*="background:#ffe599"] { background:#3d2e00 !important; color:#ffc94a !important; }
         body.dark #panelLegend li span[style*="background"] { opacity:0.75; }
-        body.dark .vl-swatch { opacity:0.8; border-color:rgba(255,255,255,0.25) !important; }
+
         body.dark #roleBadge.viewer { background:#2c1a1a !important; color:#ff6b6b !important; }
         body.dark div[style*="background:#fffbe6"],
         body.dark div[style*="background:#fff8e1"] { background:#201800 !important; border-color:#4a3800 !important; color:var(--dm-text) !important; }
@@ -380,12 +377,11 @@
         body.dark #limitsPanel small, body.dark .limits-box small { color:var(--dm-muted) !important; }
 
         /* ── Dark mode: Field Guide ── */
-        body.dark #fieldGuideBox {
             background:var(--dm-panel) !important; color:var(--dm-text) !important;
             border-color:var(--dm-border) !important; }
-        body.dark #fieldGuideBox strong  { color:var(--dm-text) !important; }
-        body.dark #fieldGuideBox em      { color:var(--dm-muted) !important; }
-        body.dark #fieldGuideBox small   { color:var(--dm-muted) !important; }
+        body.dark #fieldGuideBox strong { color:var(--dm-text) !important; }
+        body.dark #fieldGuideBox em { color:var(--dm-muted) !important; }
+        body.dark #fieldGuideBox small { color:var(--dm-muted) !important; }
         /* Coloured info boxes inside fieldGuideBox */
         body.dark #fieldGuideBox div[style*="background:#f3e5ff"],
         body.dark #fieldGuideBox div[style*="background:#eaf0fb"],
@@ -396,24 +392,23 @@
             color:var(--dm-text) !important; }
         body.dark #fieldGuideBox div[style*="border-left"] strong[style*="color"] { color:var(--dm-accent) !important; }
 
-        body.dark #personalModal h2                { color:var(--dm-accent) !important; }
-        body.dark #aiModal .modal-content > p      { background:#232325 !important; border-color:var(--dm-border) !important; color:var(--dm-muted) !important; }
+        body.dark #personalModal h2 { color:var(--dm-accent) !important; }
+        body.dark #aiModal .modal-content > p { background:#232325 !important; border-color:var(--dm-border) !important; color:var(--dm-muted) !important; }
         body.dark #aiModal .modal-content > p strong { color:var(--dm-text) !important; }
         body.dark #shiftLegend {
             background:var(--dm-panel) !important; border-color:var(--dm-border) !important;
             color:var(--dm-text) !important; }
-        body.dark #shiftLegend h4  { color:var(--dm-text) !important; }
-        body.dark #shiftLegend hr  { border-color:var(--dm-border) !important; }
-        body.dark .leg-item        { color:var(--dm-text) !important; }
-        body.dark .leg-item small  { color:var(--dm-muted) !important; }
+        body.dark #shiftLegend h4 { color:var(--dm-text) !important; }
+        body.dark #shiftLegend hr { border-color:var(--dm-border) !important; }
+        body.dark .leg-item { color:var(--dm-text) !important; }
+        body.dark .leg-item small { color:var(--dm-muted) !important; }
         /* Keep swatches visible against dark bg */
-        body.dark .leg-swatch      { border-color:rgba(255,255,255,0.25) !important; opacity:0.88; }
+        body.dark .leg-swatch { border-color:rgba(255,255,255,0.25) !important; opacity:0.88; }
 
         /* ── Dark mode: Viewer legend bar chips ── */
-        body.dark #viewerLegendBar  { background:var(--dm-panel) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
-        body.dark .vl-chip          { color:var(--dm-text) !important; }
-        body.dark .vl-chip strong   { color:var(--dm-text) !important; }
-        body.dark .vl-swatch        { border-color:rgba(255,255,255,0.2) !important; opacity:0.85; }
+        body.dark .vl-chip { color:var(--dm-text) !important; }
+        body.dark .vl-chip strong { color:var(--dm-text) !important; }
+        body.dark .vl-swatch { border-color:rgba(255,255,255,0.2) !important; opacity:0.85; }
 
         /* ── Dark mode: rowImmo / row22h / inline light info boxes in panels ── */
         body.dark #rowImmo,
@@ -424,10 +419,9 @@
         body.dark #rowImmo select, body.dark #row22h select {
             background:var(--dm-panel) !important; color:var(--dm-text) !important;
             border-color:var(--dm-border) !important; }
-        body.dark #immoRatioLabel  { color:var(--dm-accent) !important; }
+        body.dark #immoRatioLabel { color:var(--dm-accent) !important; }
 
         /* ── Dark mode: details / summary (Summer Schedule etc.) ── */
-        body.dark details > summary {
             background:var(--dm-card) !important; color:var(--dm-accent) !important;
             border-color:var(--dm-border) !important; }
         body.dark details[open] > div,
@@ -435,7 +429,7 @@
             background:var(--dm-panel) !important; border-color:var(--dm-border) !important;
             color:var(--dm-text) !important; }
         body.dark details label,
-        body.dark details small    { color:var(--dm-text) !important; }
+        body.dark details small { color:var(--dm-text) !important; }
         body.dark details select, body.dark details input[type="range"] {
             background:var(--dm-card) !important; color:var(--dm-text) !important;
             border-color:var(--dm-border) !important; }
@@ -444,11 +438,11 @@
         body.dark .panel small,
         body.dark .panel p,
         body.dark .spW-card small,
-        body.dark .spL-card small  { color:var(--dm-muted) !important; }
-        body.dark .panel label     { color:var(--dm-text) !important; }
-        body.dark .warning        { background-color:#3a0a0a !important; color:#ff8080 !important; }
+        body.dark .spL-card small { color:var(--dm-muted) !important; }
+        body.dark .panel label { color:var(--dm-text) !important; }
+        body.dark .warning { background-color:#3a0a0a !important; color:#ff8080 !important; }
         body.dark .warning-yellow { background-color:#2a1e00 !important; color:#ffc94a !important; }
-        body.dark .optimal        { background-color:#0a2a0a !important; color:#5bda5b !important; }
+        body.dark .optimal { background-color:#0a2a0a !important; color:#5bda5b !important; }
 
         /* ── Dark Mode: inline-styled helper boxes (reached by JS remapper;
               these rules cover the rare cases where remapper hasn't run yet) ── */
@@ -462,8 +456,8 @@
             background:var(--dm-row2) !important; border-color:var(--dm-border) !important;
             color:var(--dm-text) !important; }
         body.dark #shiftLegend h4, body.dark #shiftLegend .leg-item { color:var(--dm-text) !important; }
-        body.dark #cusOverlapInfo  { background:var(--dm-card) !important; color:var(--dm-text) !important; }
-        body.dark #lssWorkerList   { border-color:var(--dm-border) !important; background:var(--dm-row2) !important; }
+        body.dark #cusOverlapInfo { background:var(--dm-card) !important; color:var(--dm-text) !important; }
+        body.dark #lssWorkerList { border-color:var(--dm-border) !important; background:var(--dm-row2) !important; }
         /* spStatusBar: base fallback — JS remapper gives it semantic tints */
         body.dark #spStatusBar, body.dark #azureStatusBar { filter:brightness(0.92); }
         /* setupPopup inner card */
@@ -477,10 +471,7 @@
         body.dark #syncTabGH, body.dark #syncTabAZ { color:var(--dm-text) !important; background:none !important; }
 
 
-        #darkModeBtn { position:fixed; top:10px; right:120px; z-index:500; padding:5px 10px;
-            font-size:16px; border:none; border-radius:20px; cursor:pointer;
-            box-shadow:0 2px 6px rgba(0,0,0,0.25); transition:background 0.2s;
-            background:#34495e; color:white; font-weight:bold; }
+
         #darkModeBtn:hover { background:#2c3e50; }
         @media (max-width: 768px) { #darkModeBtn { display:none !important; } }
 
@@ -533,7 +524,7 @@
         /* ── Viewer mode — show only essential info ── */
         .app-viewer #panelSetup,
         .app-viewer #panelWorkers,
-        .app-viewer #panelLegend   { display:none !important; }
+        .app-viewer #panelLegend { display:none !important; }
 
         /* Hide non-essential toolbar items */
         .app-viewer #statsPanel,
@@ -550,13 +541,13 @@
         .app-viewer #redoBtn,
         .app-viewer #syncStatusBadgeBar,
         .app-viewer #spStatusBar,
-        .app-viewer #statsToggleRow  { display:none !important; }
+        .app-viewer #statsToggleRow { display:none !important; }
 
         /* Viewer essentials — always visible */
-        .app-viewer #btnPersonal    { display:block !important; }
-        .app-viewer #btnSPSync      { display:block !important; }
-        .app-viewer #selectModeBtn  { display:block !important; }
-        .app-viewer #quickSyncRow   { display:flex  !important; }
+        .app-viewer #btnPersonal { display:block !important; }
+        .app-viewer #btnSPSync { display:block !important; }
+        .app-viewer #selectModeBtn { display:block !important; }
+        .app-viewer #quickSyncRow { display:flex  !important; }
 
         /* Refresh: hide the shared Help/Refresh container, show Refresh as standalone full-width */
         .app-viewer #helpRefreshRow { display:block !important; overflow:visible !important; }
@@ -575,7 +566,7 @@
             flex-shrink:0;
         }
         .app-viewer #viewerCtrlPanel { display:flex !important; }
-        body.dark #viewerCtrlPanel   { background:var(--dm-panel); color:var(--dm-text); border:1px solid var(--dm-border); }
+        body.dark #viewerCtrlPanel { background:var(--dm-panel); color:var(--dm-text); border:1px solid var(--dm-border); }
 
         #viewerCtrlPanel h2 { font-size:14px; margin:0 0 10px 0; color:#333; }
         body.dark #viewerCtrlPanel h2 { color:var(--dm-text); }
@@ -603,9 +594,9 @@
             cursor:pointer; color:white; text-align:center;
         }
         .vcp-btn:hover { opacity:.88; }
-        .vcp-pull   { background:#0969da; }
-        .vcp-push   { background:#1a7f37; }
-        .vcp-gh     { background:#24292f; }
+        .vcp-pull { background:#0969da; }
+        .vcp-push { background:#1a7f37; }
+        .vcp-gh { background:#24292f; }
         .vcp-select { background:#34495e; }
         .vcp-select.active { background:#e67e22; }
         .vcp-export { background:#27ae60; }
@@ -814,6 +805,43 @@
                 <span id="immoTgtNote" style="font-size:10px; color:#555; display:block; margin-bottom:3px;">Warning-only — Auto-Fill never touches these. Use Jump-in workers to cover gaps.<br>Immo always 0 on weekends &amp; holidays.</span>
                 ImE: <input type="number" id="mstWdImE" class="tgt-panel-input" value="2" onchange="saveMasterTargets()">
                 ImL: <input type="number" id="mstWdImL" class="tgt-panel-input" value="1" onchange="saveMasterTargets()">
+                IR2-Late: <input type="number" id="mstWdIR2L" class="tgt-panel-input" value="0" min="0" title="How many of the late workers go to IR2 each weekday (0 = none)" onchange="saveMasterTargets()">
+            </div>
+            <div style="margin-top:6px; padding:6px; background:#fef5e7; border-radius:3px; border:1px solid #f5cba7;">
+                <strong id="roomStaffTitle" style="color:#9c640c;">Room Staffing Thresholds</strong>
+                <span id="roomStaffNote" style="font-size:10px; color:#555; display:block; margin-bottom:3px;">Warns when a room/shift's headcount falls outside Min–Max.</span>
+                <table style="font-size:11px; border-collapse:collapse;">
+                    <tr><th></th><th colspan="2">Early</th><th colspan="2">Mid</th><th colspan="2">Late</th></tr>
+                    <tr><th></th><th>Min</th><th>Max</th><th>Min</th><th>Max</th><th>Min</th><th>Max</th></tr>
+                    <tr>
+                        <td>IR2</td>
+                        <td><input type="number" id="rsIR2eMin" class="tgt-panel-input" value="2" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR2eMax" class="tgt-panel-input" value="3" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR2mMin" class="tgt-panel-input" value="2" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR2mMax" class="tgt-panel-input" value="3" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR2lMin" class="tgt-panel-input" value="2" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR2lMax" class="tgt-panel-input" value="3" onchange="saveRoomStaffing()"></td>
+                    </tr>
+                    <tr>
+                        <td>IR3</td>
+                        <td><input type="number" id="rsIR3eMin" class="tgt-panel-input" value="2" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR3eMax" class="tgt-panel-input" value="3" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR3mMin" class="tgt-panel-input" value="2" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR3mMax" class="tgt-panel-input" value="3" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR3lMin" class="tgt-panel-input" value="2" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR3lMax" class="tgt-panel-input" value="3" onchange="saveRoomStaffing()"></td>
+                    </tr>
+                    <tr>
+                        <td>IR4</td>
+                        <td><input type="number" id="rsIR4eMin" class="tgt-panel-input" value="2" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR4eMax" class="tgt-panel-input" value="3" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR4mMin" class="tgt-panel-input" value="2" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR4mMax" class="tgt-panel-input" value="3" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR4lMin" class="tgt-panel-input" value="2" onchange="saveRoomStaffing()"></td>
+                        <td><input type="number" id="rsIR4lMax" class="tgt-panel-input" value="3" onchange="saveRoomStaffing()"></td>
+                    </tr>
+                </table>
+                <div style="margin-top:4px;">Immo Total — Min: <input type="number" id="rsImmoMin" class="tgt-panel-input" value="2" onchange="saveRoomStaffing()"> Max: <input type="number" id="rsImmoMax" class="tgt-panel-input" value="4" onchange="saveRoomStaffing()"></div>
             </div>
         </div>
 
@@ -826,6 +854,11 @@
                 <input type="checkbox" id="toggle6H" onchange="toggle6HShift()">
                 <span id="toggle6Hlabel">Enable <span style="background:#d9ead3; padding:1px 5px; border-radius:3px;">6H</span> shifts (07:00–13:00)</span>
             </label>
+            <label style="display:flex; align-items:center; gap:7px; cursor:pointer; font-weight:bold; color:#555; margin-top:4px;">
+                <input type="checkbox" id="toggleMiddle" checked onchange="toggleMiddleShift()">
+                <span id="toggleMiddleLabel">Enable <span style="background:#f9cb9c; padding:1px 5px; border-radius:3px;">Middle</span> shift (8M, 11:30–20:00)</span>
+            </label>
+            <span id="toggleMiddleNote" style="display:block; margin-top:3px; color:#888; font-size:10px;">When off: Auto-Fill only assigns Early/Late. Existing 8M assignments stay editable.</span>
             <span id="toggleShiftNote" style="display:block; margin-top:3px; color:#888; font-size:10px;">When off: column hidden, Auto-Fill skips it.</span>
         </div>
 
@@ -880,6 +913,12 @@
             <button class="btn-select btn-half-l edit-only" id="selectModeBtn" onclick="toggleSelectMode()">Select Mode</button>
             <button id="btnClear" class="btn-clear btn-half-r edit-only admin-only" onclick="clearBoard()">Clear Month</button>
         </div>
+        <div style="clear:both; margin-top:10px; border-top:1px dashed #ccc; padding-top:8px;">
+            <button onclick="runSelfCheck()" title="Runs all smoke-test checks automatically — safe, no schedule data is modified"
+                style="width:100%; font-size:11px; font-weight:bold; padding:7px; border:none; border-radius:4px; cursor:pointer; background:#5d4037; color:white;">
+                🔬 Run Self-Check
+            </button>
+        </div>
     </div>
 
     <!-- ═══ PANEL 2: Add Worker ═══ -->
@@ -897,6 +936,7 @@
             <select id="workerSystem" style="width:60px;"><option value="New">New</option><option value="Old">Old</option></select>
             <select id="workerContract" onchange="toggle22hOptions()" style="width:52px;">
                 <option value="40">40h</option><option value="32">32h</option>
+                <option value="30">30h</option>
                 <option value="24">24h</option><option value="22">22h</option>
             </select>
             <select id="workerPref" style="width:102px;">
@@ -979,7 +1019,7 @@
                 <option value="4">Thursday</option>
                 <option value="5">Friday</option>
             </select>
-            <small style="color:#555; display:block; margin-top:4px;">
+            <small id="row22hNote" style="color:#555; display:block; margin-top:4px;">
                 Auto-Fill places 6H on this day every week, then adds 2 × 8H shifts to complete ~22h.
                 Holidays and vacation days on this day are respected automatically.
             </small>
@@ -1036,9 +1076,9 @@
             <li><span style="background:#a2c4c9; padding:1px 4px;">ImE</span> Immo 07:00–15:30</li>
             <li><span style="background:#76a5af; padding:1px 4px;">ImL</span> Immo 07:30–16:00</li>
             <li><span style="background:#ffe599; padding:1px 4px;">13H</span> 07:00–20:00 ⚙️</li>
-            <li><span style="background:#cfe2f3; padding:1px 4px;">8E</span>  07:00–15:30</li>
-            <li><span style="background:#f4cccc; padding:1px 4px;">8L</span>  14:00–22:30 🔴 IR2</li>
-            <li><span style="background:#f9cb9c; padding:1px 4px;">8M</span>  11:30–20:00 🟡 IR3/IR4</li>
+            <li><span style="background:#cfe2f3; padding:1px 4px;">E</span>  07:00–15:30</li>
+            <li><span style="background:#f4cccc; padding:1px 4px;">L</span>  14:00–22:30 🔴 IR2</li>
+            <li><span style="background:#f9cb9c; padding:1px 4px;">M</span>  11:30–20:00 🟡 IR3/IR4</li>
             <li><span style="background:#d9ead3; padding:1px 4px;">6H</span>  07:00–13:00 ★</li>
             <li><span style="background:#fffde7; padding:1px 4px;">Offc</span> Office</li>
             <li><span style="background:#9fc5e8; padding:1px 4px;">FB</span>   Fortbildung</li>
@@ -1062,7 +1102,7 @@
             <strong>Late / Spät</strong> — workers on 8L or 13H assigned to that room.<br>
             <em>Assign a room by choosing e.g. <code>8E-IR2</code> from the shift dropdown. Names fill automatically in the export.</em>
         </div>
-        <p style="font-size:10px; margin:4px 0; color:#555;">★ 6H = fixed weekly short shift for 22h workers — day is chosen per worker when adding them</p>
+        <p style="font-size:10px; margin:4px 0; color:#555;">★ 6H = fixed weekly short shift for 22h/30h workers — day is chosen per worker when adding them</p>
         <p style="font-size:10px; margin:2px 0; color:#6c3483;">★ CUS (Custom Hours) — if the shift spans both early &amp; late (e.g. 07:00–16:00), it is counted in <em>both</em> 8E and 8L buckets and marked with ★ in the cell.</p>
         <div style="margin-top:8px; padding:10px; background:#fffbcc; border:1px solid #e1d670; border-radius:4px;">
             <p style="font-size:12px; margin:0 0 5px 0;">
@@ -1119,23 +1159,23 @@
         <option value="-">- (Clear)</option>
         <optgroup label="Immo"><option value="ImE">ImE</option><option value="ImL">ImL</option></optgroup>
         <optgroup label="Shifts">
-            <option value="13H">13H</option><option value="8E">8E</option>
-            <option value="8L">8L</option><option value="8M">8M</option><option value="6H">6H</option>
+            <option value="13H">13H</option><option value="8E">E</option>
+            <option value="8L">L</option><option value="8M">M</option><option value="6H">6H</option>
         </optgroup>
         <optgroup label="IR2">
-            <option value="8E-IR2">8E-IR2</option><option value="8M-IR2">8M-IR2</option>
-            <option value="8L-IR2">8L-IR2</option><option value="13H-IR2">13H-IR2</option>
+            <option value="8E-IR2">IR2 E</option><option value="8M-IR2">IR2 M</option>
+            <option value="8L-IR2">IR2 L</option><option value="13H-IR2">13H-IR2</option>
         </optgroup>
         <optgroup label="IR3">
-            <option value="8E-IR3">8E-IR3</option><option value="8M-IR3">8M-IR3</option>
-            <option value="8L-IR3">8L-IR3</option><option value="13H-IR3">13H-IR3</option>
+            <option value="8E-IR3">IR3 E</option><option value="8M-IR3">IR3 M</option>
+            <option value="8L-IR3">IR3 L</option><option value="13H-IR3">13H-IR3</option>
         </optgroup>
         <optgroup label="IR4">
-            <option value="8E-IR4">8E-IR4</option><option value="8M-IR4">8M-IR4</option>
-            <option value="8L-IR4">8L-IR4</option><option value="13H-IR4">13H-IR4</option>
+            <option value="8E-IR4">IR4 E</option><option value="8M-IR4">IR4 M</option>
+            <option value="8L-IR4">IR4 L</option><option value="13H-IR4">13H-IR4</option>
         </optgroup>
         <optgroup label="Immo-Room">
-            <option value="8E-Immo">8E-Immo</option><option value="8L-Immo">8L-Immo</option>
+            <option value="8E-Immo">Immo E</option><option value="8L-Immo">Immo L</option>
         </optgroup>
         <optgroup label="Special">
             <option value="OFF">OFF</option><option value="VAC">VAC</option><option value="SICK">SICK</option>
@@ -1163,6 +1203,7 @@
                 <div><label style="font-size:11px; display:block; margin-bottom:2px;">Contract</label>
                     <select id="editContract" onchange="editToggle22h()">
                         <option value="40">40h</option><option value="32">32h</option>
+                        <option value="30">30h</option>
                         <option value="24">24h</option><option value="22">22h</option>
                     </select></div>
                 <div><label style="font-size:11px; display:block; margin-bottom:2px;">Preference</label>
@@ -1200,6 +1241,7 @@
                     <option value="1">Monday</option><option value="2">Tuesday</option>
                     <option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option>
                 </select>
+                <small id="editRow22hNote" style="color:#555; display:block; margin-top:4px;">Auto-Fill places 6H on this day every week, then adds 2 × 8H shifts to complete ~22h.</small>
             </div>
 
             <div class="form-group">
@@ -1726,6 +1768,32 @@
     </div>
 </div>
 
+<!-- Self-Check Modal -->
+<div id="selfCheckModal" class="modal" style="z-index:2100;">
+    <div class="modal-content" style="max-width:520px;">
+        <span class="close-btn" onclick="$('selfCheckModal').style.display='none'">&times;</span>
+        <h2 style="color:#5d4037; margin-bottom:6px;">🔬 Self-Check Results</h2>
+        <div id="selfCheckProgress" style="font-size:12px; color:#888; margin-bottom:8px;"></div>
+        <div id="selfCheckResults" style="font-size:13px; line-height:2; max-height:420px; overflow-y:auto;"></div>
+        <div id="selfCheckSummary" style="margin-top:10px; font-weight:bold; font-size:14px; padding:8px; border-radius:4px; display:none;"></div>
+    </div>
+</div>
+<!-- Comment Panel Modal -->
+<div id="commentPanelModal" class="modal">
+    <div class="modal-content" style="max-width:420px;">
+        <span class="close-btn" onclick="closeCommentPanel()">&times;</span>
+        <h2 style="color:#1a5276;">💬 Comments — <span id="cmtPanelDateLabel"></span></h2>
+        <input type="hidden" id="cmtPanelDay">
+        <div id="cmtPanelList" style="max-height:260px; overflow-y:auto; margin:10px 0; font-size:13px;"></div>
+        <div style="border-top:1px solid #ddd; padding-top:10px; margin-top:6px;">
+            <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:3px;">Your name</label>
+            <input type="text" id="cmtPanelAuthor" style="width:100%; padding:6px; font-size:13px; border:1px solid #ccc; border-radius:4px; margin-bottom:8px; box-sizing:border-box;">
+            <label style="font-size:11px; font-weight:bold; display:block; margin-bottom:3px;">Add a comment</label>
+            <textarea id="cmtPanelText" rows="3" style="width:100%; padding:6px; font-size:13px; border:1px solid #ccc; border-radius:4px; resize:vertical; box-sizing:border-box;" placeholder="Type your note..."></textarea>
+            <button onclick="postDailyComment()" style="margin-top:8px; width:100%; background:#1a5276; color:white; padding:9px; font-size:13px; font-weight:bold; border:none; border-radius:4px; cursor:pointer;">➕ Add Comment</button>
+        </div>
+    </div>
+</div>
 <!-- Custom Hours Modal -->
 <div id="customHoursModal" class="modal">
     <div class="modal-content" style="max-width:430px;">
@@ -1752,9 +1820,18 @@ let workers      = [];
 let holidays     = [];
 let lssDays      = [];
 let dailyComments = [];
+let rtDuty = [];   // per-day RT duty: [{earlyDuty:'',mlDuty:'',ir4QA:''}]
 let dailyTargets  = [];
 let masterTargets = { wd8E:4, wd8M:2, wd8L:4, wd13:2, wd6:1, we8E:0, we8M:0, we8L:0, we13:0, we6:0,
-                      wdImE:2, wdImL:1 };
+                      wdImE:2, wdImL:1, wdIR2L:0 };  // wdIR2L = how many late workers go to IR2 per weekday
+// Per-room, per-shift staffing thresholds for the coverage warning column.
+// Defaults match the values that used to be hardcoded (2-3 per room/shift, 2-4 Immo total).
+let roomStaffing = {
+    IR2:  { e:{min:2,max:3}, m:{min:2,max:3}, l:{min:2,max:3} },
+    IR3:  { e:{min:2,max:3}, m:{min:2,max:3}, l:{min:2,max:3} },
+    IR4:  { e:{min:2,max:3}, m:{min:2,max:3}, l:{min:2,max:3} },
+    Immo: { min:2, max:4 }
+};
 let workerRoster = []; // master worker list that carries across months
 function workerMetaFromWorker(w) {
     return {
@@ -1801,6 +1878,7 @@ function saveWorkerRoster() {
 
 let use13H = false;  // toggled via "Enable 13H" checkbox in Setup panel
 let use6H  = false;  // toggled via "Enable 6H"  checkbox in Setup panel
+let useMiddle = true; // toggled via "Enable Middle Shift" checkbox — when off, auto-fill only assigns Early/Late
 let currentLang = 'en'; // 'en' or 'de'
 
 // GitHub sync config (stored separately in localStorage, not per-month)
@@ -1820,7 +1898,11 @@ const BAKED_CONFIG = {
 };
 // ──────────────────────────────────────────────────────────────────────────────
 
-// ── Data Encryption ──
+// ── Fairness constants ────────────────────────────────────────────────────
+const LATE_TARGET_PCT   = 0.40;  // target fraction of working days that should be late shifts
+const FAIR_BAND_MIN_PCT = 30;    // below this → ⚠ too few lates
+const FAIR_BAND_MAX_PCT = 50;    // above this → ⚠ too many lates
+// ─────────────────────────────────────────────────────────────────────────
 // All JSON files stored on GitHub are AES-encrypted with this shared password.
 // Everyone who can access the app needs to know it. Completely separate from
 // the admin/editor login passwords.
@@ -1966,7 +2048,7 @@ let undoStack = [];
 let redoStack = [];
 
 function snapshotState() {
-    return JSON.stringify({ workers: workers.map(w => ({ ...w, shifts: [...w.shifts], requests: [...w.requests] })), dailyComments: [...dailyComments] });
+    return JSON.stringify({ workers: workers.map(w => ({ ...w, shifts: [...w.shifts], requests: [...w.requests] })), dailyComments: [...dailyComments], rtDuty: rtDuty.map(function(x){return Object.assign({},x);}) });
 }
 
 function pushUndo() {
@@ -1990,6 +2072,7 @@ function applySnapshot(snap) {
         if (workers[i]) { workers[i].shifts = sw.shifts; workers[i].requests = sw.requests; }
     });
     dailyComments = s.dailyComments;
+    rtDuty = (s.rtDuty||[]).map(function(x){return Object.assign({},x);});
 }
 
 function undo() {
@@ -2013,7 +2096,7 @@ function redo() {
 const shiftHours = {
     "-":0,"13H":13,"8E":8,"8L":8,"8M":8,"6H":6,"OFF":0,"VAC":8,"SICK":8,"FB":8,"PF":8,
     "DF":0,"Urlaub IR":8,"Urlaub-ZA":8,"U-Immo":8,"LSS":8,"Offc":8,
-    "RB1":0,"RB2":0,"ImE":8,"ImL":8.5,"8H-ANY":8,"8L-ANY":8
+    "RB1":0,"RB2":0,"ImE":8,"ImL":8,"8H-ANY":8,"8L-ANY":8
 };
 const workShifts    = ["13H","8E","8L","8M","6H","FB","LSS","Offc","ImE","ImL","CUS"];
 const morningShifts = ["13H","8E","6H","Offc","FB","ImE","ImL"];
@@ -2022,6 +2105,44 @@ const dayNames      = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 // ─────────────────────────────────────────────────────────
 //  BUG-FIX #1 — getBaseShift: 'U-Immo'.split('-')[0] = 'U'
 // ─────────────────────────────────────────────────────────
+// ── Multi-author daily comments ──
+// New format: dailyComments[d] = [{author, text, timestamp}, ...]
+// Legacy format: dailyComments[d] = "some string" (one comment, no attribution)
+// migrateDailyComments() normalizes any saved/remote data into the new format,
+// wrapping legacy strings as a single anonymous-author entry so nothing is lost.
+function migrateDailyComments(arr) {
+    return (arr || []).map(c => {
+        if (Array.isArray(c)) return c;
+        if (typeof c === 'string' && c.trim()) return [{ author: '(legacy)', text: c, timestamp: null }];
+        return [];
+    });
+}
+// Multi-author comments never overwrite each other — merging two days' comment
+// lists is just a union, deduped by (author, timestamp, text), sorted chronologically.
+function unionComments(a, b) {
+    const seen = new Set();
+    const result = [];
+    [...(a||[]), ...(b||[])].forEach(c => {
+        const key = `${c.author}|${c.timestamp}|${c.text}`;
+        if (!seen.has(key)) { seen.add(key); result.push(c); }
+    });
+    result.sort((x, y) => (x.timestamp||0) - (y.timestamp||0));
+    return result;
+}
+// Flattens a day's comment array into a single readable string, e.g. for Excel cells / plain-text exports.
+function formatCommentsText(d) {
+    const comments = Array.isArray(dailyComments[d]) ? dailyComments[d] : [];
+    return comments.map(c => `[${c.author||'?'}] ${c.text||''}`).join('\n');
+}
+function getCommentAuthorName() {
+    let name = (localStorage.getItem('spCommentAuthor') || '').trim();
+    if (!name) {
+        name = (prompt('Your name, for comment attribution (remembered on this device — you can change it anytime in the comment panel):') || '').trim();
+        if (name) localStorage.setItem('spCommentAuthor', name);
+    }
+    return name || 'Anonymous';
+}
+
 function getBaseShift(shift) {
     if (!shift || shift === '-') return '-';
     shift = stripPendingVacation(shift);
@@ -2029,6 +2150,22 @@ function getBaseShift(shift) {
     if (shift.startsWith('CUS')) return 'CUS';
     if (shift.includes('-IR') || shift.includes('-Immo')) return shift.split('-')[0];
     return shift;
+}
+
+// ── Display-only shift labels: 8E/8L/8M show as E/L/M everywhere in the UI. ──
+// Internal data values (worker.shifts, save/load, Excel export) are untouched —
+// this only affects what text is rendered for the person looking at the screen.
+const SHIFT_DISPLAY_LABELS = { '8E':'E', '8L':'L', '8M':'M' };
+function shiftDisplayLabel(s) { return SHIFT_DISPLAY_LABELS[s] || s; }
+// For room-assigned shifts: e.g. ('8E','IR2') -> "IR2 E"; ('13H','IR2') -> "IR2 13H" (unchanged, only 8E/8L/8M shorten)
+function roomShiftDisplayLabel(baseShift, room) { return `${room} ${shiftDisplayLabel(baseShift)}`; }
+// General case: handles plain shifts, room-assigned shifts, and the learning-marker '*' suffix.
+function fullShiftDisplayLabel(shift) {
+    if (!shift || shift === '-') return shift || '-';
+    const trainee = shift.endsWith('*') ? ' 🎓' : '';
+    const room = getRoomAssignment(shift);
+    const base = getBaseShift(shift);
+    return (room ? roomShiftDisplayLabel(base, room) : shiftDisplayLabel(base)) + trainee;
 }
 
 function getShiftHours(shift) {
@@ -2399,13 +2536,14 @@ function loadMonthData(monthKey) {
         lssDays  = saved.lssDays  || [];
 
     dailyComments = (saved.dailyComments && saved.dailyComments.length===daysInMonth)
-            ? saved.dailyComments
-            : Array(daysInMonth).fill('');
+            ? migrateDailyComments(saved.dailyComments)
+            : Array(daysInMonth).fill(null).map(() => []);
 
         // ── Initialize comment baseline from localStorage ──
         // cmtPull() will overwrite this with the true remote baseline.
         // This is the fallback so the merge logic always has something to diff against.
-        _baseComments = [...dailyComments];
+        _baseComments = dailyComments.map(c => [...c]);
+        rtDuty = (saved.rtDuty&&saved.rtDuty.length===daysInMonth) ? saved.rtDuty.map(function(x){return Object.assign({},x);}) : Array.from({length:daysInMonth},function(){return {earlyDuty:'',mlDuty:'',ir4QA:''};  });
 
         // ── Initialize shift baseline (used for viewer vacation-request merge) ──
         // Keyed by worker name → array of shift values for the current month.
@@ -2420,14 +2558,36 @@ function loadMonthData(monthKey) {
             // Backfill Immo targets if loading an older save that didn't have them
             if (masterTargets.wdImE === undefined) masterTargets.wdImE = 2;
             if (masterTargets.wdImL === undefined) masterTargets.wdImL = 1;
+            if (masterTargets.wdIR2L === undefined) masterTargets.wdIR2L = 0;
+            if (masterTargets.wdIR2L === undefined) masterTargets.wdIR2L = 0; // backfill older saves
             const map = { mstWd8E:'wd8E', mstWd8M:'wd8M', mstWd8L:'wd8L', mstWd13:'wd13', mstWd6:'wd6',
                           mstWe8E:'we8E', mstWe8M:'we8M', mstWe8L:'we8L', mstWe13:'we13', mstWe6:'we6',
-                          mstWdImE:'wdImE', mstWdImL:'wdImL' };
+                          mstWdImE:'wdImE', mstWdImL:'wdImL', mstWdIR2L:'wdIR2L' };
             Object.keys(map).forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = masterTargets[map[id]];
             });
         }
+
+        // Room staffing thresholds — backfill defaults for older saves that predate this feature
+        roomStaffing = saved.roomStaffing || roomStaffing;
+        ['IR2','IR3','IR4'].forEach(r => {
+            if (!roomStaffing[r]) roomStaffing[r] = { e:{min:2,max:3}, m:{min:2,max:3}, l:{min:2,max:3} };
+            ['e','m','l'].forEach(s => { if (!roomStaffing[r][s]) roomStaffing[r][s] = {min:2,max:3}; });
+        });
+        if (!roomStaffing.Immo) roomStaffing.Immo = { min:2, max:4 };
+        ['IR2','IR3','IR4'].forEach(r => {
+            ['e','m','l'].forEach(s => {
+                const minEl = document.getElementById(`rs${r}${s}Min`);
+                const maxEl = document.getElementById(`rs${r}${s}Max`);
+                if (minEl) minEl.value = roomStaffing[r][s].min;
+                if (maxEl) maxEl.value = roomStaffing[r][s].max;
+            });
+        });
+        const immoMinEl = document.getElementById('rsImmoMin');
+        const immoMaxEl = document.getElementById('rsImmoMax');
+        if (immoMinEl) immoMinEl.value = roomStaffing.Immo.min;
+        if (immoMaxEl) immoMaxEl.value = roomStaffing.Immo.max;
 
         dailyTargets = saved.dailyTargets || [];
         if (dailyTargets.length !== daysInMonth) initTargets();
@@ -2447,6 +2607,9 @@ function loadMonthData(monthKey) {
             if (chk6) chk6.checked = use6H;
             setOpacity(['wd6wrap','we6wrap'], use6H);
         }
+        useMiddle = (saved.useMiddle !== undefined) ? saved.useMiddle : true; // default true — older saves predate this toggle
+        const chkMid = $('toggleMiddle');
+        if (chkMid) chkMid.checked = useMiddle;
         if (saved.currentLang) {
             currentLang = saved.currentLang;
         }
@@ -2460,17 +2623,21 @@ function loadMonthData(monthKey) {
         });
         holidays     = getAustrianHolidays(currentYear, currentMonth);
         lssDays      = [];
-        dailyComments = Array(daysInMonth).fill('');
+        dailyComments = Array(daysInMonth).fill(null).map(() => []);
+    rtDuty = Array.from({length:daysInMonth},function(){return {earlyDuty:'',mlDuty:'',ir4QA:''};  });
+        rtDuty = Array.from({length:daysInMonth},function(){return {earlyDuty:'',mlDuty:'',ir4QA:''};  });
         // New month — reset baselines so merge logic starts clean
         _baseComments = [];
         _baseShifts[currentMonthKey] = {};
         initTargets();
         // New month with no saved data — apply defaults
-        use13H = false; use6H = false;
+        use13H = false; use6H = false; useMiddle = true;
         const chk13 = $('toggle13H');
         const chk6  = $('toggle6H');
+        const chkMid = $('toggleMiddle');
         if (chk13) chk13.checked = false;
         if (chk6)  chk6.checked  = false;
+        if (chkMid) chkMid.checked = true;
         ['wd13wrap','we13wrap'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.opacity = '0.35';
@@ -2494,7 +2661,8 @@ function initTargets() {
             t13:  isWE ? masterTargets.we13 : masterTargets.wd13,
             t6:   isWE ? masterTargets.we6  : masterTargets.wd6,
             tImE: isWE ? 0 : masterTargets.wdImE,   // Immo = weekdays only
-            tImL: isWE ? 0 : masterTargets.wdImL
+            tImL: isWE ? 0 : masterTargets.wdImL,
+            tIR2L: isWE ? 0 : (masterTargets.wdIR2L || 0)  // IR2 late slots = weekdays only
         });
     }
 }
@@ -2533,16 +2701,39 @@ function toggle6HShift() {
     saveData(); renderTable();
 }
 
+function toggleMiddleShift() {
+    if (!requireAdmin("Toggle Middle Shift")) { const chk=$("toggleMiddle"); if(chk) chk.checked=useMiddle; return; }
+    useMiddle = $('toggleMiddle').checked;
+    saveData(); renderTable();
+}
+
 function saveMasterTargets() {
     if (!requireEdit("Change Targets")) return;
     const map = { mstWd8E:'wd8E', mstWd8M:'wd8M', mstWd8L:'wd8L', mstWd13:'wd13', mstWd6:'wd6',
                   mstWe8E:'we8E', mstWe8M:'we8M', mstWe8L:'we8L', mstWe13:'we13', mstWe6:'we6',
-                  mstWdImE:'wdImE', mstWdImL:'wdImL' };
+                  mstWdImE:'wdImE', mstWdImL:'wdImL', mstWdIR2L:'wdIR2L' };
     Object.keys(map).forEach(id => masterTargets[map[id]] = parseInt(document.getElementById(id).value) || 0);
 
     if (confirm('Update the whole month with these new Default Targets? (Manual overrides will be reset)')) {
         initTargets(); saveData(); renderTable();
     } else { saveData(); }
+}
+
+function saveRoomStaffing() {
+    if (!requireEdit("Change Room Staffing")) return;
+    ['IR2','IR3','IR4'].forEach(r => {
+        ['e','m','l'].forEach(s => {
+            const minEl = document.getElementById(`rs${r}${s}Min`);
+            const maxEl = document.getElementById(`rs${r}${s}Max`);
+            if (minEl) roomStaffing[r][s].min = parseInt(minEl.value) || 0;
+            if (maxEl) roomStaffing[r][s].max = parseInt(maxEl.value) || 0;
+        });
+    });
+    const immoMinEl = document.getElementById('rsImmoMin');
+    const immoMaxEl = document.getElementById('rsImmoMax');
+    if (immoMinEl) roomStaffing.Immo.min = parseInt(immoMinEl.value) || 0;
+    if (immoMaxEl) roomStaffing.Immo.max = parseInt(immoMaxEl.value) || 0;
+    saveData(); renderTable();
 }
 
 function saveData() {
@@ -2551,8 +2742,8 @@ function saveData() {
     const minStaff  = parseInt($('minStaff').value)       || 0;
     saveWorkerRoster();
     allMonthsData[currentMonthKey] = {
-        workers, holidays, lssDays, dailyComments, dailyTargets,
-        masterTargets, monthValue:currentMonthKey, maxVac, maxConsec, minStaff, use13H, use6H, currentLang,
+        workers, holidays, lssDays, dailyComments, rtDuty, dailyTargets,
+        masterTargets, roomStaffing, monthValue:currentMonthKey, maxVac, maxConsec, minStaff, use13H, use6H, useMiddle, currentLang,
         monthReady: allMonthsData[currentMonthKey]?.monthReady || false
     };
     allMonthsData.__workerRoster = { workers: workerRoster };
@@ -2631,63 +2822,54 @@ function refreshBoard() { saveData(); scheduleRenderTable(); }
 // ─────────────────────────────────────────────────────────
 let darkMode = false;
 
+let _applyingDarkMode = false;
 function applyDarkMode(on) {
-    darkMode = on;
-    document.body.classList.toggle('dark', on);
-    const btn = $('darkModeBtn');
-    if (btn) btn.textContent = on ? '☀️' : '🌙';
-    try { localStorage.setItem('shiftPlannerDarkMode', on ? '1' : '0'); } catch(e) {}
+    if (_applyingDarkMode) return;          // re-entrance guard — prevents infinite recursion
+    _applyingDarkMode = true;
+    try {
+        darkMode = on;
+        document.body.classList.toggle('dark', on);
+        const btn = $('darkModeBtn');
+        if (btn) btn.textContent = on ? '☀️' : '🌙';
+        try { localStorage.setItem('shiftPlannerDarkMode', on ? '1' : '0'); } catch(e) {}
 
-    // ── JS direct-apply: bypass any cascade issues for the main panels ──
-    // CSS alone can fail when body-level <style> blocks or high-specificity
-    // inline styles override head-level rules. Direct JS is the reliable fallback.
-    const DM = {
-        panelBg  : on ? '#2c2c2e' : 'white',
-        panelBdr : on ? '#48484a' : '',
-        panelClr : on ? '#f2f2f7' : '',
-        cardBg   : on ? '#3a3a3c' : '',
-        inputBg  : on ? '#3a3a3c' : '',
-        inputClr : on ? '#f2f2f7' : '',
-    };
-
-    // Main layout panels
-    document.querySelectorAll('.panel').forEach(el => {
-        el.style.setProperty('background-color', DM.panelBg,  'important');
-        if (DM.panelBdr) el.style.setProperty('border-color', DM.panelBdr, 'important');
-        if (DM.panelClr) el.style.setProperty('color',        DM.panelClr, 'important');
-        else { el.style.removeProperty('color'); el.style.removeProperty('border-color'); }
-    });
-
-    // Field guide inner coloured info boxes — darken in dark mode
-    document.querySelectorAll('#fieldGuideBox div[style*="background"]').forEach(el => {
-        if (on) el.style.setProperty('filter', 'brightness(0.25) saturate(0.7)', 'important');
-        else    el.style.removeProperty('filter');
-    });
-
-    // Green "Fair balance" info box (inline background:#... green tones)
-    document.querySelectorAll('div[style*="background:#"], p[style*="background:#"]').forEach(el => {
-        const bg = (el.getAttribute('style')||'').match(/background(?:-color)?:\s*(#[0-9a-fA-F]{3,6})/);
-        if (!bg) return;
-        const hex = bg[1].toLowerCase();
-        if (on) {
-            // Only darken light backgrounds — skip already-dark or transparent
-            const r = parseInt(hex.slice(1,3)||'ff',16);
-            const g = parseInt(hex.slice(3,5)||'ff',16);
-            const b = parseInt(hex.slice(5,7)||'ff',16);
-            const brightness = (r*299 + g*587 + b*114) / 1000;
-            if (brightness > 140) { // it's a bright colour
-                el.style.setProperty('filter', 'brightness(0.22) saturate(0.6)', 'important');
-                el.style.setProperty('color',  '#f2f2f7', 'important');
+        // ── Step 1: panels first (before renderTable) so there is no white flash ──
+        const panelBg = on ? '#2c2c2e' : '';
+        document.querySelectorAll('.panel').forEach(el => {
+            if (on) {
+                el.style.setProperty('background-color', '#2c2c2e', 'important');
+                el.style.setProperty('border-color',     '#48484a', 'important');
+                el.style.setProperty('color',            '#f2f2f7', 'important');
+            } else {
+                el.style.removeProperty('background-color');
+                el.style.removeProperty('border-color');
+                el.style.removeProperty('color');
             }
-        } else {
-            el.style.removeProperty('filter');
-            el.style.removeProperty('color');
-        }
-    });
+        });
 
-    // Re-render the table so getColor() produces the correct palette for the new mode
-    if (typeof renderTable === 'function') renderTable();
-    dmApplyInlineOverrides(on);
+        // ── Step 2: re-render table — getColor() uses DARK_SHIFT_COLORS when darkMode=true ──
+        if (typeof renderTable === 'function') renderTable();
+
+        // ── Step 3: remap inline-styled modal / panel elements ──
+        dmApplyInlineOverrides(on);
+
+        // ── Step 4: darken any remaining bright inline-background boxes ──
+        document.querySelectorAll('div[style*="background:#"], p[style*="background:#"]').forEach(el => {
+            const bg = (el.getAttribute('style')||'').match(/background(?:-color)?:\s*(#[0-9a-fA-F]{3,6})/);
+            if (!bg) return;
+            const hex = bg[1].toLowerCase();
+            const r = parseInt(hex.slice(1,3)||'ff',16), g = parseInt(hex.slice(3,5)||'ff',16), b = parseInt(hex.slice(5,7)||'ff',16);
+            if (on && (r*299+g*587+b*114)/1000 > 140) {
+                el.style.setProperty('filter','brightness(0.22) saturate(0.6)','important');
+                el.style.setProperty('color','#f2f2f7','important');
+            } else {
+                el.style.removeProperty('filter');
+                el.style.removeProperty('color');
+            }
+        });
+    } finally {
+        _applyingDarkMode = false;          // always release guard even if error thrown
+    }
 }
 
 // ── Dark mode inline-style remapper ──────────────────────────────────────
@@ -3000,8 +3182,13 @@ function updateDailyTarget(dIndex, type, value) {
 //  Workers — CRUD
 // ─────────────────────────────────────────────────────────
 function toggle22hOptions() {
-    const is22 = $('workerContract').value === '22';
-    $('row22h').style.display = is22 ? 'block' : 'none';
+    const val = $('workerContract').value;
+    const show6HDay = val === '22' || val === '30';
+    $('row22h').style.display = show6HDay ? 'block' : 'none';
+    if (show6HDay) {
+        const n8 = val === '30' ? 3 : 2;
+        $('row22hNote').textContent = `Auto-Fill places 6H on this day every week, then adds ${n8} × 8H shifts to complete ~${val}h. Holidays and vacation days on this day are respected automatically.`;
+    }
 }
 
 function toggleImmoOptions() {
@@ -3030,7 +3217,7 @@ function addWorkerFromForm() {
     document.querySelectorAll('#fixedOffCheckboxes input:checked').forEach(cb => fixedOff.push(parseInt(cb.value)));
     const contract = $('workerContract').value;
     const immo     = $('workerImmo').value;
-    const fixed6HDay = contract === '22'
+    const fixed6HDay = (contract === '22' || contract === '30')
         ? parseInt($('worker6HDay').value)
         : null;
     const immoShiftPref = immo === 'Fixed'
@@ -3074,7 +3261,7 @@ function clearAllWorkers() {
     if (!confirm(`Remove all ${workers.length} workers and clear all shifts for this month?\nThis cannot be undone.`)) return;
     workers = [];
     lssDays = [];
-    dailyComments = Array(daysInMonth).fill('');
+    dailyComments = Array(daysInMonth).fill(null).map(() => []);
     saveData(); renderTable();
 }
 
@@ -3154,8 +3341,13 @@ function setSummerMonthCheckboxes(prefix, months) {
 }
 
 function editToggle22h() {
-    const is22 = $('editContract').value === '22';
-    $('editRow22h').style.display = is22 ? 'block' : 'none';
+    const val = $('editContract').value;
+    const show6HDay = val === '22' || val === '30';
+    $('editRow22h').style.display = show6HDay ? 'block' : 'none';
+    if (show6HDay) {
+        const n8 = val === '30' ? 3 : 2;
+        $('editRow22hNote').textContent = `Auto-Fill places 6H on this day every week, then adds ${n8} × 8H shifts to complete ~${val}h.`;
+    }
 }
 
 function editToggleImmo() {
@@ -3178,7 +3370,7 @@ function saveEditWorker() {
     const immoRatio = (immo === 'Fixed' && immoPref === 'Mixed')
         ? parseInt($('editImmoRatio').value)
         : null;
-    const fixed6HDay = contract === '22'
+    const fixed6HDay = (contract === '22' || contract === '30')
         ? parseInt($('edit6HDay').value)
         : null;
     const fixedOff = [];
@@ -3297,7 +3489,160 @@ function updateShift(wIndex, dIndex, value) {
 }
 
 function updateRequest(wIndex, dIndex, isChecked) { workers[wIndex].requests[dIndex]=isChecked; saveData(); scheduleRenderTable(); }
-function updateComment(dIndex, text) { dailyComments[dIndex]=text; saveData(); scheduleCommentSync(); }
+
+function toggleLearningMarker(wIndex, dIndex) {
+    if (!requireEdit("Toggle Learning Marker")) return;
+    const shift = workers[wIndex].shifts[dIndex];
+    if (!getRoomAssignment(shift)) return; // only applies to room-assigned shifts (IR2/IR3/IR4)
+    pushUndo();
+    workers[wIndex].shifts[dIndex] = shift.endsWith('*') ? shift.slice(0, -1) : shift + '*';
+    saveData();
+    scheduleRenderTable();
+}
+
+// ── Multi-author daily comments: cell preview + panel modal ──
+function renderCommentCell(d) {
+    const comments = Array.isArray(dailyComments[d]) ? dailyComments[d] : [];
+    const n = comments.length;
+    const preview = n === 0
+        ? '<span style="color:#aaa;">+ note</span>'
+        : `💬 ${n}<span style="color:#888;"> — ${escHtml(comments[n-1].author||'?')}</span>`;
+    return `<div class="comment-cell" onclick="openCommentPanel(${d})" title="${n} comment(s) — click to view/add" style="cursor:pointer; font-size:11px; padding:3px 5px; border-radius:3px; background:${n?(darkMode?'#3a3320':'#fff8e1'):'transparent'};">${preview}</div>`;
+}
+
+function openCommentPanel(d) {
+    $('cmtPanelDay').value = d;
+    const dateObj = new Date(currentYear, currentMonth-1, d+1);
+    $('cmtPanelDateLabel').textContent = dateObj.toLocaleDateString(undefined, {weekday:'short', day:'numeric', month:'short'});
+    $('cmtPanelAuthor').value = localStorage.getItem('spCommentAuthor') || '';
+    $('cmtPanelText').value = '';
+    renderCommentPanelList(d);
+    $('commentPanelModal').style.display = 'block';
+}
+
+function closeCommentPanel() { $('commentPanelModal').style.display = 'none'; }
+
+function renderCommentPanelList(d) {
+    const comments = Array.isArray(dailyComments[d]) ? dailyComments[d] : [];
+    const list = $('cmtPanelList');
+    if (!list) return;
+    if (comments.length === 0) { list.innerHTML = '<div style="color:#999; font-style:italic;">No comments yet — be the first.</div>'; return; }
+    list.innerHTML = comments.map((c, i) => `
+        <div style="padding:7px; margin-bottom:6px; background:${darkMode?'#2a2a2a':'#f4f6f7'}; border-radius:4px; position:relative;">
+            <div style="font-weight:bold; font-size:11px; color:#1a5276;">${escHtml(c.author||'Anonymous')}
+                <span style="color:#999; font-weight:normal; font-size:10px;">${c.timestamp ? new Date(c.timestamp).toLocaleString() : ''}</span>
+            </div>
+            <div style="font-size:13px; margin-top:2px; white-space:pre-wrap;">${escHtml(c.text||'')}</div>
+            ${isEditMode ? `<button onclick="deleteDailyComment(${d},${i})" title="Delete comment" style="position:absolute; top:5px; right:5px; background:none; border:none; color:#c0392b; cursor:pointer; font-size:12px;">🗑️</button>` : ''}
+        </div>
+    `).join('');
+}
+
+function postDailyComment() {
+    if (!requireEdit('Add Comment')) return;
+    const d = parseInt($('cmtPanelDay').value);
+    const text = ($('cmtPanelText').value || '').trim();
+    if (!text) return;
+    let author = ($('cmtPanelAuthor').value || '').trim();
+    if (!author) author = 'Anonymous';
+    localStorage.setItem('spCommentAuthor', author);
+    if (!Array.isArray(dailyComments[d])) dailyComments[d] = [];
+    dailyComments[d].push({ author, text, timestamp: Date.now() });
+    $('cmtPanelText').value = '';
+    saveData();
+    renderCommentPanelList(d);
+    scheduleRenderTable();
+    scheduleCommentSync();
+}
+
+function deleteDailyComment(d, idx) {
+    if (!requireEdit('Delete Comment')) return;
+    if (!Array.isArray(dailyComments[d])) return;
+    if (!confirm('Delete this comment?')) return;
+    dailyComments[d].splice(idx, 1);
+    saveData();
+    renderCommentPanelList(d);
+    scheduleRenderTable();
+    scheduleCommentSync();
+}
+
+function updateRTDuty(d, type, name) {
+    if (!rtDuty[d]) rtDuty[d] = {earlyDuty:'', mlDuty:'', ir4QA:''};
+    rtDuty[d][type] = name;
+    saveData();
+    renderTable();
+}
+
+function openRTDutyPicker(d, type, shiftFilter) {
+    const eligible = workers.filter(function(w) {
+        const base = getBaseShift(w.shifts[d]);
+        const room = getRoomAssignment(w.shifts[d]);
+        if (shiftFilter.indexOf('IR4') >= 0) return room === 'IR4';
+        return shiftFilter.indexOf(base) >= 0;
+    }).map(function(w){ return w.name; });
+    const current = (rtDuty[d] && rtDuty[d][type]) || '';
+    const label = type==='earlyDuty' ? 'RT Early Duty' : type==='mlDuty' ? 'RT M/L Duty' : 'IR4 QA Duty';
+    const day = new Date(currentYear, currentMonth-1, d+1).toLocaleDateString('default',{weekday:'short',day:'numeric'});
+    const opts = [''].concat(eligible).map(function(n){
+        return '<option value="'+n+'"'+(n===current?' selected':'')+'>'+( n==='' ? '— clear —' : n)+'</option>';
+    }).join('');
+    document.body.insertAdjacentHTML('beforeend',
+        '<div id="rtDutyOverlay" style="position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;">'+
+        '<div style="background:white;border-radius:10px;padding:20px 24px;min-width:280px;box-shadow:0 8px 32px rgba(0,0,0,0.3);">'+
+        '<h3 style="margin:0 0 4px;font-size:15px;">'+label+'</h3>'+
+        '<p style="margin:0 0 12px;color:#888;font-size:12px;">'+day+'</p>'+
+        '<select id="rtDutySel" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;">'+opts+'</select>'+
+        '<div style="display:flex;gap:8px;margin-top:12px;">'+
+        '<button onclick="confirmRTDuty('+d+',\''+type+'\')" style="flex:1;background:#0969da;color:white;border:none;padding:8px;border-radius:6px;font-weight:bold;cursor:pointer;">✔ Confirm</button>'+
+        '<button onclick="document.getElementById(\'rtDutyOverlay\').remove()" style="flex:1;background:#eee;border:none;padding:8px;border-radius:6px;cursor:pointer;">Cancel</button>'+
+        '</div></div></div>');
+}
+
+function confirmRTDuty(d, type) {
+    const sel = document.getElementById('rtDutySel');
+    if (!sel) return;
+    const name = sel.value;
+    document.getElementById('rtDutyOverlay').remove();
+    updateRTDuty(d, type, name);
+}
+
+function autoAssignRTDuty() {
+    const cE={}, cML={}, cIR4={};
+    workers.forEach(function(w){ cE[w.name]=0; cML[w.name]=0; cIR4[w.name]=0; });
+    for (let d=0; d<daysInMonth; d++) {
+        const ex = rtDuty[d] || {};
+        if (ex.earlyDuty) cE[ex.earlyDuty]  = (cE[ex.earlyDuty]||0)+1;
+        if (ex.mlDuty)    cML[ex.mlDuty]     = (cML[ex.mlDuty]||0)+1;
+        if (ex.ir4QA)     cIR4[ex.ir4QA]     = (cIR4[ex.ir4QA]||0)+1;
+    }
+    function fairPick(candidates, counts) {
+        if (!candidates.length) return '';
+        const pool = candidates.map(function(n){ return {name:n, count:counts[n]||0}; });
+        pool.sort(function(a,b){ return a.count-b.count; });
+        const out = [];
+        let bi=0;
+        while (bi<pool.length) {
+            const bk=[pool[bi]]; let bj=bi+1;
+            while(bj<pool.length && pool[bj].count-pool[bi].count<=1) bk.push(pool[bj++]);
+            for(let k=bk.length-1;k>0;k--){const r=Math.floor(Math.random()*(k+1));const t=bk[k];bk[k]=bk[r];bk[r]=t;}
+            bk.forEach(function(x){out.push(x);}); bi=bj;
+        }
+        const chosen=out[0].name;
+        counts[chosen]=(counts[chosen]||0)+1;
+        return chosen;
+    }
+    for (let d=0; d<daysInMonth; d++) {
+        if (!rtDuty[d]) rtDuty[d]={earlyDuty:'',mlDuty:'',ir4QA:''};
+        const dow=new Date(currentYear,currentMonth-1,d+1).getDay();
+        if (dow===0||dow===6||isHoliday(d)) continue;
+        const earlyW = workers.filter(function(w){ return getBaseShift(w.shifts[d])==='8E'; }).map(function(w){return w.name;});
+        const mlW    = workers.filter(function(w){ return ['8M','8L'].indexOf(getBaseShift(w.shifts[d]))>=0; }).map(function(w){return w.name;});
+        const ir4W   = workers.filter(function(w){ return getRoomAssignment(w.shifts[d])==='IR4'; }).map(function(w){return w.name;});
+        rtDuty[d].earlyDuty = fairPick(earlyW, cE);
+        rtDuty[d].mlDuty    = fairPick(mlW,    cML);
+        rtDuty[d].ir4QA     = fairPick(ir4W,   cIR4);
+    }
+}
 
 function toggleHoliday(dIndex, el) {
     if (!requireEdit('Toggle Holiday')) {
@@ -3619,33 +3964,25 @@ function restoreData(input) {
 // ─────────────────────────────────────────────────────────
 function getDropdownOptions(currentShift) {
     const base=["-","13H","8E","8L","8M","6H","OFF","VAC","SICK","FB","PF","DF","Urlaub IR","Urlaub-ZA","U-Immo","LSS","Offc","RB1","RB2"]; const immo=["ImE","ImL"]; const rooms=["IR2","IR3","IR4","Immo"]; const rShifts=["13H","8E","8L","8M","6H"]; const currentBase=getBaseShift(currentShift); let html=`<option value="-" ${currentShift==='-'?'selected':''}>-</option>`;
-    if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${currentShift || '-'}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>Custom: ${ov.label}${ov.star?' (best)':''}</option>`; } const isPendingV = isPendingVacationShift(currentShift); if (isPendingV) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} (pending)</option>`; vacationTypes.forEach(s => { const sel = !isPendingV && stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${sel?'selected':''}>${s}</option>`; }); return html; }
+    // Learning-phase marker (trailing '*' on room-assigned shifts) is metadata only —
+    // strip it before matching against dropdown option values so the <select> still
+    // shows the right option as selected. The underlying cell value (with '*') is untouched.
+    const cmpShift = (currentShift && currentShift.endsWith('*')) ? currentShift.slice(0,-1) : currentShift;
+    if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${fullShiftDisplayLabel(currentShift)}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>Custom: ${ov.label}${ov.star?' (best)':''}</option>`; } const isPendingV = isPendingVacationShift(currentShift); if (isPendingV) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} (pending)</option>`; vacationTypes.forEach(s => { const sel = !isPendingV && stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${sel?'selected':''}>${s}</option>`; }); return html; }
     if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; }
     // ── FIX: for VAC-PENDING cells, only the pending option gets 'selected'. ──
     // Do NOT also mark the plain VAC option as selected — that caused the browser
     // to display VAC as the active selection, making an accidental click auto-approve.
     const isPending = isPendingVacationShift(currentShift);
     if (isPending) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ pending approval</option>`;
-    html += `<optgroup label="Immo Shifts">`; immo.forEach(s => html += `<option value="${s}" ${currentShift===s?'selected':''}>${s}</option>`); html += `</optgroup><optgroup label="Base Shifts &amp; Special">`; base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${(currentShift===s || (!isPending && stripPendingVacation(currentShift)===s))?'selected':''}>${s}</option>`; }); html += `</optgroup>`; rooms.forEach(room => { html += `<optgroup label="${room} Assigned">`; rShifts.forEach(s => { const v=`${s}-${room}`; html += `<option value="${v}" ${currentShift===v?'selected':''}>${v}</option>`; }); html += `</optgroup>`; }); return html;
+    html += `<optgroup label="Immo Shifts">`; immo.forEach(s => html += `<option value="${s}" ${cmpShift===s?'selected':''}>${s}</option>`); html += `</optgroup><optgroup label="Base Shifts &amp; Special">`; base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${(cmpShift===s || (!isPending && stripPendingVacation(cmpShift)===s))?'selected':''}>${shiftDisplayLabel(s)}</option>`; }); html += `</optgroup>`; rooms.forEach(room => { html += `<optgroup label="${room} Assigned">`; rShifts.forEach(s => { const v=`${s}-${room}`; html += `<option value="${v}" ${cmpShift===v?'selected':''}>${roomShiftDisplayLabel(s,room)}</option>`; }); html += `</optgroup>`; }); return html;
 }
 
 // ─────────────────────────────────────────────────────────
 //  Render Table
 // ─────────────────────────────────────────────────────────
 function renderTableFoot() {
-    const ftLabel = currentLang==='de' ? 'Ca. Wochenstunden:' : 'Approx. Weekly Hours:';
-    const wkLabel = currentLang==='de' ? '(Wo1|Wo2|Wo3|Wo4|Wo5)' : '(Wk1|Wk2|Wk3|Wk4|Wk5)';
-    const trailingCols = 18 + (use13H ? 1 : 0) + (use6H ? 1 : 0);
-
-    let footHTML = `<tr><th class="sticky-col" colspan="3" style="text-align:right; font-size:11px;">
-        ${ftLabel}<br><small>${wkLabel}</small></th>`;
-    workers.forEach(w => {
-        const wkHrs = [0,0,0,0,0];
-        w.shifts.forEach((s,i) => { wkHrs[Math.min(Math.floor(i/7),4)] += getShiftHours(s); });
-        footHTML += `<td style="font-size:10px; line-height:1.4;">
-            1:${wkHrs[0]}h<br>2:${wkHrs[1]}h<br>3:${wkHrs[2]}h<br>4:${wkHrs[3]}h<br>5:${wkHrs[4]}h</td>`;
-    });
-    footHTML += `<td colspan="${trailingCols}"></td></tr>`;
+    const trailingCols = 21 + (use13H ? 1 : 0) + (use6H ? 1 : 0); // +3 for RT duty columns
 
     const lateLabel = use13H ? '(8L, 8M, 13H)' : '(8L ≤22:30 | 8M ≤20:00)';
     let latesHTML = `<tr><th class="sticky-col" colspan="3" style="text-align:right; font-size:12px; color:#c0392b;">
@@ -3656,11 +3993,11 @@ function renderTableFoot() {
         const n13 = use13H ? w.shifts.filter(s => getBaseShift(s)==='13H').length : 0;
         const nIL = w.shifts.filter(s => getBaseShift(s)==='ImL').length;
         const total = nL + nM + n13 + nIL;
-        const detail = `<span title="8L(22:30): ${nL} | 8M(20:00): ${nM}${use13H?' | 13H: '+n13:''}${nIL?' | ImL: '+nIL:''}" style="cursor:help;">${total}<br><small style="font-size:9px; color:#e67e22;">${nL}L / ${nM}M${use13H&&n13?' / '+n13+'×13':''}`;
+        const detail = `<span title="L(22:30): ${nL} | M(20:00): ${nM}${use13H?' | 13H: '+n13:''}${nIL?' | ImL: '+nIL:''}" style="cursor:help;">${total}<br><small style="font-size:9px; color:#e67e22;">${nL}L / ${nM}M${use13H&&n13?' / '+n13+'×13':''}`;
         latesHTML += `<td style="font-size:13px; font-weight:bold; color:#c0392b; line-height:1.3;">${detail}</small></span></td>`;
     });
     latesHTML += `<td colspan="${trailingCols}"></td></tr>`;
-    $('tableFoot').innerHTML = footHTML + latesHTML;
+    $('tableFoot').innerHTML = latesHTML;
 }
 
 function renderTable() {
@@ -3689,7 +4026,7 @@ function renderTable() {
         }
         if (w.immo==='Jump') immoLbl = `<br><span style="color:#8e44ad; font-weight:bold;">[J. Immo]</span>`;
         let c22note = '';
-        if (w.contract==='22' && w.fixed6HDay != null) {
+        if ((w.contract==='22' || w.contract==='30') && w.fixed6HDay != null) {
             const dayLabel = ['Su','Mo','Tu','We','Th','Fr','Sa'][w.fixed6HDay] || 'Mo';
             c22note = `<br><span style="color:#27ae60; font-size:10px;">[${dayLabel}→6H]</span>`;
         }
@@ -3700,9 +4037,9 @@ function renderTable() {
     });
 
     headHTML += `
-        <th>8E<br><small>(Act/Tgt)</small></th>
-        <th>8M<br><small>(Act/Tgt)</small></th>
-        <th>8L<br><small>(Act/Tgt)</small></th>
+        <th>E<br><small>(Act/Tgt)</small></th>
+        <th>M<br><small>(Act/Tgt)</small></th>
+        <th>L<br><small>(Act/Tgt)</small></th>
         ${use13H ? `<th>13H<br><small>(Act/Tgt)</small></th>` : ''}
         ${use6H  ? `<th>6H<br><small>(Act/Tgt)</small></th>`  : ''}
         <th style="background:#dff0f8;">ImE<br><small>(Act/Tgt)</small></th>
@@ -3717,7 +4054,10 @@ function renderTable() {
         <th style="min-width:60px;">PF</th>
         <th style="min-width:60px;">DF</th>
         <th style="min-width:70px; color:#c0392b;">Krank</th>
-        <th>Daily Comments${cmtReady() ? ' <span title=\'Comment sync ON\' style=\'color:#27ae60; font-size:10px;\'>●</span>' : ' <span title=\'Comment sync not configured — see 🐙 GitHub Sync\' style=\'color:#aaa; font-size:10px;\'>○</span>'}</th></tr>`;
+        <th>Daily Comments${cmtReady() ? ' <span title=\'Comment sync ON\' style=\'color:#27ae60; font-size:10px;\'>●</span>' : ' <span title=\'Comment sync not configured — see 🐙 GitHub Sync\' style=\'color:#aaa; font-size:10px;\'>○</span>'}</th>
+        <th style="min-width:80px;background:#fff8e1;" title="RT Early Duty">🩺 RT Early<br><small style="color:#888;">Duty</small></th>
+        <th style="min-width:80px;background:#fff0e8;" title="RT M/L Duty">🩺 RT M/L<br><small style="color:#888;">Duty</small></th>
+        <th style="min-width:80px;background:#f0e8ff;" title="IR4 QA Duty">🔬 IR4 QA<br><small style="color:#888;">Duty</small></th></tr>`;
     $('tableHead').innerHTML = headHTML;
 
     // ── Body ──
@@ -3736,17 +4076,23 @@ function renderTable() {
         bodyHTML += `<tr class="${rowClass}" data-day="${d}">`;
         let rowWorkerCells = '';
 
-        let c8E=0,c8M=0,c8L=0,c13H=0,c6H=0,cImE=0,cImL=0,vCount=0,sickCount=0,workingCount=0,cFB=0,cPF=0,cDF=0;
+        let c8E=0,c8M=0,c8L=0,c13H=0,c6H=0,cImE=0,cImL=0,vCount=0,sickCount=0,workingCount=0,cFB=0,cPF=0,cDF=0,cUIR=0;
         const sickNames=[], vacNames=[], fbNames=[], pfNames=[], dfNames=[];
         const rooms = {
-            IR2:{e:[],m:[],l:[]}, IR3:{e:[],m:[],l:[]},
-            IR4:{e:[],m:[],l:[]}, Immo:{e:[],l:[],u:[],vac:[],sick:[]}
+            IR2:{e:[],m:[],l:[],eCount:0,mCount:0,lCount:0}, IR3:{e:[],m:[],l:[],eCount:0,mCount:0,lCount:0},
+            IR4:{e:[],m:[],l:[],eCount:0,mCount:0,lCount:0}, Immo:{e:[],l:[],u:[],vac:[],sick:[]}
         };
 
         workers.forEach((worker, wIndex) => {
             const shift    = worker.shifts[d];
             const baseShift = getBaseShift(shift);
             const bgColor  = getColor(shift);
+
+            // Learning-phase marker: room-assigned shifts can be flagged "still in training"
+            // (e.g. IR3*) — excluded from room headcount/coverage warnings & target counts,
+            // but still shown on the schedule.
+            const cellRoom   = getRoomAssignment(shift);
+            const isLearning = !!cellRoom && shift.endsWith('*');
 
             // Streak tracking (prev-month carry-over on day 0)
             if (d===0) {
@@ -3764,10 +4110,16 @@ function renderTable() {
             let prevBase = d>0
                 ? getBaseShift(worker.shifts[d-1])
                 : getBaseShift(getPrevMonthLastDays(worker.name,1)[0]);
-            const isRestViol = ['8L','8M'].includes(prevBase) && morningShifts.includes(baseShift);
+            const isRestViol = isRestViolation(prevBase, baseShift);
+
+            // Manual-override warning: current value differs from what auto-fill last assigned
+            const wasOverridden = worker.autoFillSnapshot
+                && worker.autoFillSnapshot[d] !== undefined
+                && worker.autoFillSnapshot[d] !== shift;
 
             // Counters
             if (['VAC','Urlaub IR','Urlaub-ZA','U-Immo'].includes(baseShift)) { vCount++; vacNames.push(worker.name); }
+            if (['VAC','Urlaub IR','Urlaub-ZA'].includes(baseShift)) cUIR++; // U-IR bucket: VAC+Urlaub IR+Urlaub-ZA combined, excludes U-Immo (matches the codebase's existing "U-IR" convention, e.g. the RT-duty room classification)
             if (baseShift==='SICK') { sickCount++; sickNames.push(worker.name); }
             if (baseShift==='FB') { cFB++; fbNames.push(worker.name); }
             if (baseShift==='PF') { cPF++; pfNames.push(worker.name); }
@@ -3791,21 +4143,21 @@ function renderTable() {
             const cusInfo  = baseShift === 'CUS' ? cusOverlap(shift) : null;
             const cusStar  = cusInfo && cusInfo.star ? ' <span title="Spans Early & Late — counted in both" style="color:#6c3483; font-weight:bold;">★</span>' : '';
             const cusLabel = cusInfo ? `<div style="font-size:9px; color:#6c3483; font-weight:bold; margin-top:1px;">${cusInfo.label}${cusInfo.star?' ★':''}</div>` : '';
-            const nameChip = `<span class="name-chip" style="background-color:${bgColor};">${escHtml(worker.name)}${reqStar}</span>`;
-            if (shift.includes('IR2') || getRoomAssignment(shift)==='IR2') {
-                if (['8E','6H','13H'].includes(baseShift)) rooms.IR2.e.push(nameChip);
-                if (['8M'].includes(baseShift))            rooms.IR2.m.push(nameChip);
-                if (['8L','13H'].includes(baseShift))      rooms.IR2.l.push(nameChip);
+            const nameChip = `<span class="name-chip" style="background-color:${bgColor};">${escHtml(worker.name)}${reqStar}${isLearning ? ' <small title="Still in training for '+cellRoom+'" style="opacity:0.8;">🎓</small>' : ''}</span>`;
+            if (cellRoom==='IR2') {
+                if (['8E','6H','13H'].includes(baseShift)) { rooms.IR2.e.push(nameChip); if (!isLearning) rooms.IR2.eCount++; }
+                if (['8M'].includes(baseShift))            { rooms.IR2.m.push(nameChip); if (!isLearning) rooms.IR2.mCount++; }
+                if (['8L','13H'].includes(baseShift))      { rooms.IR2.l.push(nameChip); if (!isLearning) rooms.IR2.lCount++; }
             }
-            if (shift.includes('IR3') || getRoomAssignment(shift)==='IR3') {
-                if (['8E','6H','13H'].includes(baseShift)) rooms.IR3.e.push(nameChip);
-                if (['8M'].includes(baseShift))            rooms.IR3.m.push(nameChip);
-                if (['8L','13H'].includes(baseShift))      rooms.IR3.l.push(nameChip);
+            if (cellRoom==='IR3') {
+                if (['8E','6H','13H'].includes(baseShift)) { rooms.IR3.e.push(nameChip); if (!isLearning) rooms.IR3.eCount++; }
+                if (['8M'].includes(baseShift))            { rooms.IR3.m.push(nameChip); if (!isLearning) rooms.IR3.mCount++; }
+                if (['8L','13H'].includes(baseShift))      { rooms.IR3.l.push(nameChip); if (!isLearning) rooms.IR3.lCount++; }
             }
-            if (shift.includes('IR4') || getRoomAssignment(shift)==='IR4') {
-                if (['8E','6H','13H'].includes(baseShift)) rooms.IR4.e.push(nameChip);
-                if (['8M'].includes(baseShift))            rooms.IR4.m.push(nameChip);
-                if (['8L','13H'].includes(baseShift))      rooms.IR4.l.push(nameChip);
+            if (cellRoom==='IR4') {
+                if (['8E','6H','13H'].includes(baseShift)) { rooms.IR4.e.push(nameChip); if (!isLearning) rooms.IR4.eCount++; }
+                if (['8M'].includes(baseShift))            { rooms.IR4.m.push(nameChip); if (!isLearning) rooms.IR4.mCount++; }
+                if (['8L','13H'].includes(baseShift))      { rooms.IR4.l.push(nameChip); if (!isLearning) rooms.IR4.lCount++; }
             }
             if (shift.includes('Immo')||['ImE','ImL','U-Immo'].includes(baseShift)) {
                 if (['8E','6H','13H','ImE'].includes(baseShift)) rooms.Immo.e.push(nameChip);
@@ -3832,17 +4184,28 @@ function renderTable() {
                 else if (isLSS) cellBg = darkMode ? '#0d1e0d' : '#e8f8e8';
             }
 
-            rowWorkerCells += `<td data-cell="${cellKey}" data-w="${wIndex}" class="${selClass}" onclick="handleCellClick(event,${wIndex},${d})" style="background-color:${cellBg};">
+            const overrideIcon = wasOverridden
+                ? `<span class="no-print" title="Manually changed — auto-fill assigned '${escHtml(worker.autoFillSnapshot[d])}'" style="cursor:help; font-size:10px;">✏️</span>`
+                : '';
+
+            // Learning-phase marker button (cellRoom/isLearning computed earlier, near bgColor)
+            const learningBtn = cellRoom
+                ? `<button onclick="toggleLearningMarker(${wIndex},${d})" title="${isLearning ? 'In training for ' + cellRoom + ' — click to mark as fully trained' : 'Mark as still learning ' + cellRoom + ' (excluded from coverage warnings)'}"
+                    style="padding:0px 3px; font-size:9px; background:${isLearning ? '#f39c12' : '#aaa'}; color:white; border:none; border-radius:2px; cursor:pointer; line-height:1.3;">🎓</button>`
+                : '';
+
+            rowWorkerCells += `<td data-cell="${cellKey}" data-w="${wIndex}" class="${selClass} ${wasOverridden ? 'auto-override' : ''}" onclick="handleCellClick(event,${wIndex},${d})" style="background-color:${cellBg};">
                 <select class="shift-select ${currentRole==='viewer' && viewerCanEditCell(shift) ? "viewer-vac-select" : ""} ${consecClass}" data-w="${wIndex}" data-d="${d}"
                     style="background-color:${cellBg}; ${textCol}"
                     onchange="updateShift(${wIndex},${d},this.value)">
                     ${getDropdownOptions(shift)}
-                </select>${cusLabel}
+                </select>${cusLabel}${overrideIcon}${isLearning ? '<span class="no-print" title="Still in training for '+cellRoom+'" style="font-size:10px;">🎓</span>' : ''}
                 <div style="margin-top:2px; font-size:10px; display:flex; align-items:center; gap:4px;" class="no-print">
                     <label title="Special Request"><input type="checkbox"
                         ${worker.requests[d]?'checked':''}
                         onchange="updateRequest(${wIndex},${d},this.checked)"> ${worker.requests[d]?'⭐':'💬'}</label>
                     <button onclick="openCustomHoursModal(${wIndex},${d})" title="Set custom hours" style="padding:0px 3px; font-size:9px; background:#6c3483; color:white; border:none; border-radius:2px; cursor:pointer; line-height:1.3;">⏰</button>
+                    ${learningBtn}
                 </div>
             </td>`;
         });
@@ -3887,14 +4250,27 @@ function renderTable() {
         let roomCols = '', warnings = [];
         ['IR2','IR3','IR4'].forEach(r => {
             const eL=rooms[r].e, mL=rooms[r].m, lL=rooms[r].l;
-            if (eL.length>0&&(eL.length<2||eL.length>3)) warnings.push(`${r} Early: ${eL.length}`);
-            if (mL.length>0&&(mL.length<2||mL.length>3)) warnings.push(`${r} Mid: ${mL.length}`);
-            if (lL.length>0&&(lL.length<2||lL.length>3)) warnings.push(`${r} Late: ${lL.length}`);
-            roomCols += `<td class="room-box"><strong>E:</strong> ${eL.join(' ')||'-'}<br><strong>M:</strong> ${mL.join(' ')||'-'}<br><strong>L:</strong> ${lL.join(' ')||'-'}</td>`;
+            const eN=rooms[r].eCount, mN=rooms[r].mCount, lN=rooms[r].lCount; // headcount excluding trainees
+            const rs = roomStaffing[r];
+            if (eN>0&&(eN<rs.e.min||eN>rs.e.max)) warnings.push(`${r} Early: ${eN}`);
+            if (mN>0&&(mN<rs.m.min||mN>rs.m.max)) warnings.push(`${r} Mid: ${mN}`);
+            if (lN>0&&(lN<rs.l.min||lN>rs.l.max)) warnings.push(`${r} Late: ${lN}`);
+            // Single-person-in-room red flag: exactly 1 (non-trainee) person alone in this room/shift
+            const soloStyle = 'background:#e74c3c; color:white; padding:0 3px; border-radius:2px;';
+            const eLine = eN===1 ? `<span style="${soloStyle}" title="Only 1 person in ${r} Early — no backup">E: ${eL.join(' ')}</span>` : `<strong>E:</strong> ${eL.join(' ')||'-'}`;
+            const mLine = mN===1 ? `<span style="${soloStyle}" title="Only 1 person in ${r} Mid — no backup">M: ${mL.join(' ')}</span>`   : `<strong>M:</strong> ${mL.join(' ')||'-'}`;
+            const lLine = lN===1 ? `<span style="${soloStyle}" title="Only 1 person in ${r} Late — no backup">L: ${lL.join(' ')}</span>`  : `<strong>L:</strong> ${lL.join(' ')||'-'}`;
+            roomCols += `<td class="room-box">${eLine}<br>${mLine}<br>${lLine}</td>`;
         });
         const totImmo = rooms.Immo.e.length + rooms.Immo.l.length;
-        if (totImmo>0&&(totImmo<2||totImmo>4)) warnings.push(`Immo Total: ${totImmo} staff`);
-        const uStr   = rooms.Immo.u.length>0 ? `<br><span style="color:#8e44ad;font-weight:bold;">U:</span> ${rooms.Immo.u.join(' ')}` : '';
+        if (totImmo>0&&(totImmo<roomStaffing.Immo.min||totImmo>roomStaffing.Immo.max)) warnings.push(`Immo Total: ${totImmo} staff`);
+        // U-Immo vacation rule, independent from U-IR (Feature #15):
+        // yellow when EITHER U-Immo count alone is >=2, OR U-IR count is >=4 AND U-Immo count is >=1
+        // (a high U-IR vacation load lowers the Immo threshold from 2 down to 1).
+        const immoVacFlag = rooms.Immo.u.length>=2 || (cUIR>=4 && rooms.Immo.u.length>=1);
+        const uStr = rooms.Immo.u.length>0
+            ? `<br><span style="${immoVacFlag?'background:#f9e79f; padding:0 3px; border-radius:2px;':''} color:#8e44ad;font-weight:bold;" title="${immoVacFlag?'U-Immo vacation load high'+(cUIR>=4?' (raised by high U-IR load: '+cUIR+')':''):''}">U:</span> ${rooms.Immo.u.join(' ')}`
+            : '';
         roomCols += `<td class="room-box"><strong>07:00:</strong> ${rooms.Immo.e.join(' ')||'-'}<br><strong>07:30:</strong> ${rooms.Immo.l.join(' ')||'-'}${uStr}</td>`;
 
         let warnHtml = warnings.length>0
@@ -3902,13 +4278,14 @@ function renderTable() {
             : `<span style="color:green; font-size:11px;">✔️ OK</span>`;
         if (isWE || isHol) warnHtml = '';
 
+        // Vacation-max color rule: U-IR + Sick + PF + DF + FB, minus 1.
+        // Yellow when that total reaches maxVac, red once it exceeds maxVac.
+        // (Replaces the old combined-vCount-vs-maxVac check and the hardcoded 5/6 totalAbsence check.)
         let vacClass = '';
-        const totalAbsence = vCount + cFB + cPF + cDF + sickCount;
-        if (totalAbsence >= 6) vacClass = 'warning';
-        else if (totalAbsence >= 5) vacClass = 'warning-yellow';
         if (maxVac>0) {
-            if (vCount>=maxVac)                    vacClass = 'warning';
-            else if (!vacClass && vCount===maxVac-1&&vCount>0)  vacClass = 'warning-yellow';
+            const absenceTotal = cUIR + sickCount + cPF + cDF + cFB - 1;
+            if (absenceTotal > maxVac) vacClass = 'warning';
+            else if (absenceTotal === maxVac) vacClass = 'warning-yellow';
         }
         const titleOrDash = arr => arr.length ? arr.join(', ') : '—';
 
@@ -3925,16 +4302,30 @@ function renderTable() {
             <td title="${titleOrDash(dfNames)}" style="font-weight:bold;">${cDF || '-'}</td>
             <td title="${titleOrDash(sickNames)}" style="font-weight:bold; color:${sickCount ? '#c0392b' : '#555'};">${sickCount || '-'}</td>
             <td style="vertical-align:middle;">
-                <input type="text" class="comment-input" data-day="${d}" placeholder="Type notes..."
-                    value="${(dailyComments[d]||'').replace(/"/g,'"')}"
-                    oninput="updateComment(${d},this.value)">
+                ${renderCommentCell(d)}
+            </td>
+            <td style="background:#fff8e1;text-align:center;vertical-align:middle;font-size:11px;min-width:80px;cursor:pointer;"
+                onclick="openRTDutyPicker(${d},'earlyDuty',['8E'])" title="Click to change RT Early Duty">
+                ${rtDuty[d]&&rtDuty[d].earlyDuty
+                    ?'<span style="background:#f39c12;color:white;padding:2px 5px;border-radius:8px;font-weight:bold;font-size:10px;">'+rtDuty[d].earlyDuty+'</span>'
+                    :'<span style="color:#ccc;">—</span>'}
+            </td>
+            <td style="background:#fff0e8;text-align:center;vertical-align:middle;font-size:11px;min-width:80px;cursor:pointer;"
+                onclick="openRTDutyPicker(${d},'mlDuty',['8M','8L'])" title="Click to change RT M/L Duty">
+                ${rtDuty[d]&&rtDuty[d].mlDuty
+                    ?'<span style="background:#e67e22;color:white;padding:2px 5px;border-radius:8px;font-weight:bold;font-size:10px;">'+rtDuty[d].mlDuty+'</span>'
+                    :'<span style="color:#ccc;">—</span>'}
+            </td>
+            <td style="background:#f0e8ff;text-align:center;vertical-align:middle;font-size:11px;min-width:80px;cursor:pointer;"
+                onclick="openRTDutyPicker(${d},'ir4QA',['IR4'])" title="Click to change IR4 QA Duty">
+                ${rtDuty[d]&&rtDuty[d].ir4QA
+                    ?'<span style="background:#8e44ad;color:white;padding:2px 5px;border-radius:8px;font-weight:bold;font-size:10px;">'+rtDuty[d].ir4QA+'</span>'
+                    :'<span style="color:#ccc;">—</span>'}
             </td></tr>`;
     }
     $('tableBody').innerHTML = bodyHTML;
 
-    // ── Footer: Weekly Hours ──
-    const ftLabel = currentLang==='de' ? 'Ca. Wochenstunden:' : 'Approx. Weekly Hours:';
-    const wkLabel = currentLang==='de' ? '(Wo1|Wo2|Wo3|Wo4|Wo5)' : '(Wk1|Wk2|Wk3|Wk4|Wk5)';
+    // ── Footer: Late Shifts totals ──
     renderTableFoot();
     // Re-apply worker filter if active
     const wf = $('workerFilter'); if (wf && wf.value) filterWorkers(wf.value);
@@ -3954,7 +4345,7 @@ function clearBoard() {
     if (!confirm('Clear all shifts for this month?')) return;
     pushUndo();
     workers.forEach(w => w.shifts = Array(daysInMonth).fill('-'));
-    lssDays=[]; dailyComments=Array(daysInMonth).fill('');
+    lssDays=[]; dailyComments=Array(daysInMonth).fill(null).map(() => []); rtDuty=Array.from({length:daysInMonth},function(){return {earlyDuty:'',mlDuty:'',ir4QA:''};  });
     saveData(); renderTable();
 }
 
@@ -4002,7 +4393,7 @@ function autoGenerate() {
             const inSummer = (w.summerMode && w.summerMode !== 'none') &&
                              (w.summerMonths || [5,6,7,8]).includes(currentMonth);
             if (inSummer) return false; // summer mode handles them in Step 4
-            return w.immo==='Fixed'||w.pref==='Early'||w.pref==='Late'||parseInt(w.contract)===22;
+            return w.immo==='Fixed'||w.pref==='Early'||w.pref==='Late'||[22,30].includes(parseInt(w.contract));
         })
         .sort(() => Math.random()-0.5);
 
@@ -4013,7 +4404,7 @@ function autoGenerate() {
             const inSummer = (w.summerMode && w.summerMode !== 'none') &&
                              (w.summerMonths || [5,6,7,8]).includes(currentMonth);
             if (inSummer) return true; // summer workers always go through Step 4
-            return w.immo!=='Fixed'&&w.pref==='Any'&&parseInt(w.contract)!==22;
+            return w.immo!=='Fixed'&&w.pref==='Any'&&![22,30].includes(parseInt(w.contract));
         });
 
     // Step 3: Fixed-pref workers — all weeks
@@ -4038,7 +4429,7 @@ function autoGenerate() {
                 for (let i=0;i<contractHrs/8;i++) wkPool.push('8E');
             } else if (worker.pref==='Late') {
                 for (let i=0;i<contractHrs/8;i++) wkPool.push('8L-ANY');
-            } else if (parseInt(worker.contract)===22) {
+            } else if ([22,30].includes(parseInt(worker.contract))) {
                 const sixDay = (worker.fixed6HDay != null) ? worker.fixed6HDay : 1;
                 if (use6H) {
                     for (let d2=startDay; d2<endDay; d2++) {
@@ -4047,7 +4438,8 @@ function autoGenerate() {
                             worker.shifts[d2] = '6H';
                     }
                 }
-                wkPool.push('8H-ANY','8H-ANY');
+                const n8 = parseInt(worker.contract)===30 ? 3 : 2; // 30h = 3×8H + 6H, 22h = 2×8H + 6H
+                for (let i=0;i<n8;i++) wkPool.push('8H-ANY');
             }
             placeShiftsGreedy(worker, wkPool, startDay, endDay);
         }
@@ -4088,7 +4480,7 @@ function autoGenerate() {
         // Effective working days = days that will actually be work shifts by month end.
         // VAC/SICK are excluded — a worker on 5 days VAC should still get 40% lates on their WORK days.
         const effectiveWork  = existing8L + existing8M + existingEarly + emptyWorkdays;
-        const targetTotalLate = Math.round(effectiveWork * 0.4);
+        const targetTotalLate = Math.round(effectiveWork * LATE_TARGET_PCT);
 
         // How many more lates are needed?
         const needLate = Math.max(0, targetTotalLate - existing8L - existing8M);
@@ -4397,6 +4789,90 @@ function autoGenerate() {
             delete w._weekTarget8L; delete w._weekTarget8M; delete w._weekLateQuota;
         });
 
+        // ── IR2 fair assignment ──────────────────────────────────────────
+        for (let d = 0; d < daysInMonth; d++) {
+            const dt = dailyTargets[d] || {};
+            const need = dt.tIR2L || 0;
+            if (!need) continue;
+            const dow = new Date(currentYear, currentMonth-1, d+1).getDay();
+            if (dow===0 || dow===6 || isHoliday(d)) continue;
+            const eligible = workers
+                .map((w, i) => ({ i, w }))
+                .filter(function(e){ return getBaseShift(e.w.shifts[d])==='8L' && !getRoomAssignment(e.w.shifts[d]); });
+            if (!eligible.length) continue;
+            eligible.forEach(function(e){ e.ir2Count = e.w.shifts.filter(function(s){ return getRoomAssignment(s)==='IR2'; }).length; });
+            eligible.sort(function(a,b){ return a.ir2Count-b.ir2Count; });
+            const shuffled = [];
+            let bi = 0;
+            while (bi < eligible.length) {
+                const bucket = [eligible[bi]];
+                let bj = bi+1;
+                while (bj < eligible.length && eligible[bj].ir2Count - eligible[bi].ir2Count <= 1) bucket.push(eligible[bj++]);
+                for (let k=bucket.length-1; k>0; k--) { const r=Math.floor(Math.random()*(k+1)); const t=bucket[k]; bucket[k]=bucket[r]; bucket[r]=t; }
+                bucket.forEach(function(e){ shuffled.push(e); });
+                bi = bj;
+            }
+            for (let k=0; k < Math.min(need, shuffled.length); k++) shuffled[k].w.shifts[d] = '8L-IR2';
+        }
+
+        // ── RT Duty fair assignment ──────────────────────────────────────
+        autoAssignRTDuty();
+        // ────────────────────────────────────────────────────────────────
+
+        // ── IR2 fair assignment ────────────────────────────────────────────
+        // For each weekday, find all workers who ended up with 8L (plain, no room suffix).
+        // Sort by how many IR2 assignments they already have this month (fewest first),
+        // shuffle within ±1 tie bands (same fairness approach as main auto-fill),
+        // then assign the first tIR2L workers to 8L-IR2.
+        // Workers who already have a room suffix are untouched.
+        for (let d = 0; d < daysInMonth; d++) {
+            const dt   = dailyTargets[d] || {};
+            const need = dt.tIR2L || 0;
+            if (!need) continue;
+            const dow  = new Date(currentYear, currentMonth-1, d+1).getDay();
+            if (dow===0 || dow===6 || isHoliday(d)) continue;  // weekdays only
+
+            // Eligible: workers who have plain 8L on this day (no existing room suffix)
+            const eligible = workers
+                .map((w, i) => ({ i, w }))
+                .filter(({ w }) => getBaseShift(w.shifts[d]) === '8L' && !getRoomAssignment(w.shifts[d]));
+
+            if (!eligible.length) continue;
+
+            // Count how many IR2 assignments each eligible worker already has this month
+            eligible.forEach(e => {
+                e.ir2Count = e.w.shifts.filter(s => getRoomAssignment(s) === 'IR2').length;
+            });
+
+            // Bucket sort: fewest IR2 first, Fisher-Yates shuffle within ±1 ties
+            eligible.sort((a, b) => a.ir2Count - b.ir2Count);
+            const shuffled = [];
+            let bi = 0;
+            while (bi < eligible.length) {
+                const bucket = [eligible[bi]];
+                let bj = bi + 1;
+                while (bj < eligible.length && eligible[bj].ir2Count - eligible[bi].ir2Count <= 1) {
+                    bucket.push(eligible[bj++]);
+                }
+                // Fisher-Yates shuffle within bucket
+                for (let k = bucket.length - 1; k > 0; k--) {
+                    const r = Math.floor(Math.random() * (k + 1));
+                    [bucket[k], bucket[r]] = [bucket[r], bucket[k]];
+                }
+                bucket.forEach(e => shuffled.push(e));
+                bi = bj;
+            }
+
+            // Assign IR2 to the first `need` workers from the shuffled list
+            for (let k = 0; k < Math.min(need, shuffled.length); k++) {
+                shuffled[k].w.shifts[d] = '8L-IR2';
+            }
+        }
+        // ──────────────────────────────────────────────────────────────────
+
+        // Snapshot what auto-fill assigned, so later manual edits can be flagged (override warning)
+        workers.forEach(worker => { worker.autoFillSnapshot = [...worker.shifts]; });
+
         saveData(); renderTable();
     } catch(e) {
         console.error('Auto-Fill error:', e);
@@ -4409,6 +4885,9 @@ function autoGenerate() {
 }
 
 function placeShiftsGreedy(worker, pool, startDay, endDay) {
+    // Middle-shift toggle: when off, literal 8M pool entries become 8L,
+    // and the dynamic ANY-resolution below never selects 8M either.
+    if (!useMiddle) pool = pool.map(s => s === '8M' ? '8L' : s);
     pool.sort((a,b) => (shiftHours[b]||0)-(shiftHours[a]||0));
 
     for (const s of pool) {
@@ -4425,7 +4904,7 @@ function placeShiftsGreedy(worker, pool, startDay, endDay) {
             let score = 0;
 
             if (s==='8H-ANY') {
-                const def8E=tgt8E-c8E, def8L=tgt8L-c8L, def8M=tgt8M-c8M;
+                const def8E=tgt8E-c8E, def8L=tgt8L-c8L, def8M=useMiddle ? (tgt8M-c8M) : -Infinity;
                 const maxDef = Math.max(def8E, def8L, def8M);
                 const wEarly  = worker.shifts.filter(x => morningShifts.includes(getBaseShift(x))).length;
                 const wLate8L = worker.shifts.filter(x => getBaseShift(x)==='8L').length;
@@ -4452,33 +4931,33 @@ function placeShiftsGreedy(worker, pool, startDay, endDay) {
                     }
                     score = 1000 + maxDef;
                 } else {
-                    // no deficit — balance this worker's 8L vs 8M
+                    // no deficit — balance this worker's 8L vs 8M (or just 8L if Middle shift is disabled)
                     if (wLate < wEarly) {
-                        actualShift = wLate8L <= wLate8M ? '8L' : '8M';
+                        actualShift = useMiddle ? (wLate8L <= wLate8M ? '8L' : '8M') : '8L';
                     } else {
                         actualShift = '8E';
                     }
                     score = 100;
                 }
             } else if (s==='8L-ANY') {
-                const def8L=tgt8L-c8L, def8M=tgt8M-c8M;
+                const def8L=tgt8L-c8L, def8M=useMiddle ? (tgt8M-c8M) : -Infinity;
                 const wLate8L = worker.shifts.filter(x => getBaseShift(x)==='8L').length;
                 const wLate8M = worker.shifts.filter(x => getBaseShift(x)==='8M').length;
-                if (def8L === def8M) {
-                    // tied deficit — pick whichever this worker has fewer of (8L is harder, prefer to balance)
-                    actualShift = wLate8L <= wLate8M ? '8L' : '8M';
+                // IR2 room rule: if this day already has an IR2 room suffix, never use 8M
+                const existingRoom = getRoomAssignment(worker.shifts[d] || '');
+                const ir2Day = existingRoom === 'IR2';
+                if (ir2Day) {
+                    // Force 8L — IR2 only allows early or late, never middle
+                    if (c8L >= tgt8L) continue;
+                    actualShift = '8L';
+                    score = 1000 + Math.max(0, tgt8L - c8L);
+                } else if (def8L === def8M) {
+                    actualShift = (!useMiddle) ? '8L' : (wLate8L <= wLate8M ? '8L' : '8M');
+                    score = 1000+Math.max(def8L,def8M);
                 } else {
                     actualShift = def8L > def8M ? '8L' : '8M';
+                    score = 1000+Math.max(def8L,def8M);
                 }
-                score = 1000+Math.max(def8L,def8M);
-            } else if (s==='8E') {
-                score = 1000+(tgt8E-c8E);
-            } else if (s==='8L') {
-                // Explicit 8L (from summer template) — prefer days where 8L target has deficit
-                score = 500 + Math.max(0, tgt8L - c8L);
-            } else if (s==='8M') {
-                // Explicit 8M (from summer template) — prefer days where 8M target has deficit
-                score = 500 + Math.max(0, tgt8M - c8M);
             } else if (s==='6H') {
                 if (!use6H) continue;
                 if (getDayCount(d,'6H')>=dailyTargets[d].t6) continue;
@@ -4496,8 +4975,8 @@ function placeShiftsGreedy(worker, pool, startDay, endDay) {
                 ? getBaseShift(worker.shifts[d-1])
                 : getBaseShift(getPrevMonthLastDays(worker.name,1)[0]);
             const nextBase = d<daysInMonth-1 ? getBaseShift(worker.shifts[d+1]) : null;
-            if (morningShifts.includes(actualShift) && ['8L','8M'].includes(prevBase)) continue;
-            if (['8L','8M'].includes(actualShift) && morningShifts.includes(nextBase)) continue;
+            if (isRestViolation(prevBase, actualShift)) continue;
+            if (isRestViolation(actualShift, nextBase)) continue;
 
             validOptions.push({ day:d, shift:actualShift, score: score+Math.random() });
         }
@@ -4523,6 +5002,8 @@ function placeShiftsGreedy(worker, pool, startDay, endDay) {
 
 // Fair placement: honours _weekLateQuota and per-type _weekTarget8L/_weekTarget8M
 function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
+    // Middle-shift toggle: when off, literal 8M pool entries become 8L.
+    if (!useMiddle) pool = pool.map(s => s === '8M' ? '8L' : s);
     pool.sort((a,b) => (shiftHours[b]||8)-(shiftHours[a]||8));
 
     // Count pre-existing lates this week (from already-filled VAC-adjacent days etc.)
@@ -4533,9 +5014,12 @@ function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
     const quota = (worker._weekLateQuota !== undefined) ? worker._weekLateQuota : 2;
     let lateRemaining = Math.max(0, quota - wkLate);
 
-    // Per-type sub-quotas — track 8L and 8M used this week independently
+    // Per-type sub-quotas — track 8L and 8M used this week independently.
+    // When Middle shift is disabled, the 8M budget is forced to 0 so every
+    // late-shift decision below naturally falls through to 8L instead.
     let remain8L = worker._weekTarget8L !== undefined ? worker._weekTarget8L : Math.ceil(lateRemaining / 2);
-    let remain8M = worker._weekTarget8M !== undefined ? worker._weekTarget8M : Math.floor(lateRemaining / 2);
+    let remain8M = useMiddle ? (worker._weekTarget8M !== undefined ? worker._weekTarget8M : Math.floor(lateRemaining / 2)) : 0;
+    if (!useMiddle) remain8L = lateRemaining; // all late-shift budget goes to 8L
 
     for (const s of pool) {
         const validOptions = [];
@@ -4575,8 +5059,10 @@ function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
 
             } else if (s==='8L-ANY') {
                 const def8L=dt8L-c8L, def8M=dt8M-c8M;
-                // Honour per-type budget even for 8L-ANY workers
-                if (remain8L > 0 && (def8L >= def8M || remain8M <= 0)) actualShift = '8L';
+                // Honour per-type budget even for 8L-ANY workers.
+                // When Middle shift is disabled, always resolve to 8L regardless of budget state.
+                if (!useMiddle) actualShift = '8L';
+                else if (remain8L > 0 && (def8L >= def8M || remain8M <= 0)) actualShift = '8L';
                 else actualShift = '8M';
                 score = 1000+Math.max(def8L,def8M);
             } else if (s==='8E') {
@@ -4601,8 +5087,8 @@ function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
             // Rest constraint
             let prevBase = d>0 ? getBaseShift(worker.shifts[d-1]) : getBaseShift(getPrevMonthLastDays(worker.name,1)[0]);
             const nextBase = d<daysInMonth-1 ? getBaseShift(worker.shifts[d+1]) : null;
-            if (morningShifts.includes(actualShift) && ['8L','8M'].includes(prevBase)) continue;
-            if (['8L','8M'].includes(actualShift) && morningShifts.includes(nextBase)) continue;
+            if (isRestViolation(prevBase, actualShift)) continue;
+            if (isRestViolation(actualShift, nextBase)) continue;
 
             validOptions.push({ day:d, shift:actualShift, score: score+Math.random() });
         }
@@ -4783,7 +5269,7 @@ function runAIAnalysis() {
             if (streak>maxConsec) consecViol.push(`${escHtml(w.name)} (around Day ${d+1})`);
 
             const prevBs = d>0 ? getBaseShift(w.shifts[d-1]) : getBaseShift(pShifts[pShifts.length-1]);
-            if (['8L','8M'].includes(prevBs) && morningShifts.includes(bs))
+            if (isRestViolation(prevBs, bs))
                 restViol.push(`${escHtml(w.name)} (Day ${d===0?'last month':d} → Day ${d+1})`);
         });
     });
@@ -4881,7 +5367,7 @@ function runAIAnalysis() {
             if (w.name===wName) return false;
             if (getBaseShift(w.shifts[dayNum]) !== '-') return false;
             const prev = dayNum>0 ? getBaseShift(w.shifts[dayNum-1]) : '-';
-            if (['8L','8M'].includes(prev) && morningShifts.includes(problematicShift)) return false;
+            if (isRestViolation(prev, problematicShift)) return false;
             return true;
         });
         if (candidate) {
@@ -4907,7 +5393,7 @@ function runAIAnalysis() {
             if (w.immo==='Fixed') return false;
             if (getBaseShift(w.shifts[d]) !== '-') return false;
             const prev = d>0 ? getBaseShift(w.shifts[d-1]) : '-';
-            if (['8L','8M'].includes(prev) && morningShifts.includes(shortType)) return false;
+            if (isRestViolation(prev, shortType)) return false;
             return true;
         });
         if (candidate) {
@@ -4938,8 +5424,8 @@ function runAIAnalysis() {
 // Shift → { startHH, startMM, endHH, endMM } — null = all-day
 const SHIFT_TIMES = {
     '8E':  { sh:7,  sm:0,  eh:15, em:30 },
-    '8L':  { sh:13, sm:30, eh:22, em:0  },
-    '8M':  { sh:9,  sm:0,  eh:17, em:30 },
+    '8L':  { sh:14, sm:0,  eh:22, em:30 },
+    '8M':  { sh:11, sm:30, eh:20, em:0  },
     '13H': { sh:7,  sm:0,  eh:20, em:0  },
     '6H':  { sh:7,  sm:0,  eh:13, em:0  },
     'ImE': { sh:7,  sm:0,  eh:15, em:30 },
@@ -4950,6 +5436,26 @@ const SHIFT_TIMES = {
 };
 // All-day shifts (no time block)
 const ALLDAY_SHIFTS = ['VAC','Urlaub IR','Urlaub-ZA','U-Immo','SICK','OFF','DF','PF','RB1','RB2'];
+
+// ── Real rest-gap calculation (replaces category-based ['8L','8M']+morningShifts checks) ──
+// Computes the actual elapsed hours between the end of prevBaseShift (day d-1)
+// and the start of nextBaseShift (day d), assuming consecutive calendar days.
+// Returns null if either shift has no time block (all-day / unknown) — no rest check applies.
+function getRestGapHours(prevBaseShift, nextBaseShift) {
+    const prevT = SHIFT_TIMES[prevBaseShift];
+    const nextT = SHIFT_TIMES[nextBaseShift];
+    if (!prevT || !nextT) return null;
+    const prevEndMin   = prevT.eh * 60 + prevT.em;
+    const nextStartMin = nextT.sh * 60 + nextT.sm;
+    const gapMin = (24 * 60 - prevEndMin) + nextStartMin;
+    return gapMin / 60;
+}
+// True only if there's a real, calculated gap and it's under minHours (default 11).
+function isRestViolation(prevBaseShift, nextBaseShift, minHours) {
+    if (minHours === undefined) minHours = 11;
+    const gap = getRestGapHours(prevBaseShift, nextBaseShift);
+    return gap !== null && gap < minHours;
+}
 
 function icsDateTime(y, m, d, hh, mm) {
     // Returns a local-time string — caller must prepend DTSTART;TZID=<tz>:
@@ -5427,7 +5933,7 @@ function buildAnalysisSheet(de, cfg) {
             if (workShifts.includes(bs)) streak++; else streak=0;
             if (streak > maxConsec) consecViol.push(`${w.name} — Day ${d+1}`);
             const prevBs = d>0 ? getBaseShift(w.shifts[d-1]) : getBaseShift(pShifts[pShifts.length-1]);
-            if (['8L','8M'].includes(prevBs) && morningShifts.includes(bs))
+            if (isRestViolation(prevBs, bs))
                 restViol.push(`${w.name} — Day ${d===0?'(last month→)':d}→${d+1}`);
         });
     });
@@ -5513,7 +6019,7 @@ function buildAnalysisSheet(de, cfg) {
             if (w.name===wName) return false;
             if (getBaseShift(w.shifts[dayNum]) !== '-') return false;
             const prev = dayNum>0 ? getBaseShift(w.shifts[dayNum-1]) : '-';
-            return !(['8L','8M'].includes(prev) && morningShifts.includes(problematicShift));
+            return !isRestViolation(prev, problematicShift);
         });
         if (candidate) swaps.push([de?'Ruhezeit':'Rest fix',
             `Day ${dayNum+1}`, wName, candidate.name,
@@ -5543,7 +6049,7 @@ const workerStartCol  = 5;
     const de = _de();
     const summary = [
         { label: '8E',                    key: 'c8E'   },
-        { label: '8M',                    key: 'c8M'   },
+        ...(useMiddle ? [{ label: '8M',    key: 'c8M'   }] : []),
         { label: '8L',                    key: 'c8L'   },
         ...(use13H ? [{ label: '13H',     key: 'c13H'  }] : []),
         ...(use6H  ? [{ label: '6H',      key: 'c6H'   }] : []),
@@ -5559,13 +6065,13 @@ const workerStartCol  = 5;
         { label: de ? 'Kommentare'      : 'Comments',         key: 'comments'},
         // Room assignment columns — auto-filled with worker names per shift
         { label: de ? 'IR2 Früh'   : 'IR2 Early', key: 'ir2_e' },
-        { label: 'IR2 M',                          key: 'ir2_m' },
+        ...(useMiddle ? [{ label: 'IR2 M',         key: 'ir2_m' }] : []),
         { label: de ? 'IR2 Spät'   : 'IR2 Late',  key: 'ir2_l' },
         { label: de ? 'IR3 Früh'   : 'IR3 Early', key: 'ir3_e' },
-        { label: 'IR3 M',                          key: 'ir3_m' },
+        ...(useMiddle ? [{ label: 'IR3 M',         key: 'ir3_m' }] : []),
         { label: de ? 'IR3 Spät'   : 'IR3 Late',  key: 'ir3_l' },
         { label: de ? 'IR4 Früh'   : 'IR4 Early', key: 'ir4_e' },
-        { label: 'IR4 M',                          key: 'ir4_m' },
+        ...(useMiddle ? [{ label: 'IR4 M',         key: 'ir4_m' }] : []),
         { label: de ? 'IR4 Spät'   : 'IR4 Late',  key: 'ir4_l' },
     ];
 
@@ -5591,6 +6097,7 @@ async function downloadExcelWithFormulas() {
     }
     const cfg = buildExcelExportConfig();
     const wb  = XLSX.utils.book_new();
+    const maxVac = parseInt($('maxVacation').value) || 0; // for the vacation-max color rule, mirrors HTML logic
     const monthTitle = new Date(currentYear, currentMonth-1, 1).toLocaleString(de?'de-DE':'en-US', { month:'long', year:'numeric' });
 
     const cellStyle = xlsCellStyle;
@@ -5639,7 +6146,7 @@ async function downloadExcelWithFormulas() {
             if (['8L','13H','ImL'].includes(base))      roomNames[key + '_l'].push(w.name);
         });
         cfg.summary.forEach(s => {
-            if (s.key === 'comments')              { row.push(dailyComments[d] || ''); return; }
+            if (s.key === 'comments')              { row.push(formatCommentsText(d)); return; }
             if (roomNames[s.key] !== undefined)    { row.push(roomNames[s.key].join(', ')); return; }
             row.push(null);
         });
@@ -5742,7 +6249,7 @@ async function downloadExcelWithFormulas() {
     }
 
     // ── Helper sheet (hidden — formula logic) ──
-    const helperKeys = ['c8E','c8M','c8L', ...(use13H?['c13H']:[]), ...(use6H?['c6H']:[]), 'cImE','cImL','work','vac','sick','fb','pf','df'];
+    const helperKeys = ['c8E', ...(useMiddle?['c8M']:[]), 'c8L', ...(use13H?['c13H']:[]), ...(use6H?['c6H']:[]), 'cImE','cImL','work','vac','sick','fb','pf','df'];
     const helperHeader = [de?'Datum':'Date', 'DayIndex'];
     helperKeys.forEach(key => workers.forEach(w => helperHeader.push(`${key}_${w.name}`)));
     const helperRows = [helperHeader];
@@ -5787,7 +6294,35 @@ const namedRange  = `SP_W_${wIdx}`;
             const baseStyle = planWs[planAddr]?.s || xlsCellStyle('#'+SUMMARY_BG, { border:true });
 
             if (s.key === 'comments') {
-                planWs[planAddr] = { t:'s', v: dailyComments[d]||'', s: planWs[planAddr]?.s || xlsCellStyle('#'+COMMENT_BG, { border:true, align:'left' }) };
+                planWs[planAddr] = { t:'s', v: formatCommentsText(d), s: planWs[planAddr]?.s || xlsCellStyle('#'+COMMENT_BG, { border:true, align:'left' }) };
+                return;
+            }
+
+            // Room-assignment columns (ir2_e, ir2_m, ir2_l, ir3_*, ir4_*) are static name
+            // lists, not COUNTIF-driven. PRE-EXISTING BUG: without this guard, the switch
+            // below falls to 'default' and overwrites these cells with a numeric 0,
+            // destroying the room-assignment names. Recomputed here (out of scope from
+            // the earlier planRows pass) so the fix is self-contained.
+            const roomKeyMatch = s.key.match(/^ir([234])_([eml])$/);
+            if (roomKeyMatch) {
+                const room = 'IR' + roomKeyMatch[1];
+                const shiftType = roomKeyMatch[2];
+                const inRoom = workers.filter(w => {
+                    const sh = w.shifts[d] || '-';
+                    if (getRoomAssignment(sh) !== room) return false;
+                    const base = getBaseShift(sh);
+                    if (shiftType==='e') return ['8E','6H','13H','ImE'].includes(base);
+                    if (shiftType==='m') return base==='8M';
+                    return ['8L','13H','ImL'].includes(base);
+                });
+                const names = inRoom.map(w => w.name);
+                // Single-person-in-room red flag (mirrors the HTML logic): count
+                // excludes anyone flagged still-in-training (trailing '*' marker).
+                const realCount = inRoom.filter(w => !String(w.shifts[d]||'').endsWith('*')).length;
+                planWs[planAddr] = {
+                    t: 's', v: names.join(', '),
+                    s: realCount === 1 ? xlsCellStyle('#F1948A', { border:true }) : baseStyle
+                };
                 return;
             }
 
@@ -5988,6 +6523,8 @@ const namedRange  = `SP_W_${wIdx}`;
             'FFE8DAEF', // 20 Holiday row background  (#e8daef)
             'FFE8F8E8', // 21 LSS row background       (#e8f8e8)
             'FFF0F0F0', // 22 Weekend row background   (#f0f0f0)
+            'FFF1948A', // 23 Vacation-max EXCEEDED (red)
+            'FFF9E79F', // 24 Vacation-max REACHED (yellow)
         ];
         const dxfs = fills.map(rgb =>
             `<dxf><fill><patternFill><bgColor rgb="${rgb}"/></patternFill></fill></dxf>`
@@ -6072,7 +6609,38 @@ const namedRange  = `SP_W_${wIdx}`;
             }
         }
 
-        return shiftCF + rowCF + minStaffCF;
+        // ── Vacation-max CF — mirrors the HTML rule (Feature #12) ──
+        // U-IR (Urlaub IR only, not the combined vac count) + Sick + PF + DF + FB, minus 1.
+        // Yellow when that total reaches maxVac, red once it exceeds maxVac.
+        // True Excel conditional formatting (not a static snapshot color), so it stays
+        // live if someone edits a shift/sick/etc cell after the file is downloaded.
+        let vacMaxCF = '';
+        if (maxVac > 0) {
+            const findCol = k => {
+                const i = cfg.summary.findIndex(x => x.key === k);
+                return i >= 0 ? excelCol(cfg.summaryStartCol + i) : null;
+            };
+            const vacCol  = findCol('vac');
+            const sickCol = findCol('sick'), pfCol = findCol('pf'), dfCol = findCol('df'), fbCol = findCol('fb');
+            const wFirst0 = excelCol(cfg.workerStartCol);
+            const wLast0  = excelCol(cfg.workerStartCol + Math.max(workers.length - 1, 0));
+            if (vacCol && sickCol && pfCol && dfCol && fbCol) {
+                const vacSqref = `${vacCol}2:${vacCol}${lastRow}`;
+                // Template row 2 — column letters absolute ($), row relative, so Excel
+                // shifts the row reference automatically for every cell in vacSqref.
+                // U-IR bucket = VAC + Urlaub IR + Urlaub-ZA combined (matches the codebase's
+                // existing "U-IR" convention, e.g. the RT-duty room classification), excludes U-Immo.
+                const uirCount = `(COUNTIF($${wFirst0}2:$${wLast0}2,"VAC*")+COUNTIF($${wFirst0}2:$${wLast0}2,"Urlaub*"))`;
+                const total = `(${uirCount}+$${sickCol}2+$${pfCol}2+$${dfCol}2+$${fbCol}2-1)`;
+                vacMaxCF =
+                    `<conditionalFormatting sqref="${vacSqref}">` +
+                    `<cfRule type="expression" dxfId="23" priority="${pri+20}" stopIfTrue="0"><formula>${total}&gt;${maxVac}</formula></cfRule>` +
+                    `<cfRule type="expression" dxfId="24" priority="${pri+21}" stopIfTrue="0"><formula>${total}=${maxVac}</formula></cfRule>` +
+                    `</conditionalFormatting>`;
+            }
+        }
+
+        return shiftCF + rowCF + minStaffCF + vacMaxCF;
     }
 
     XLSX.utils.book_append_sheet(wb, planWs,    'Plan');
@@ -6521,9 +7089,9 @@ function buildDienstplanRTSheet() {
         ws[addr(r, 3)] = dat(DAY_NAMES_DE[dow], bg, { bold: isWE || isHol });
 
         // Kommentar
-        ws[addr(r, COL_KOMMENTAR)] = dat(dailyComments[d] || '', bg,
+        ws[addr(r, COL_KOMMENTAR)] = dat(formatCommentsText(d), bg,
             { align:'left', sz:8 });
-        if (isHol && dailyComments[d]) {
+        if (isHol && dailyComments[d] && dailyComments[d].length) {
             ws[addr(r, COL_KOMMENTAR)].s = xlsCellStyle('#'+HOL_BG,
                 { align:'left', sz:8, italic:true, border:true });
         }
@@ -6790,7 +7358,7 @@ function copyColorfulExcel() {
     let html = "<table border='1' style='font-family:Arial,sans-serif; font-size:12px; border-collapse:collapse;'>";
     html += `<tr><th>Date</th><th>Holiday?</th><th>LSS?</th>`;
     workers.forEach(w => html += `<th>${escHtml(w.name)} (${escHtml(w.contract)}h)</th>`);
-    html += `<th>8E</th><th>8M</th><th>8L</th>${use13H?'<th>13H</th>':''}${use6H?'<th>6H</th>':''}<th>ImE</th><th>ImL</th><th>Total</th><th>Sick (names)</th><th>Vacation (names)</th><th>Comments</th></tr>`;
+    html += `<th>8E</th>${useMiddle?'<th>8M</th>':''}<th>8L</th>${use13H?'<th>13H</th>':''}${use6H?'<th>6H</th>':''}<th>ImE</th><th>ImL</th><th>Total</th><th>Sick (names)</th><th>Vacation (names)</th><th>Comments</th></tr>`;
 
     for (let d=0; d<daysInMonth; d++) {
         const dow = new Date(currentYear, currentMonth-1, d+1).getDay();
@@ -6814,12 +7382,12 @@ function copyColorfulExcel() {
             if (['VAC','Urlaub IR','Urlaub-ZA','U-Immo'].includes(b)) { svac++; exVacNames.push(w.name); }
             if (b==='SICK') { ssick++; exSickNames.push(w.name); }
         });
-        row += `<td>${s8E}</td><td>${s8M}</td><td>${s8L}</td>` + (use13H?`<td>${s13H}</td>`:'') + (use6H?`<td>${s6H}</td>`:'') + `
+        row += `<td>${s8E}</td>${useMiddle?`<td>${s8M}</td>`:''}<td>${s8L}</td>` + (use13H?`<td>${s13H}</td>`:'') + (use6H?`<td>${s6H}</td>`:'') + `
             <td style="background:#dff0f8;">${sImE}</td>
             <td style="background:#cce0e8;">${sImL}</td>
             <td style="background:#e8f4fc; font-weight:bold;">${sWork}</td>
             <td style="color:red;">${exSickNames.map(escHtml).join(', ')||''}</td>
-            <td>${exVacNames.map(escHtml).join(', ')||''}</td><td>${escHtml(dailyComments[d]||'')}</td></tr>`;
+            <td>${exVacNames.map(escHtml).join(', ')||''}</td><td>${escHtml(formatCommentsText(d)).replace(/\n/g,'<br>')}</td></tr>`;
         html += row;
     }
 
@@ -6848,6 +7416,208 @@ function copyColorfulExcel() {
     }
     window.getSelection().removeAllRanges();
     document.body.removeChild(tmp);
+}
+
+// ─────────────────────────────────────────────────────────
+//  Self-Check — automated in-browser smoke test
+//  Safe: never modifies real schedule data.
+// ─────────────────────────────────────────────────────────
+async function runSelfCheck() {
+    const modal = $('selfCheckModal');
+    const log   = $('selfCheckResults');
+    const prog  = $('selfCheckProgress');
+    const sum   = $('selfCheckSummary');
+    modal.style.display = 'block';
+    log.innerHTML = '';
+    sum.style.display = 'none';
+    let pass = 0, fail = 0;
+
+    function emit(label, ok, detail) {
+        const icon = ok ? '✅' : '❌';
+        const color = ok ? '#1e8449' : '#c0392b';
+        log.innerHTML += `<div style="color:${color};">${icon} ${label}${detail ? ` <span style="color:#888; font-size:11px;">— ${detail}</span>` : ''}</div>`;
+        log.scrollTop = log.scrollHeight;
+        if (ok) pass++; else fail++;
+    }
+    function section(label) {
+        log.innerHTML += `<div style="font-weight:bold; color:#555; margin-top:8px; font-size:11px; border-top:1px solid #eee; padding-top:4px;">${label}</div>`;
+    }
+    function setProgress(msg) { prog.textContent = msg; }
+
+    // Helper: safely call a function, catch any thrown error
+    function safe(fn) { try { return { ok:true, val:fn() }; } catch(e) { return { ok:false, err:e.message }; } }
+
+    setProgress('Starting…');
+    await new Promise(r => setTimeout(r, 30)); // yield to browser to paint modal first
+
+    // ── 1. Core DOM elements ──
+    section('1. Core DOM elements');
+    const required = ['helpModal','commentPanelModal','selfCheckModal','customHoursModal',
+                      'toggle13H','toggle6H','toggleMiddle','mstWdIR2L',
+                      'maxVacation','maxConsecutive','rsIR2eMin','rsIR2eMax',
+                      'rsIR3eMin','rsIR3lMax','rsIR4mMin','rsImmoMin','rsImmoMax',
+                      'roomStaffTitle','toggleMiddleLabel','row22h','editRow22h'];
+    required.forEach(id => emit(id, !!$(id), id));
+    await new Promise(r => setTimeout(r, 10));
+
+    // ── 2. Helper functions present ──
+    section('2. New helper functions');
+    [['isRestViolation',  typeof isRestViolation  === 'function'],
+     ['getRestGapHours',  typeof getRestGapHours  === 'function'],
+     ['shiftDisplayLabel',typeof shiftDisplayLabel === 'function'],
+     ['fullShiftDisplayLabel', typeof fullShiftDisplayLabel === 'function'],
+     ['getRoomAssignment',typeof getRoomAssignment === 'function'],
+     ['migrateDailyComments', typeof migrateDailyComments === 'function'],
+     ['unionComments',    typeof unionComments    === 'function'],
+     ['formatCommentsText', typeof formatCommentsText === 'function'],
+     ['renderCommentCell',typeof renderCommentCell === 'function'],
+     ['toggleLearningMarker', typeof toggleLearningMarker === 'function'],
+     ['saveRoomStaffing', typeof saveRoomStaffing  === 'function'],
+     ['toggleMiddleShift',typeof toggleMiddleShift === 'function'],
+    ].forEach(([name, ok]) => emit(name + '()', ok));
+
+    // ── 3. SHIFT_TIMES corrected values ──
+    section('3. SHIFT_TIMES values (Bug #1)');
+    emit('8L starts at 14:00',  SHIFT_TIMES['8L'] && SHIFT_TIMES['8L'].sh===14,  `got ${SHIFT_TIMES['8L']?.sh}`);
+    emit('8M starts at 11:30',  SHIFT_TIMES['8M'] && SHIFT_TIMES['8M'].sh===11 && SHIFT_TIMES['8M'].sm===30, `got ${SHIFT_TIMES['8M']?.sh}:${SHIFT_TIMES['8M']?.sm}`);
+    emit('8E starts at 07:00',  SHIFT_TIMES['8E'] && SHIFT_TIMES['8E'].sh===7,   `got ${SHIFT_TIMES['8E']?.sh}`);
+
+    // ── 4. Rest gap math ──
+    section('4. Rest-period calculation (Bug #1)');
+    const gap8M8E  = getRestGapHours('8M','8E');
+    const gap8L8E  = getRestGapHours('8L','8E');
+    emit('8M→8E gap = 11h (should NOT flag)', gap8M8E === 11, `${gap8M8E}h`);
+    emit('8L→8E gap = 8.5h (should flag)',    gap8L8E === 8.5, `${gap8L8E}h`);
+    emit('isRestViolation(8M,8E) = false',    !isRestViolation('8M','8E'));
+    emit('isRestViolation(8L,8E) = true',      isRestViolation('8L','8E'));
+    await new Promise(r => setTimeout(r, 10));
+
+    // ── 5. shiftHours: ImL = 8 not 8.5 ──
+    section('5. Shift hours (Bug #5)');
+    emit('ImL = 8h (not 8.5)',  shiftHours['ImL'] === 8, `got ${shiftHours['ImL']}`);
+    emit('8E = 8h',             shiftHours['8E']  === 8);
+    emit('8M = 8h',             shiftHours['8M']  === 8);
+
+    // ── 6. Display labels ──
+    section('6. Display labels (Feature #8)');
+    emit('shiftDisplayLabel 8E → E',        shiftDisplayLabel('8E')     === 'E');
+    emit('shiftDisplayLabel 8L → L',        shiftDisplayLabel('8L')     === 'L');
+    emit('shiftDisplayLabel 8M → M',        shiftDisplayLabel('8M')     === 'M');
+    emit('shiftDisplayLabel 13H unchanged', shiftDisplayLabel('13H')    === '13H');
+    emit('fullShiftDisplayLabel 8L-IR2 → IR2 L', fullShiftDisplayLabel('8L-IR2') === 'IR2 L');
+    emit('fullShiftDisplayLabel 8M-IR2* has 🎓', fullShiftDisplayLabel('8M-IR2*').includes('🎓'));
+
+    // ── 7. Multi-author comments ──
+    section('7. Multi-author comments (Feature #9)');
+    const migTest = migrateDailyComments(['old note', '', [{author:'T',text:'hi',timestamp:1}]]);
+    emit('Legacy string migrates to array',  Array.isArray(migTest[0]) && migTest[0][0].author==='(legacy)');
+    emit('Empty string migrates to []',      Array.isArray(migTest[1]) && migTest[1].length===0);
+    emit('Already-array passes through',     Array.isArray(migTest[2]));
+    const a = [{author:'T',text:'a',timestamp:1000}];
+    const b = [{author:'T',text:'a',timestamp:1000},{author:'M',text:'b',timestamp:2000}];
+    const u = unionComments(a,b);
+    emit('unionComments dedupes correctly',  u.length===2);
+    emit('unionComments sorts by timestamp', u[0].timestamp===1000 && u[1].timestamp===2000);
+    const fmtDay = [{author:'Ana',text:'Note'},{author:'Max',text:'Other'}];
+    const fmtOut = fmtDay.map(c=>`[${c.author}] ${c.text}`).join('\n');
+    emit('formatCommentsText format correct', fmtOut.includes('[Ana]') && fmtOut.includes('[Max]'));
+    await new Promise(r => setTimeout(r, 10));
+
+    // ── 8. Middle-shift toggle gate ──
+    section('8. Middle-shift auto-fill gate (Feature #10)');
+    // Run placeShiftsGreedy against a throwaway synthetic worker with useMiddle=false
+    const origUseMiddle = useMiddle;
+    useMiddle = false;
+    const synthWorker = { name:'__test__', shifts: Array(daysInMonth).fill('-'), requests: Array(daysInMonth).fill(false), contract:'40', pref:'Any', immo:'None', fixed6HDay:null, autoFillSnapshot:null };
+    // Use a pool that would normally produce 8M
+    const testPool = ['8H-ANY','8H-ANY','8H-ANY','8H-ANY','8H-ANY'];
+    const synthWorkerCopy = JSON.parse(JSON.stringify(synthWorker));
+    const r = safe(() => placeShiftsGreedy(synthWorkerCopy, testPool, 0, daysInMonth));
+    const has8M = r.ok && synthWorkerCopy.shifts.some(s => getBaseShift(s)==='8M');
+    emit('placeShiftsGreedy: no 8M when useMiddle=false', r.ok && !has8M, r.ok ? (has8M ? 'got 8M — FAIL' : 'clean') : r.err);
+    useMiddle = origUseMiddle;
+
+    // ── 9. roomStaffing object ──
+    section('9. Room staffing settings (Feature #3)');
+    emit('roomStaffing object exists',       typeof roomStaffing === 'object' && roomStaffing !== null);
+    emit('roomStaffing.IR2 has e/m/l keys',  roomStaffing.IR2 && 'min' in roomStaffing.IR2.e);
+    emit('roomStaffing.Immo has min/max',    roomStaffing.Immo && 'min' in roomStaffing.Immo);
+    emit('UI inputs populated',              $('rsIR2eMin') && $('rsIR2eMin').value !== '');
+
+    // ── 10. Help content reachable ──
+    section('10. Help & Guide content (Bug-class #1)');
+    const helpEN = safe(() => typeof getHelpContent === 'function' ? getHelpContent('en') : getHelpContent);
+    emit('getHelpContent(en) returns string', helpEN.ok && typeof helpEN.val === 'string' && helpEN.val.length > 100);
+    const helpDE = safe(() => getHelpContent('de'));
+    emit('getHelpContent(de) returns string', helpDE.ok && typeof helpDE.val === 'string' && helpDE.val.length > 100);
+    await new Promise(r => setTimeout(r, 10));
+
+    // ── 11. useMiddle global persists ──
+    section('11. useMiddle toggle state');
+    emit('useMiddle is a boolean',           typeof useMiddle === 'boolean');
+    emit('toggleMiddle checkbox in sync',    $('toggleMiddle') && $('toggleMiddle').checked === useMiddle);
+
+    // ── 12. Contract 30h present in both dropdowns ──
+    section('12. 30h contract option (Feature #7)');
+    const wc  = $('workerContract');
+    const ec  = $('editContract');
+    const has30W = wc && [...wc.options].some(o => o.value==='30');
+    const has30E = ec && [...ec.options].some(o => o.value==='30');
+    emit('workerContract dropdown has 30h', has30W);
+    emit('editContract dropdown has 30h',   has30E);
+
+    // ── 13. buildExcelExportConfig returns expected column keys ──
+    section('13. Excel config (Features #11 & #13)');
+    const cfgTest = safe(() => buildExcelExportConfig());
+    if (cfgTest.ok) {
+        const keys = cfgTest.val.summary.map(s => s.key);
+        // When useMiddle=true (default), 8M column should be present
+        emit('Excel summary includes 8M when useMiddle=true', useMiddle ? keys.includes('c8M') : !keys.includes('c8M'), keys.join(', '));
+        emit('Excel summary includes vac column', keys.includes('vac'));
+        emit('Excel summary includes absence column', keys.includes('absence'));
+    } else {
+        emit('buildExcelExportConfig() runs without error', false, cfgTest.err);
+    }
+    await new Promise(r => setTimeout(r, 10));
+
+    // ── 14. Learning marker ──
+    section('14. Learning marker (Feature #6)');
+    emit('shift + * appends correctly',      '8L-IR2' + '*' === '8L-IR2*');
+    emit('getRoomAssignment handles *',       getRoomAssignment('8L-IR2*') === 'IR2');
+    emit('getBaseShift handles *',            getBaseShift('8L-IR2*') === '8L');
+    emit('isLearning detection',              '8L-IR2*'.endsWith('*') && !!getRoomAssignment('8L-IR2*'));
+
+    // ── 15. Vacation-max rule math ──
+    section('15. Vacation-max color rule (Feature #12)');
+    function testVacRule(cUIR, sick, pf, df, fb, maxV) {
+        if (maxV<=0) return '';
+        const total = cUIR + sick + pf + df + fb - 1;
+        if (total > maxV) return 'red';
+        if (total === maxV) return 'yellow';
+        return 'none';
+    }
+    emit('cUIR=2,sick=1,total=2,maxVac=2 → yellow', testVacRule(2,1,0,0,0,2)==='yellow');
+    emit('cUIR=3,sick=1,total=3,maxVac=2 → red',    testVacRule(3,1,0,0,0,2)==='red');
+    emit('cUIR=1,sick=0,total=0,maxVac=2 → none',   testVacRule(1,0,0,0,0,2)==='none');
+    emit('maxVac=0 → always none',                   testVacRule(99,99,99,99,99,0)==='');
+
+    // ── 16. U-Immo vacation rule ──
+    section('16. U-Immo vacation rule (Feature #15)');
+    function testImmoRule(cUIR, uImmo) { return uImmo>=2 || (cUIR>=4 && uImmo>=1); }
+    emit('U-Immo=2, U-IR=0 → flag (condition a)',   testImmoRule(0,2)  === true);
+    emit('U-Immo=1, U-IR=4 → flag (condition b)',   testImmoRule(4,1)  === true);
+    emit('U-Immo=0, U-IR=10 → no flag (U-IR alone)',testImmoRule(10,0) === false);
+    emit('U-Immo=1, U-IR=3 → no flag (both under)', testImmoRule(3,1)  === false);
+
+    // ── Summary ──
+    setProgress(`Done — ${pass + fail} checks run`);
+    sum.style.display = 'block';
+    const allPass = fail === 0;
+    sum.style.background = allPass ? '#d5f5e3' : '#fde8e8';
+    sum.style.color       = allPass ? '#1e8449' : '#c0392b';
+    sum.textContent = allPass
+        ? `✅ All ${pass} checks passed — good to deploy`
+        : `⚠️ ${pass} passed · ${fail} FAILED — check the red lines above before deploying`;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -8058,18 +8828,20 @@ async function cmtPull(silent = false) {
 
         // Update live dailyComments for current month if present
         if (remote[currentMonthKey] && Array.isArray(remote[currentMonthKey])) {
-            dailyComments = remote[currentMonthKey];
+            const remoteComments = migrateDailyComments(remote[currentMonthKey]);
+            // Multi-author comments are independent entries — pulling means union, not overwrite,
+            // so a comment someone else added locally-but-not-yet-pushed is never lost.
+            dailyComments = Array.from({length: daysInMonth}, (_, d) =>
+                unionComments(dailyComments[d], remoteComments[d])
+            );
             // ── Save baseline so cmtPush can detect what changed ──
-            _baseComments = [...dailyComments];
-            dailyComments.forEach((txt, d) => {
-                const inp = document.querySelector(`.comment-input[data-day="${d}"]`);
-                if (inp && document.activeElement !== inp) inp.value = txt || '';
-            });
+            _baseComments = dailyComments.map(c => [...c]);
             // Also persist into allMonthsData
             if (allMonthsData[currentMonthKey]) {
                 allMonthsData[currentMonthKey].dailyComments = dailyComments;
                 localStorage.setItem('shiftPlannerAllMonthsV23', JSON.stringify(allMonthsData));
             }
+            scheduleRenderTable();
         }
         if (!silent) cmtShowStatus(`✅ Comments pulled (${new Date().toLocaleTimeString()})`, '#e6ffe6', '#107c10');
     } catch(e) {
@@ -8129,46 +8901,18 @@ async function cmtPush(silent = false) {
             if (raw) existing = JSON.parse(await decryptData(raw));
         } catch(e) { /* file may not exist yet */ }
 
-        // ── Step 2: Cell-level merge ──
-        // We have three versions for each day:
-        //   base    = what comments looked like when we last loaded from GitHub
-        //   local   = what the user has now (may have changed some cells)
-        //   remote  = what's on GitHub right now (may have changed other cells)
-        const base   = _baseComments || [];
+        // ── Step 2: Per-day union merge ──
+        // Multi-author comments are independent, attributed entries, so there's no
+        // such thing as a "conflict" anymore — pushing just unions local and remote
+        // per day (deduped), so nobody's comment can ever overwrite anyone else's.
         const remote = (existing[currentMonthKey] && Array.isArray(existing[currentMonthKey]))
-                        ? existing[currentMonthKey]
-                        : Array(daysInMonth).fill('');
+                        ? migrateDailyComments(existing[currentMonthKey])
+                        : Array(daysInMonth).fill(null).map(() => []);
 
-        const merged = [...remote]; // start from remote as our base
+        const merged = Array.from({length: daysInMonth}, (_, d) => unionComments(dailyComments[d], remote[d]));
 
-        for (let d = 0; d < daysInMonth; d++) {
-            const localVal  = dailyComments[d]  || '';
-            const remoteVal = remote[d]          || '';
-            const baseVal   = base[d]            || '';
-
-            const localChanged  = localVal  !== baseVal;
-            const remoteChanged = remoteVal !== baseVal;
-
-            if (!localChanged) {
-                // We didn't touch this cell — keep remote value
-                merged[d] = remoteVal;
-            } else if (!remoteChanged) {
-                // Remote didn't change — apply our change
-                merged[d] = localVal;
-            } else if (localVal === remoteVal) {
-                // Both changed to the same value — no conflict
-                merged[d] = localVal;
-            } else {
-                // ── SAME-CELL CONFLICT — always append, never ask ──
-                // Both users wrote different things on the same day.
-                // Merge them with " / " so nothing is ever lost.
-                merged[d] = [remoteVal, localVal].filter(Boolean).join(' / ');
-                // Also update local state so the input reflects the merged result
-                dailyComments[d] = merged[d];
-                const inp = document.querySelector(`.comment-input[data-day="${d}"]`);
-                if (inp && document.activeElement !== inp) inp.value = merged[d];
-            }
-        }
+        // Reflect the merged result locally too, so nothing pulled in from remote is invisible
+        dailyComments = merged;
 
         existing[currentMonthKey] = merged;
 
@@ -8181,7 +8925,8 @@ async function cmtPush(silent = false) {
         );
 
         // Update baseline to the merged result
-        _baseComments = [...merged];
+        _baseComments = merged.map(c => [...c]);
+        scheduleRenderTable();
 
         if (!silent) cmtShowStatus(`✅ Comments saved (${new Date().toLocaleTimeString()})`, '#e6ffe6', '#107c10');
     } catch(e) {
@@ -8775,8 +9520,11 @@ function renderMobileView() {
         const isOff = ['-','OFF',''].includes(base);
         const label = MOB_SHIFT_LABELS[base] || rawShift;
 
-        // Get comment for this day
-        const dayComment = (saved.dailyComments && saved.dailyComments[d]) || '';
+        // Get comments for this day (handles new array format and legacy single-string saves)
+        const rawComments = (saved.dailyComments && saved.dailyComments[d]) || [];
+        const dayComments = Array.isArray(rawComments)
+            ? rawComments
+            : (rawComments ? [{ author:'(legacy)', text: rawComments }] : []);
 
         const classes = ['mob-day',
             isToday ? 'today' : '',
@@ -8787,7 +9535,7 @@ function renderMobileView() {
             <div class="mob-day-date">${dayNames[dow]} ${d+1} ${monthNames[mobMonth-1]}${isWeekend ? ' 🏠' : ''}${isToday ? ' ◀ TODAY' : ''}</div>
             <div class="mob-day-shift">${isOff ? '—' : base}</div>
             <div class="mob-day-label">${isOff ? 'Day off / Not assigned' : label}</div>
-            ${dayComment ? '<div class="mob-day-cmt">💬 ' + dayComment + '</div>' : ''}
+            ${dayComments.length ? '<div class="mob-day-cmt">' + dayComments.map(c => `💬 <strong>${escHtml(c.author||'?')}:</strong> ${escHtml(c.text||'')}`).join('<br>') + '</div>' : ''}
         </div>`;
     }
     list.innerHTML = html;
