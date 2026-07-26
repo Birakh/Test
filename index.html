@@ -45,6 +45,14 @@
         th.sticky-col:nth-child(2), td.sticky-col:nth-child(2) { left: 72px; }
         th.sticky-col:nth-child(3), td.sticky-col:nth-child(3) { left: 104px; }
 
+        /* Right-frozen columns — IR2/IR3/IR4/Immo (always the last 4 columns in the row) */
+        .sticky-col-r { position: sticky; background-color: #f9f9f9; z-index: 5; width: 130px; max-width: 130px; }
+        th.sticky-col-r { z-index: 15; background-color: #eee; }
+        th.sticky-col-r:nth-last-child(4), td.sticky-col-r:nth-last-child(4) { right: 390px; } /* IR2 */
+        th.sticky-col-r:nth-last-child(3), td.sticky-col-r:nth-last-child(3) { right: 260px; } /* IR3 */
+        th.sticky-col-r:nth-last-child(2), td.sticky-col-r:nth-last-child(2) { right: 130px; } /* IR4 */
+        th.sticky-col-r:nth-last-child(1), td.sticky-col-r:nth-last-child(1) { right: 0; }     /* Immo */
+
         .weekend { background-color: #f0f0f0 !important; }
         .holiday-row { background-color: #e8daef !important; }
         .lss-row { background-color: #e8f8e8 !important; }
@@ -69,7 +77,7 @@
         .app-locked .edit-only { opacity:0.38; pointer-events:none; filter:grayscale(60%); }
         .app-locked .shift-select { pointer-events:none; background:#f0f0f0 !important; color:#888 !important; }
         .app-locked .shift-select.viewer-vac-select { pointer-events:auto; background:inherit !important; color:inherit !important; }
-        .app-locked #maxVacation, .app-locked #maxConsecutive, .app-locked #minStaff { pointer-events:none; background:#f0f0f0 !important; color:#888 !important; }
+        .app-locked #maxVacation, .app-locked #maxImmoVacation, .app-locked #maxConsecutive, .app-locked #minStaff { pointer-events:none; background:#f0f0f0 !important; color:#888 !important; }
         .app-locked .tgt-input { pointer-events:none; background:#f0f0f0 !important; }
         .role-targets-panel { transition:opacity .2s, filter .2s; }
         .app-locked .role-targets-panel { opacity:0.55; filter:grayscale(80%); pointer-events:none; background:#efefef !important; }
@@ -171,8 +179,8 @@
         .mob-full-link { text-align: center; padding: 10px; color: #7f8c8d; font-size: 12px; margin-top: 8px; }
         .mob-full-link a { color: #0969da; text-decoration: none; }
 
-        /* ── Wizard & Lock screen — merged into head style block ── */#spWizard,#spLock {position:fixed;inset:0;z-index:19999;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,0.82);backdrop-filter:blur(4px);}
-#spWizard.sp-vis,#spLock.sp-vis {display:flex;}
+        /* ── Wizard & Lock screen — merged into head style block ── */#spWizard,#spLock,#spLockNewPwBox {position:fixed;inset:0;z-index:19999;display:none;align-items:center;justify-content:center;background:rgba(15,23,42,0.82);backdrop-filter:blur(4px);}
+#spWizard.sp-vis,#spLock.sp-vis,#spLockNewPwBox.sp-vis {display:flex;}
 .spW-card {background:#fff;border-radius:16px;padding:36px 32px 28px;max-width:500px;width:94%;box-shadow:0 16px 48px rgba(0,0,0,0.35);position:relative;}
 .spW-step {display:none;}.spW-step.active {display:block;}
 .spW-logo {text-align:center;font-size:44px;margin-bottom:4px;}
@@ -206,6 +214,11 @@
 .spL-btn:hover {background:#2563eb;}
 .spL-err {display:none;color:#dc2626;font-size:13px;margin-top:10px;}
 .spL-hint {font-size:11px;color:#94a3b8;margin-top:16px;}
+.spL-forgot {display:block;width:100%;margin-top:14px;background:none;border:none;color:#3b82f6;font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline;padding:4px;}
+.spL-forgot:hover {color:#2563eb;}
+.spL-recover {display:none;margin-top:14px;padding-top:14px;border-top:1px solid #e2e8f0;text-align:left;}
+.spL-recover.sp-vis {display:block;}
+.spL-recover-sub {font-size:12px;color:#64748b;margin:0 0 12px;text-align:center;}
 
                 /* ── Dark Mode — eye-friendly warm-neutral palette ── */
         :root {
@@ -320,6 +333,7 @@
         body.dark #statsPanel td { color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
         /* Sticky column */
         body.dark .sticky-col { background:var(--dm-panel) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
+        body.dark .sticky-col-r { background:var(--dm-panel) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
         /* Mobile header */
         body.dark .mob-header { background:#1c1c2e !important; }
         /* Select / bulk bar */
@@ -336,6 +350,8 @@
         body.dark .spW-input, body.dark .spL-input { background:var(--dm-card) !important; color:var(--dm-text) !important; border-color:var(--dm-border) !important; }
         body.dark .spW-btn.ghost { background:#2c2c3a !important; color:var(--dm-text) !important; }
         body.dark .spL-err { color:#ff8080 !important; }
+        body.dark .spL-recover { border-color:var(--dm-border) !important; }
+        body.dark .spL-recover-sub { color:var(--dm-muted) !important; }
         /* Green inline info box */
         body.dark div[style*="background:#f0faf0"] { background:#0a1e0a !important; border-color:#2a5a2a !important; color:#9fe89f !important; }
         /* Min-staff alert */
@@ -1083,7 +1099,7 @@
             <li><span style="background:#fffde7; padding:1px 4px;">Offc</span> Office</li>
             <li><span style="background:#9fc5e8; padding:1px 4px;">FB</span>   Fortbildung</li>
             <li><span style="background:#d9d9d9; padding:1px 4px;">LSS</span>  Long Service</li>
-            <li><span style="background:#d0a9f5; padding:1px 4px;">Urlaub</span> Vacation</li>
+            <li><span style="background:#d0a9f5; padding:1px 4px;">U-IR / U-Immo</span> Vacation (IR / Immo)</li>
             <li><span style="background:#fce5cd; padding:1px 4px;">RB1/2</span> On-Call</li>
             <li><span style="background:#e8d5f5; padding:1px 4px;">⏰ CUS</span> Custom Hours ★</li>
         </ul>
@@ -1106,9 +1122,14 @@
         <p style="font-size:10px; margin:2px 0; color:#6c3483;">★ CUS (Custom Hours) — if the shift spans both early &amp; late (e.g. 07:00–16:00), it is counted in <em>both</em> 8E and 8L buckets and marked with ★ in the cell.</p>
         <div style="margin-top:8px; padding:10px; background:#fffbcc; border:1px solid #e1d670; border-radius:4px;">
             <p style="font-size:12px; margin:0 0 5px 0;">
-                <strong id="lbl_maxvac">Max Vacation per day:</strong>
+                <strong id="lbl_maxvac">Max IR Vacation per day:</strong>
                 <input type="number" id="maxVacation" class="edit-chk" value="2" style="width:40px;" onchange="refreshBoard()">
                 <br><span id="lbl_vacnote" style="font-size:10px; color:#555;">Yellow = 1 spot left &nbsp;|&nbsp; Red = Full</span>
+            </p>
+            <p style="font-size:12px; margin:0 0 5px 0;">
+                <strong id="lbl_maximmovac">Max Immo Vacation per day:</strong>
+                <input type="number" id="maxImmoVacation" class="edit-chk" value="1" style="width:40px;" onchange="refreshBoard()">
+                <br><span id="lbl_immovacnote" style="font-size:10px; color:#555;">Independent of Sick/PF/DF/FB — Immo count only</span>
             </p>
             <p style="font-size:12px; margin:0 0 5px 0;">
                 <strong id="lbl_maxcon">Max Consecutive Days:</strong>
@@ -1178,10 +1199,10 @@
             <option value="8E-Immo">Immo E</option><option value="8L-Immo">Immo L</option>
         </optgroup>
         <optgroup label="Special">
-            <option value="OFF">OFF</option><option value="VAC">VAC</option><option value="SICK">SICK</option>
+            <option value="OFF">OFF</option><option value="SICK">SICK</option>
             <option value="FB">FB</option><option value="PF">PF</option><option value="LSS">LSS</option><option value="Offc">Offc</option>
             <option value="RB1">RB1</option><option value="RB2">RB2</option><option value="DF">DF</option>
-            <option value="Urlaub IR">Urlaub IR</option><option value="Urlaub-ZA">Urlaub-ZA</option><option value="U-Immo">U-Immo</option>
+            <option id="opt_bulk_vacir" value="Urlaub IR">Vacation IR</option><option id="opt_bulk_vacimmo" value="U-Immo">Vacation Immo</option>
         </optgroup>
     </select>
     <button id="btnApplyBulk"  onclick="applyBulkShift()"  style="background:#e67e22;">✔ Apply to Selected</button>
@@ -1214,6 +1235,10 @@
                     <select id="editImmo" onchange="editToggleImmo()">
                         <option value="None">Standard</option><option value="Fixed">Fixed Immo</option><option value="Jump">Jump-in</option>
                     </select></div>
+                <div><label style="font-size:11px; display:block; margin-bottom:2px;">&nbsp;</label>
+                    <label style="display:flex; align-items:center; gap:4px; white-space:nowrap; font-weight:normal;" title="Marks this worker as currently in training. Room-assigned shifts (IR2/IR3/IR4) will automatically get the 🎓 learning marker and be excluded from room headcount / min-max coverage checks.">
+                        <input type="checkbox" id="editIsLearning" style="margin:0;"> 🎓 Learning
+                    </label></div>
             </div>
 
             <!-- Fixed Immo sub-options -->
@@ -2026,7 +2051,8 @@ let loginTab    = 'editor'; // which tab is active in login modal
 let selectMode    = false;
 let selectedCells = new Set();   // "wIndex_dIndex"
 
-const vacationTypes = ['VAC','Urlaub IR','Urlaub-ZA','U-Immo'];
+const vacationTypes = ['VAC','Urlaub IR','Urlaub-ZA','U-Immo']; // recognised (incl. legacy) — backward compat for old data
+const vacationPickerTypes = ['Urlaub IR','U-Immo']; // offered in pickers going forward: IR bucket / Immo bucket
 const roomColorMap = { IR2:'#fff2a8', IR3:'#cfe2ff', IR4:'#f3d1ff' };
 const vacationApprovedColor = '#b6d7a8';
 const pendingVacationSuffix = '-PENDING';
@@ -2156,7 +2182,21 @@ function getBaseShift(shift) {
 // Internal data values (worker.shifts, save/load, Excel export) are untouched —
 // this only affects what text is rendered for the person looking at the screen.
 const SHIFT_DISPLAY_LABELS = { '8E':'E', '8L':'L', '8M':'M' };
-function shiftDisplayLabel(s) { return SHIFT_DISPLAY_LABELS[s] || s; }
+// Vacation display is language-aware: EN shows "Vacation IR"/"Vacation Immo",
+// DE shows "U-IR"/"U-Immo". Legacy stored values 'VAC' and 'Urlaub-ZA' are still
+// recognised and shown as the IR bucket (see vacationTypes / cUIR grouping below).
+function vacationDisplayBucket(s) {
+    if (['VAC','Urlaub IR','Urlaub-ZA'].includes(s)) return 'IR';
+    if (s === 'U-Immo') return 'Immo';
+    return null;
+}
+function shiftDisplayLabel(s) {
+    if (SHIFT_DISPLAY_LABELS[s]) return SHIFT_DISPLAY_LABELS[s];
+    const vacBucket = vacationDisplayBucket(s);
+    if (vacBucket === 'IR')   return currentLang === 'de' ? 'U-IR'   : 'Vacation IR';
+    if (vacBucket === 'Immo') return currentLang === 'de' ? 'U-Immo' : 'Vacation Immo';
+    return s;
+}
 // For room-assigned shifts: e.g. ('8E','IR2') -> "IR2 E"; ('13H','IR2') -> "IR2 13H" (unchanged, only 8E/8L/8M shorten)
 function roomShiftDisplayLabel(baseShift, room) { return `${room} ${shiftDisplayLabel(baseShift)}`; }
 // General case: handles plain shifts, room-assigned shifts, and the learning-marker '*' suffix.
@@ -2192,6 +2232,7 @@ const DARK_SHIFT_COLORS = {
     '6H' : '#0d2010',   // deep green
     'ImE': '#0d2226',   // deep teal
     'ImL': '#0a1c22',   // darker teal
+    'Immo':'#0f2428',   // teal (bare Immo, time TBD)
     'OFF': '#1e1e20',   // near-black grey
     'DF' : '#1e1e20',
     'VAC': '#0a2010',   // deep forest green
@@ -2222,7 +2263,7 @@ function getColor(shift) {
     // ── Light mode ───────────────────────────────────────────────────────
     const room = getRoomAssignment(shift); if (room && roomColorMap[room]) return roomColorMap[room]; if (isPendingVacationShift(shift)) return '#ffffff';
     const b = getBaseShift(shift);
-    if (b==='13H') return '#ffe599'; if (b==='8E') return '#cfe2f3'; if (b==='8L') return '#f4cccc'; if (b==='8M') return '#f9cb9c'; if (b==='6H') return '#d9ead3'; if (b==='ImE') return '#a2c4c9'; if (b==='ImL') return '#76a5af'; if (b==='OFF'||b==='DF') return '#e0e0e0'; if (b==='VAC'||b==='Urlaub IR'||b==='Urlaub-ZA'||b==='U-Immo') return vacationApprovedColor; if (b==='SICK') return '#f5b7b1'; if (b==='FB') return '#9fc5e8'; if (b==='PF') return '#ead1dc'; if (b==='LSS') return '#d9d9d9'; if (b==='Offc') return '#fffde7'; if (b==='CUS') return '#e8d5f5'; if (b==='RB1'||b==='RB2') return '#fce5cd'; return '#ffffff';
+    if (b==='13H') return '#ffe599'; if (b==='8E') return '#cfe2f3'; if (b==='8L') return '#f4cccc'; if (b==='8M') return '#f9cb9c'; if (b==='6H') return '#d9ead3'; if (b==='ImE') return '#a2c4c9'; if (b==='ImL') return '#76a5af'; if (b==='Immo') return '#cfe2e5'; if (b==='OFF'||b==='DF') return '#e0e0e0'; if (b==='VAC'||b==='Urlaub IR'||b==='Urlaub-ZA'||b==='U-Immo') return vacationApprovedColor; if (b==='SICK') return '#f5b7b1'; if (b==='FB') return '#9fc5e8'; if (b==='PF') return '#ead1dc'; if (b==='LSS') return '#d9d9d9'; if (b==='Offc') return '#fffde7'; if (b==='CUS') return '#e8d5f5'; if (b==='RB1'||b==='RB2') return '#fce5cd'; return '#ffffff';
 }
 
 function getContinuousWeek(year, month, dayIndex) {
@@ -2593,6 +2634,7 @@ function loadMonthData(monthKey) {
         if (dailyTargets.length !== daysInMonth) initTargets();
 
         if (saved.maxVac    !== undefined) $('maxVacation').value    = saved.maxVac;
+        if (saved.maxImmoVac !== undefined) $('maxImmoVacation').value = saved.maxImmoVac;
         if (saved.maxConsec !== undefined) $('maxConsecutive').value  = saved.maxConsec;
         if (saved.minStaff  !== undefined) $('minStaff').value        = saved.minStaff;
         if (saved.use13H !== undefined) {
@@ -2738,12 +2780,13 @@ function saveRoomStaffing() {
 
 function saveData() {
     const maxVac    = parseInt($('maxVacation').value)    || 0;
+    const maxImmoVac = parseInt($('maxImmoVacation').value) || 0;
     const maxConsec = parseInt($('maxConsecutive').value) || 5;
     const minStaff  = parseInt($('minStaff').value)       || 0;
     saveWorkerRoster();
     allMonthsData[currentMonthKey] = {
         workers, holidays, lssDays, dailyComments, rtDuty, dailyTargets,
-        masterTargets, roomStaffing, monthValue:currentMonthKey, maxVac, maxConsec, minStaff, use13H, use6H, useMiddle, currentLang,
+        masterTargets, roomStaffing, monthValue:currentMonthKey, maxVac, maxImmoVac, maxConsec, minStaff, use13H, use6H, useMiddle, currentLang,
         monthReady: allMonthsData[currentMonthKey]?.monthReady || false
     };
     allMonthsData.__workerRoster = { workers: workerRoster };
@@ -2971,7 +3014,7 @@ function applyDarkMode(on) {
         const sel = [
             '.modal-content', '.modal-content *',
             '#setupPopup', '#setupPopup *',
-            '#spWizard *', '#spLock *',
+            '#spWizard *', '#spLock *', '#spLockNewPwBox *',
             '#spStatusBar', '#azureStatusBar',
             '#spModalStatus', '#azureModalStatus', '#azureLoginBanner',
             '#cmtStatus', '#diffContent *',
@@ -3284,6 +3327,7 @@ function openEditModal(index) {
     $('editImmoRatio').value    = w.immoEarlyPct   != null ? w.immoEarlyPct : 60;
     $('editImmoRatioLabel').textContent = (w.immoEarlyPct != null ? w.immoEarlyPct : 60) + '% ImE';
     $('edit6HDay').value        = w.fixed6HDay     != null ? w.fixed6HDay : 1;
+    $('editIsLearning').checked = !!w.isLearning;
 
     // Fixed days off checkboxes
     document.querySelectorAll('#editFixedOffCheckboxes input').forEach(cb => {
@@ -3386,6 +3430,7 @@ function saveEditWorker() {
     w.immoEarlyPct  = immoRatio;
     w.fixed6HDay    = fixed6HDay;
     w.fixedOff      = fixedOff;
+    w.isLearning    = $('editIsLearning').checked;
 
     // Summer schedule
     const sumMode = $('editSummerMode').value;
@@ -3411,6 +3456,42 @@ function scheduleRenderTable() {
         _renderScheduled = false;
         renderTable();
     }, 0);
+}
+
+// ─────────────────────────────────────────────────────────
+//  Drag-and-drop worker column reordering
+// ─────────────────────────────────────────────────────────
+let _wDragFrom = null;
+
+function workerDragStart(ev, i) {
+    _wDragFrom = i;
+    ev.dataTransfer.effectAllowed = 'move';
+    try { ev.dataTransfer.setData('text/plain', String(i)); } catch (e) {}
+    if (ev.currentTarget) ev.currentTarget.style.opacity = '0.4';
+}
+
+function workerDragOver(ev) {
+    ev.preventDefault(); // required to allow a drop
+    ev.dataTransfer.dropEffect = 'move';
+    if (ev.currentTarget) ev.currentTarget.style.background = 'rgba(52,152,219,0.25)';
+}
+
+function workerDrop(ev, i) {
+    ev.preventDefault();
+    if (ev.currentTarget) ev.currentTarget.style.background = '';
+    if (_wDragFrom === null || _wDragFrom === i) return;
+    if (!requireEdit('Reorder Workers')) { _wDragFrom = null; return; }
+    const moved = workers.splice(_wDragFrom, 1)[0];
+    workers.splice(i, 0, moved);
+    _wDragFrom = null;
+    saveData();
+    renderTable();
+}
+
+function workerDragEnd(ev) {
+    if (ev.currentTarget) ev.currentTarget.style.opacity = '';
+    document.querySelectorAll('#tableHead th[data-w-idx]').forEach(function(th){ th.style.background = ''; });
+    _wDragFrom = null;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -3451,6 +3532,12 @@ function updateShift(wIndex, dIndex, value) {
         if (currentRole !== 'viewer' || !canViewerEditChange(oldValue, value)) { const sel = document.querySelector(`.shift-select[data-w="${wIndex}"][data-d="${dIndex}"]`); if (sel) sel.value = oldValue; if (currentRole === 'viewer') alert(_t('🔒 Viewers can only request Urlaub / vacation (or clear a vacation request).','🔒 Nur-Leser können nur Urlaub beantragen oder Urlaubsantrag zurückziehen.')); else requireEdit('Edit Shift'); return; }
         finalValue = viewerShiftValueForSave(value);
     } else if (isPendingVacationShift(oldValue) && isVacationBase(stripPendingVacation(value))) { finalValue = stripPendingVacation(value); }
+    // Auto-mark learning: if this worker is flagged as currently learning (see worker
+    // edit panel checkbox), any room-assigned shift they're given is automatically
+    // tagged with the '*' training marker, so it's excluded from room headcount/min-max.
+    if (workers[wIndex].isLearning && finalValue && getRoomAssignment(finalValue) && !finalValue.endsWith('*')) {
+        finalValue = finalValue + '*';
+    }
     pushUndo(); workers[wIndex].shifts[dIndex] = finalValue; saveData();
     scheduleRenderTable();
 
@@ -3963,18 +4050,23 @@ function restoreData(input) {
 //  Dropdown HTML helper
 // ─────────────────────────────────────────────────────────
 function getDropdownOptions(currentShift) {
-    const base=["-","13H","8E","8L","8M","6H","OFF","VAC","SICK","FB","PF","DF","Urlaub IR","Urlaub-ZA","U-Immo","LSS","Offc","RB1","RB2"]; const immo=["ImE","ImL"]; const rooms=["IR2","IR3","IR4","Immo"]; const rShifts=["13H","8E","8L","8M","6H"]; const currentBase=getBaseShift(currentShift); let html=`<option value="-" ${currentShift==='-'?'selected':''}>-</option>`;
+    const base=["-","13H","8E","8L","8M","6H","OFF","SICK","FB","PF","DF","Urlaub IR","U-Immo","LSS","Offc","RB1","RB2","Immo"]; const immo=["ImE","ImL"]; const rooms=["IR2","IR3","IR4","Immo"]; const rShifts=["13H","8E","8L","8M","6H"]; const currentBase=getBaseShift(currentShift); let html=`<option value="-" ${currentShift==='-'?'selected':''}>-</option>`;
     // Learning-phase marker (trailing '*' on room-assigned shifts) is metadata only —
     // strip it before matching against dropdown option values so the <select> still
     // shows the right option as selected. The underlying cell value (with '*') is untouched.
     const cmpShift = (currentShift && currentShift.endsWith('*')) ? currentShift.slice(0,-1) : currentShift;
-    if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${fullShiftDisplayLabel(currentShift)}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>Custom: ${ov.label}${ov.star?' (best)':''}</option>`; } const isPendingV = isPendingVacationShift(currentShift); if (isPendingV) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} (pending)</option>`; vacationTypes.forEach(s => { const sel = !isPendingV && stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${sel?'selected':''}>${s}</option>`; }); return html; }
+    if (currentRole === 'viewer') { if (!viewerCanEditCell(currentShift)) return `<option value="${currentShift}" selected>${fullShiftDisplayLabel(currentShift)}</option>`; if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>Custom: ${ov.label}${ov.star?' (best)':''}</option>`; } const isPendingV = isPendingVacationShift(currentShift); if (isPendingV) html += `<option value="${currentShift}" selected>${shiftDisplayLabel(stripPendingVacation(currentShift))} (pending)</option>`; vacationPickerTypes.forEach(s => { const sel = !isPendingV && stripPendingVacation(currentShift)===s; html += `<option value="${s}" ${sel?'selected':''}>${shiftDisplayLabel(s)}</option>`; }); return html; }
     if (currentBase==='CUS') { const ov=cusOverlap(currentShift); html += `<option value="${currentShift}" selected>⏰ ${ov.label}${ov.star?' ★':''}</option>`; }
+    // Legacy vacation codes ('VAC' / 'Urlaub-ZA') are no longer offered as new picks (see
+    // vacationPickerTypes) but old saved data may still hold them — keep them selectable/
+    // displaying correctly (via shiftDisplayLabel) rather than falling back to '-'.
+    const isLegacyVac = !isPendingVacationShift(currentShift) && ['VAC','Urlaub-ZA'].includes(currentBase);
+    if (isLegacyVac) html += `<option value="${currentShift}" selected>${shiftDisplayLabel(currentBase)}</option>`;
     // ── FIX: for VAC-PENDING cells, only the pending option gets 'selected'. ──
     // Do NOT also mark the plain VAC option as selected — that caused the browser
     // to display VAC as the active selection, making an accidental click auto-approve.
     const isPending = isPendingVacationShift(currentShift);
-    if (isPending) html += `<option value="${currentShift}" selected>${stripPendingVacation(currentShift)} ⏳ pending approval</option>`;
+    if (isPending) html += `<option value="${currentShift}" selected>${shiftDisplayLabel(stripPendingVacation(currentShift))} ⏳ pending approval</option>`;
     html += `<optgroup label="Immo Shifts">`; immo.forEach(s => html += `<option value="${s}" ${cmpShift===s?'selected':''}>${s}</option>`); html += `</optgroup><optgroup label="Base Shifts &amp; Special">`; base.forEach(s => { if(s!=='-') html += `<option value="${s}" ${(cmpShift===s || (!isPending && stripPendingVacation(cmpShift)===s))?'selected':''}>${shiftDisplayLabel(s)}</option>`; }); html += `</optgroup>`; rooms.forEach(room => { html += `<optgroup label="${room} Assigned">`; rShifts.forEach(s => { const v=`${s}-${room}`; html += `<option value="${v}" ${cmpShift===v?'selected':''}>${roomShiftDisplayLabel(s,room)}</option>`; }); html += `</optgroup>`; }); return html;
 }
 
@@ -4003,6 +4095,7 @@ function renderTableFoot() {
 function renderTable() {
     if (!currentYear) return;
     const maxVac    = parseInt($('maxVacation').value)    || 0;
+    const maxImmoVac = parseInt($('maxImmoVacation').value) || 0;
     const maxConsec = parseInt($('maxConsecutive').value) || 5;
 
     // ── Header ──
@@ -4011,8 +4104,8 @@ function renderTable() {
     const hdrLSS  = 'LSS';
     let headHTML = `<tr>
         <th class="sticky-col">${hdrDate}</th>
-        <th class="sticky-col no-print">${hdrHol}</th>
-        <th class="sticky-col no-print">${hdrLSS}</th>`;
+        <th class="no-print">${hdrHol}</th>
+        <th class="no-print">${hdrLSS}</th>`;
 
     workers.forEach((w,i) => {
         let immoLbl = '';
@@ -4030,7 +4123,7 @@ function renderTable() {
             const dayLabel = ['Su','Mo','Tu','We','Th','Fr','Sa'][w.fixed6HDay] || 'Mo';
             c22note = `<br><span style="color:#27ae60; font-size:10px;">[${dayLabel}→6H]</span>`;
         }
-        headHTML += `<th data-w-idx="${i}" data-w-name="${escHtml(w.name)}">${escHtml(w.name)}
+        headHTML += `<th data-w-idx="${i}" data-w-name="${escHtml(w.name)}"${currentRole!=='viewer' ? ` draggable="true" ondragstart="workerDragStart(event,${i})" ondragover="workerDragOver(event)" ondrop="workerDrop(event,${i})" ondragend="workerDragEnd(event)" style="cursor:grab;" title="Drag to reorder"` : ''}>${escHtml(w.name)}
             <button class="btn-delete-worker no-print" onclick="openEditModal(${i})" title="Edit worker" style="color:#0056b3;">✏️</button>
             <button class="btn-delete-worker no-print" onclick="deleteWorker(${i})" title="Delete worker">✖</button>
             <br><small>${escHtml(w.system)} ${w.contract}h${immoLbl}${c22note}</small></th>`;
@@ -4045,8 +4138,6 @@ function renderTable() {
         <th style="background:#dff0f8;">ImE<br><small>(Act/Tgt)</small></th>
         <th style="background:#cce0e8;">ImL<br><small>(Act/Tgt)</small></th>
         <th style="background:#e8f4fc; color:#1a5276;" title="Total working staff this day">Total<br><small>working</small></th>
-        <th>IR2 (E|M|L)</th><th>IR3 (E|M|L)</th><th>IR4 (E|M|L)</th>
-        <th>Immo (07:00|07:30)</th>
         <th style="min-width:150px;">Room Warnings</th>
         <th style="min-width:90px; color:#c0392b;">Sick</th>
         <th style="min-width:90px; color:#8e44ad;">Vacation</th>
@@ -4057,7 +4148,9 @@ function renderTable() {
         <th>Daily Comments${cmtReady() ? ' <span title=\'Comment sync ON\' style=\'color:#27ae60; font-size:10px;\'>●</span>' : ' <span title=\'Comment sync not configured — see 🐙 GitHub Sync\' style=\'color:#aaa; font-size:10px;\'>○</span>'}</th>
         <th style="min-width:80px;background:#fff8e1;" title="RT Early Duty">🩺 RT Early<br><small style="color:#888;">Duty</small></th>
         <th style="min-width:80px;background:#fff0e8;" title="RT M/L Duty">🩺 RT M/L<br><small style="color:#888;">Duty</small></th>
-        <th style="min-width:80px;background:#f0e8ff;" title="IR4 QA Duty">🔬 IR4 QA<br><small style="color:#888;">Duty</small></th></tr>`;
+        <th style="min-width:80px;background:#f0e8ff;" title="IR4 QA Duty">🔬 IR4 QA<br><small style="color:#888;">Duty</small></th>
+        <th class="sticky-col-r">IR2 (E|M|L)</th><th class="sticky-col-r">IR3 (E|M|L)</th><th class="sticky-col-r">IR4 (E|M|L)</th>
+        <th class="sticky-col-r">Immo (07:00|07:30)</th></tr>`;
     $('tableHead').innerHTML = headHTML;
 
     // ── Body ──
@@ -4219,8 +4312,8 @@ function renderTable() {
             `<td class="sticky-col ${rowClass}${minAlert?' min-staff-alert':''}"` +
             ` title="${minAlert?'⚠ Only '+workingCount+' working (min '+minStaff+')':holName}">`+
             `${dayNames[dow]} ${d+1}.${minAlert?' ⚠'+workingCount:''}${holNameHtml}</td>`+
-            `<td class="sticky-col no-print ${rowClass}"><input type="checkbox" ${isHol?'checked':''} onchange="toggleHoliday(${d},this)"></td>`+
-            `<td class="sticky-col no-print ${rowClass}"><input type="checkbox" ${lssDays.includes(d)?'checked':''} onchange="toggleLSS(${d},this)"></td>`;
+            `<td class="no-print ${rowClass}"><input type="checkbox" ${isHol?'checked':''} onchange="toggleHoliday(${d},this)"></td>`+
+            `<td class="no-print ${rowClass}"><input type="checkbox" ${lssDays.includes(d)?'checked':''} onchange="toggleLSS(${d},this)"></td>`;
         // Append date cells first, then the pre-built worker cells (avoids scanning the full bodyHTML string)
         bodyHTML += dateCellHtml + rowWorkerCells;
 
@@ -4260,36 +4353,39 @@ function renderTable() {
             const eLine = eN===1 ? `<span style="${soloStyle}" title="Only 1 person in ${r} Early — no backup">E: ${eL.join(' ')}</span>` : `<strong>E:</strong> ${eL.join(' ')||'-'}`;
             const mLine = mN===1 ? `<span style="${soloStyle}" title="Only 1 person in ${r} Mid — no backup">M: ${mL.join(' ')}</span>`   : `<strong>M:</strong> ${mL.join(' ')||'-'}`;
             const lLine = lN===1 ? `<span style="${soloStyle}" title="Only 1 person in ${r} Late — no backup">L: ${lL.join(' ')}</span>`  : `<strong>L:</strong> ${lL.join(' ')||'-'}`;
-            roomCols += `<td class="room-box">${eLine}<br>${mLine}<br>${lLine}</td>`;
+            roomCols += `<td class="room-box sticky-col-r">${eLine}<br>${mLine}<br>${lLine}</td>`;
         });
         const totImmo = rooms.Immo.e.length + rooms.Immo.l.length;
         if (totImmo>0&&(totImmo<roomStaffing.Immo.min||totImmo>roomStaffing.Immo.max)) warnings.push(`Immo Total: ${totImmo} staff`);
-        // U-Immo vacation rule, independent from U-IR (Feature #15):
-        // yellow when EITHER U-Immo count alone is >=2, OR U-IR count is >=4 AND U-Immo count is >=1
-        // (a high U-IR vacation load lowers the Immo threshold from 2 down to 1).
-        const immoVacFlag = rooms.Immo.u.length>=2 || (cUIR>=4 && rooms.Immo.u.length>=1);
+        // Max Immo Vacation rule — independent of Sick/PF/DF/FB and independent of the
+        // Max IR total (unlike U-IR, which blends sick/PF/DF/FB into one combined check).
+        // Yellow when the U-Immo count reaches maxImmoVac, red once it exceeds it.
+        let immoVacClass = '';
+        if (maxImmoVac>0) {
+            if (rooms.Immo.u.length > maxImmoVac) immoVacClass = 'warning';
+            else if (rooms.Immo.u.length === maxImmoVac) immoVacClass = 'warning-yellow';
+        }
         const uStr = rooms.Immo.u.length>0
-            ? `<br><span style="${immoVacFlag?'background:#f9e79f; padding:0 3px; border-radius:2px;':''} color:#8e44ad;font-weight:bold;" title="${immoVacFlag?'U-Immo vacation load high'+(cUIR>=4?' (raised by high U-IR load: '+cUIR+')':''):''}">U:</span> ${rooms.Immo.u.join(' ')}`
+            ? `<br><span class="${immoVacClass}" style="padding:0 3px; border-radius:2px; color:#8e44ad;font-weight:bold;" title="${immoVacClass?'U-Immo vacation at/over max ('+maxImmoVac+')':''}">U:</span> ${rooms.Immo.u.join(' ')}`
             : '';
-        roomCols += `<td class="room-box"><strong>07:00:</strong> ${rooms.Immo.e.join(' ')||'-'}<br><strong>07:30:</strong> ${rooms.Immo.l.join(' ')||'-'}${uStr}</td>`;
+        roomCols += `<td class="room-box sticky-col-r"><strong>07:00:</strong> ${rooms.Immo.e.join(' ')||'-'}<br><strong>07:30:</strong> ${rooms.Immo.l.join(' ')||'-'}${uStr}</td>`;
 
         let warnHtml = warnings.length>0
             ? `<strong style="color:red; font-size:11px;">⚠️ ${warnings.join('<br>⚠️ ')}</strong>`
             : `<span style="color:green; font-size:11px;">✔️ OK</span>`;
         if (isWE || isHol) warnHtml = '';
 
-        // Vacation-max color rule: U-IR + Sick + PF + DF + FB, minus 1.
+        // Max IR Vacation rule: U-IR + Sick + PF + DF + FB.
         // Yellow when that total reaches maxVac, red once it exceeds maxVac.
-        // (Replaces the old combined-vCount-vs-maxVac check and the hardcoded 5/6 totalAbsence check.)
         let vacClass = '';
         if (maxVac>0) {
-            const absenceTotal = cUIR + sickCount + cPF + cDF + cFB - 1;
+            const absenceTotal = cUIR + sickCount + cPF + cDF + cFB;
             if (absenceTotal > maxVac) vacClass = 'warning';
             else if (absenceTotal === maxVac) vacClass = 'warning-yellow';
         }
         const titleOrDash = arr => arr.length ? arr.join(', ') : '—';
 
-        bodyHTML += `${roomCols}
+        bodyHTML += `
             <td style="text-align:left; vertical-align:middle;">${warnHtml}</td>
             <td style="vertical-align:top; font-size:11px; min-width:90px;">
                 ${sickNames.map(n=>`<span class="name-chip" style="background:${darkMode?'#2a0c0a':'#f5b7b1'}; display:block; margin-bottom:2px;">${n}</span>`).join('')}
@@ -4321,7 +4417,7 @@ function renderTable() {
                 ${rtDuty[d]&&rtDuty[d].ir4QA
                     ?'<span style="background:#8e44ad;color:white;padding:2px 5px;border-radius:8px;font-weight:bold;font-size:10px;">'+rtDuty[d].ir4QA+'</span>'
                     :'<span style="color:#ccc;">—</span>'}
-            </td></tr>`;
+            </td>${roomCols}</tr>`;
     }
     $('tableBody').innerHTML = bodyHTML;
 
@@ -4790,85 +4886,56 @@ function autoGenerate() {
         });
 
         // ── IR2 fair assignment ──────────────────────────────────────────
+        // Fixed Late-only workers get priority for the IR2 slot over mixed-preference
+        // ("Any") workers who also happened to land on plain 8L that day. Within each
+        // priority tier, fairness rotation (fewest IR2 assignments so far, shuffled
+        // among near-ties) still applies.
+        function bucketShuffleByIr2Count(list) {
+            list.forEach(function(e){ e.ir2Count = e.w.shifts.filter(function(s){ return getRoomAssignment(s)==='IR2'; }).length; });
+            list.sort(function(a,b){ return a.ir2Count-b.ir2Count; });
+            const shuffled = [];
+            let bi = 0;
+            while (bi < list.length) {
+                const bucket = [list[bi]];
+                let bj = bi+1;
+                while (bj < list.length && list[bj].ir2Count - list[bi].ir2Count <= 1) bucket.push(list[bj++]);
+                for (let k=bucket.length-1; k>0; k--) { const r=Math.floor(Math.random()*(k+1)); const t=bucket[k]; bucket[k]=bucket[r]; bucket[r]=t; }
+                bucket.forEach(function(e){ shuffled.push(e); });
+                bi = bj;
+            }
+            return shuffled;
+        }
         for (let d = 0; d < daysInMonth; d++) {
             const dt = dailyTargets[d] || {};
             const need = dt.tIR2L || 0;
             if (!need) continue;
             const dow = new Date(currentYear, currentMonth-1, d+1).getDay();
             if (dow===0 || dow===6 || isHoliday(d)) continue;
+            // Workers who already have an IR2-late slot today (e.g. kept pre-fills from
+            // before this auto-fill run). Learners ('*') don't count as real occupants —
+            // they're excluded from room headcount / min-max, per the learning-marker rule.
+            const existingReal = workers.filter(function(w){
+                const s = w.shifts[d] || '';
+                return getRoomAssignment(s)==='IR2' && getBaseShift(s)==='8L' && !s.endsWith('*');
+            }).length;
+            const slotsOpen = Math.max(0, need - existingReal);
+            if (!slotsOpen) continue;
             const eligible = workers
                 .map((w, i) => ({ i, w }))
                 .filter(function(e){ return getBaseShift(e.w.shifts[d])==='8L' && !getRoomAssignment(e.w.shifts[d]); });
             if (!eligible.length) continue;
-            eligible.forEach(function(e){ e.ir2Count = e.w.shifts.filter(function(s){ return getRoomAssignment(s)==='IR2'; }).length; });
-            eligible.sort(function(a,b){ return a.ir2Count-b.ir2Count; });
-            const shuffled = [];
-            let bi = 0;
-            while (bi < eligible.length) {
-                const bucket = [eligible[bi]];
-                let bj = bi+1;
-                while (bj < eligible.length && eligible[bj].ir2Count - eligible[bi].ir2Count <= 1) bucket.push(eligible[bj++]);
-                for (let k=bucket.length-1; k>0; k--) { const r=Math.floor(Math.random()*(k+1)); const t=bucket[k]; bucket[k]=bucket[r]; bucket[r]=t; }
-                bucket.forEach(function(e){ shuffled.push(e); });
-                bi = bj;
+            const lateOnly = eligible.filter(function(e){ return e.w.pref === 'Late'; });
+            const others   = eligible.filter(function(e){ return e.w.pref !== 'Late'; });
+            const shuffled = bucketShuffleByIr2Count(lateOnly).concat(bucketShuffleByIr2Count(others));
+            for (let k=0; k < Math.min(slotsOpen, shuffled.length); k++) {
+                shuffled[k].w.shifts[d] = '8L-IR2' + (shuffled[k].w.isLearning ? '*' : '');
             }
-            for (let k=0; k < Math.min(need, shuffled.length); k++) shuffled[k].w.shifts[d] = '8L-IR2';
         }
+
 
         // ── RT Duty fair assignment ──────────────────────────────────────
         autoAssignRTDuty();
         // ────────────────────────────────────────────────────────────────
-
-        // ── IR2 fair assignment ────────────────────────────────────────────
-        // For each weekday, find all workers who ended up with 8L (plain, no room suffix).
-        // Sort by how many IR2 assignments they already have this month (fewest first),
-        // shuffle within ±1 tie bands (same fairness approach as main auto-fill),
-        // then assign the first tIR2L workers to 8L-IR2.
-        // Workers who already have a room suffix are untouched.
-        for (let d = 0; d < daysInMonth; d++) {
-            const dt   = dailyTargets[d] || {};
-            const need = dt.tIR2L || 0;
-            if (!need) continue;
-            const dow  = new Date(currentYear, currentMonth-1, d+1).getDay();
-            if (dow===0 || dow===6 || isHoliday(d)) continue;  // weekdays only
-
-            // Eligible: workers who have plain 8L on this day (no existing room suffix)
-            const eligible = workers
-                .map((w, i) => ({ i, w }))
-                .filter(({ w }) => getBaseShift(w.shifts[d]) === '8L' && !getRoomAssignment(w.shifts[d]));
-
-            if (!eligible.length) continue;
-
-            // Count how many IR2 assignments each eligible worker already has this month
-            eligible.forEach(e => {
-                e.ir2Count = e.w.shifts.filter(s => getRoomAssignment(s) === 'IR2').length;
-            });
-
-            // Bucket sort: fewest IR2 first, Fisher-Yates shuffle within ±1 ties
-            eligible.sort((a, b) => a.ir2Count - b.ir2Count);
-            const shuffled = [];
-            let bi = 0;
-            while (bi < eligible.length) {
-                const bucket = [eligible[bi]];
-                let bj = bi + 1;
-                while (bj < eligible.length && eligible[bj].ir2Count - eligible[bi].ir2Count <= 1) {
-                    bucket.push(eligible[bj++]);
-                }
-                // Fisher-Yates shuffle within bucket
-                for (let k = bucket.length - 1; k > 0; k--) {
-                    const r = Math.floor(Math.random() * (k + 1));
-                    [bucket[k], bucket[r]] = [bucket[r], bucket[k]];
-                }
-                bucket.forEach(e => shuffled.push(e));
-                bi = bj;
-            }
-
-            // Assign IR2 to the first `need` workers from the shuffled list
-            for (let k = 0; k < Math.min(need, shuffled.length); k++) {
-                shuffled[k].w.shifts[d] = '8L-IR2';
-            }
-        }
-        // ──────────────────────────────────────────────────────────────────
 
         // Snapshot what auto-fill assigned, so later manual edits can be flagged (override warning)
         workers.forEach(worker => { worker.autoFillSnapshot = [...worker.shifts]; });
@@ -4940,23 +5007,29 @@ function placeShiftsGreedy(worker, pool, startDay, endDay) {
                     score = 100;
                 }
             } else if (s==='8L-ANY') {
-                const def8L=tgt8L-c8L, def8M=useMiddle ? (tgt8M-c8M) : -Infinity;
-                const wLate8L = worker.shifts.filter(x => getBaseShift(x)==='8L').length;
-                const wLate8M = worker.shifts.filter(x => getBaseShift(x)==='8M').length;
-                // IR2 room rule: if this day already has an IR2 room suffix, never use 8M
+                // This branch only ever runs for pref==='Late' workers (the only caller
+                // that pushes '8L-ANY' into the pool — see autoGenerate Step 3). Late-only
+                // workers should be weighted toward IR2 (8L), only overflowing to
+                // IR3/IR4 (8M) once IR2's daily target is already met.
                 const existingRoom = getRoomAssignment(worker.shifts[d] || '');
                 const ir2Day = existingRoom === 'IR2';
                 if (ir2Day) {
-                    // Force 8L — IR2 only allows early or late, never middle
+                    // IR2 room rule: if this day already has an IR2 room suffix, never use 8M
                     if (c8L >= tgt8L) continue;
                     actualShift = '8L';
                     score = 1000 + Math.max(0, tgt8L - c8L);
-                } else if (def8L === def8M) {
-                    actualShift = (!useMiddle) ? '8L' : (wLate8L <= wLate8M ? '8L' : '8M');
-                    score = 1000+Math.max(def8L,def8M);
+                } else if (!useMiddle || c8L < tgt8L) {
+                    // IR2 (8L) still needs coverage today — prefer it
+                    actualShift = '8L';
+                    score = 1000 + Math.max(0, tgt8L - c8L) + 50;
+                } else if (c8M < tgt8M) {
+                    // IR2 target already met — overflow to IR3/IR4 (8M)
+                    actualShift = '8M';
+                    score = 1000 + Math.max(0, tgt8M - c8M);
                 } else {
-                    actualShift = def8L > def8M ? '8L' : '8M';
-                    score = 1000+Math.max(def8L,def8M);
+                    // Neither room needs coverage today — still prefer 8L over skipping
+                    actualShift = '8L';
+                    score = 100;
                 }
             } else if (s==='6H') {
                 if (!use6H) continue;
@@ -5059,12 +5132,29 @@ function placeShiftsGreedyFair(worker, pool, startDay, endDay) {
 
             } else if (s==='8L-ANY') {
                 const def8L=dt8L-c8L, def8M=dt8M-c8M;
-                // Honour per-type budget even for 8L-ANY workers.
-                // When Middle shift is disabled, always resolve to 8L regardless of budget state.
-                if (!useMiddle) actualShift = '8L';
-                else if (remain8L > 0 && (def8L >= def8M || remain8M <= 0)) actualShift = '8L';
-                else actualShift = '8M';
-                score = 1000+Math.max(def8L,def8M);
+                if (worker.pref === 'Late') {
+                    // Late-only preference: weight toward IR2 (8L), only overflow to
+                    // IR3/IR4 (8M) once IR2's daily target is already met.
+                    const existingRoom = getRoomAssignment(worker.shifts[d] || '');
+                    if (existingRoom === 'IR2') {
+                        if (c8L >= dt8L) continue;
+                        actualShift = '8L';
+                    } else if (!useMiddle || c8L < dt8L) {
+                        actualShift = '8L';
+                    } else if (c8M < dt8M) {
+                        actualShift = '8M';
+                    } else {
+                        actualShift = '8L';
+                    }
+                    score = 1000 + Math.max(def8L, def8M) + 50;
+                } else {
+                    // Honour per-type budget even for 8L-ANY workers.
+                    // When Middle shift is disabled, always resolve to 8L regardless of budget state.
+                    if (!useMiddle) actualShift = '8L';
+                    else if (remain8L > 0 && (def8L >= def8M || remain8M <= 0)) actualShift = '8L';
+                    else actualShift = '8M';
+                    score = 1000+Math.max(def8L,def8M);
+                }
             } else if (s==='8E') {
                 score = 1000+(dt8E-c8E);
             } else if (s==='8L') {
@@ -5317,6 +5407,54 @@ function runAIAnalysis() {
     report += pendingVac.length>0
         ? `<p style="color:#8e44ad;"><strong>Pending approval:</strong><br>${pendingVac.join('<br>')}</p><p style="font-size:11px; color:#666;">These requests stay white until approved by an Editor or Admin.</p>`
         : `<p style="color:green;">✔️ No pending vacation requests.</p>`;
+
+    // ── Middle/Late Shift Distribution (all workers on this plan) ──
+    report += `<h3>📊 Middle/Late Shift Distribution</h3>`;
+    const mlTypes = use13H ? ['8M','8L','13H'] : ['8M','8L'];
+    const mlData = workers.map(w => ({
+        name: w.name,
+        count: w.shifts.filter(s => mlTypes.includes(getBaseShift(s))).length
+    }));
+    if (mlData.length > 0) {
+        const maxMl = Math.max(...mlData.map(x=>x.count));
+        const minMl = Math.min(...mlData.map(x=>x.count));
+        const busiestMl = mlData.filter(x=>x.count===maxMl);
+        const leanestMl = mlData.filter(x=>x.count===minMl);
+        const mlRows = mlData.slice().sort((a,b)=>b.count-a.count).map(x => {
+            const isBusiest = x.count === maxMl;
+            return `<tr${isBusiest?' style="background:#fdecea;"':''}><td style="padding:3px;">${escHtml(x.name)}</td><td style="padding:3px; text-align:center;${isBusiest?'font-weight:bold;color:#c0392b;':''}">${x.count}</td></tr>`;
+        }).join('');
+        report += `<table style="width:100%; font-size:12px; border-collapse:collapse; margin-bottom:8px;">
+            <tr style="background:#eee;"><th style="text-align:left; padding:3px;">Worker</th><th style="padding:3px;">M/L Shifts${use13H?' (+13H)':''}</th></tr>
+            ${mlRows}
+        </table>`;
+        report += `<p style="font-size:12px;">
+            <strong style="color:#c0392b;">Most middle/late shifts (${maxMl}):</strong> ${busiestMl.map(x=>escHtml(x.name)).join(', ')}<br>
+            <strong style="color:#27ae60;">Suggested swap partner${leanestMl.length>1?'s':''} — fewest (${minMl}):</strong> ${leanestMl.map(x=>escHtml(x.name)).join(', ')}
+        </p>`;
+    } else {
+        report += `<p style="color:#888;">No workers on this plan.</p>`;
+    }
+
+    // ── Room Assignment Gaps (weekdays only) ──
+    report += `<h3>🔍 Room Assignment Gaps</h3>`;
+    const roomGaps = [];
+    for (let d=0; d<daysInMonth; d++) {
+        const dow = new Date(currentYear,currentMonth-1,d+1).getDay();
+        if (dow===0 || dow===6 || isHoliday(d)) continue;
+        workers.forEach(w => {
+            const raw = w.shifts[d];
+            const base = getBaseShift(raw);
+            if (base === '-') {
+                roomGaps.push(`Day ${d+1}: <strong>${escHtml(w.name)}</strong> — no assignment`);
+            } else if (['8E','8M','8L','13H'].includes(base) && !getRoomAssignment(raw)) {
+                roomGaps.push(`Day ${d+1}: <strong>${escHtml(w.name)}</strong> — ${escHtml(shiftDisplayLabel(base))}, no room assigned`);
+            }
+        });
+    }
+    report += roomGaps.length > 0
+        ? `<ul style="color:#856404; background:#fff3cd; padding:10px 10px 10px 28px; border-radius:4px; font-size:12px; border:1px solid #ffc107;"><li>${roomGaps.join('</li><li>')}</li></ul>`
+        : `<p style="color:green;">✔️ No room assignment gaps found.</p>`;
 
     // ── Shift Swap Suggestions ──
     report += `<h3>Shift Swap Suggestions</h3>`;
@@ -5659,8 +5797,10 @@ function computeHelperValue(rawShift, key) {
         case 'c6H':   return  b === '6H'  ? 1 : 0;
         case 'cImE':  return  b === 'ImE' ? 1 : 0;
         case 'cImL':  return  b === 'ImL' ? 1 : 0;
-        case 'work':  return (b.startsWith('8E')||b.startsWith('8L')||b.startsWith('8M')||b.startsWith('13H')||b==='6H'||b==='FB'||b==='LSS'||b==='Offc'||b==='ImE'||b==='ImL'||b==='CUS') ? 1 : 0;
+        case 'work':  return (b.startsWith('8E')||b.startsWith('8L')||b.startsWith('8M')||b.startsWith('13H')||b==='6H'||b==='FB'||b==='LSS'||b==='Offc'||b==='ImE'||b==='ImL'||b==='Immo'||b==='CUS') ? 1 : 0;
         case 'vac':   return (b==='VAC'||b==='Urlaub IR'||b==='Urlaub-ZA'||b==='U-Immo') ? 1 : 0;
+        case 'vacir':   return (b==='VAC'||b==='Urlaub IR'||b==='Urlaub-ZA') ? 1 : 0;
+        case 'vacimmo': return  b==='U-Immo' ? 1 : 0;
         case 'sick':  return  b === 'SICK' ? 1 : 0;
         case 'fb':    return  b === 'FB'   ? 1 : 0;
         case 'pf':    return  b === 'PF'   ? 1 : 0;
@@ -5702,8 +5842,10 @@ function excelHelperFormula(ref, key) {
         case 'c6H':   return `IF(${ref}="6H",1,0)`;
         case 'cImE':  return `IF(${ref}="ImE",1,0)`;
         case 'cImL':  return `IF(${ref}="ImL",1,0)`;
-        case 'work':  return `IF(OR(${is8E},${is8L},${is8M},${is13H},${ref}="6H",${ref}="FB",${ref}="LSS",${ref}="Offc",${ref}="ImE",${ref}="ImL",${isCus}),1,0)`;
+        case 'work':  return `IF(OR(${is8E},${is8L},${is8M},${is13H},${ref}="6H",${ref}="FB",${ref}="LSS",${ref}="Offc",${ref}="ImE",${ref}="ImL",${ref}="Immo",${isCus}),1,0)`;
         case 'vac':   return `IF(OR(${ref}="VAC",${ref}="Urlaub IR",${ref}="Urlaub-ZA",${ref}="U-Immo"),1,0)`;
+        case 'vacir':   return `IF(OR(${ref}="VAC",${ref}="Urlaub IR",${ref}="Urlaub-ZA"),1,0)`;
+        case 'vacimmo': return `IF(${ref}="U-Immo",1,0)`;
         case 'sick':  return `IF(${ref}="SICK",1,0)`;
         case 'fb':    return `IF(${ref}="FB",1,0)`;
         case 'pf':    return `IF(${ref}="PF",1,0)`;
@@ -5733,8 +5875,10 @@ function excelHelperFormulaPending(ref, key) {
         case 'c6H':   return `IF(${ref}="6H",1,0)`;
         case 'cImE':  return `IF(${ref}="ImE",1,0)`;
         case 'cImL':  return `IF(${ref}="ImL",1,0)`;
-        case 'work':  return `IF(OR(${is8E},${is8L},${is8M},${is13H},${ref}="6H",${ref}="FB",${ref}="LSS",${ref}="Offc",${ref}="ImE",${ref}="ImL",${isCus}),1,0)`;
+        case 'work':  return `IF(OR(${is8E},${is8L},${is8M},${is13H},${ref}="6H",${ref}="FB",${ref}="LSS",${ref}="Offc",${ref}="ImE",${ref}="ImL",${ref}="Immo",${isCus}),1,0)`;
         case 'vac':   return `IF(${isVac},1,0)`;
+        case 'vacir':   return `IF(OR(LEFT(${ref},3)="VAC",LEFT(${ref},9)="Urlaub IR",LEFT(${ref},9)="Urlaub-ZA"),1,0)`;
+        case 'vacimmo': return `IF(LEFT(${ref},6)="U-Immo",1,0)`;
         case 'sick':  return `IF(${ref}="SICK",1,0)`;
         case 'fb':    return `IF(${ref}="FB",1,0)`;
         case 'pf':    return `IF(${ref}="PF",1,0)`;
@@ -5985,7 +6129,53 @@ function buildAnalysisSheet(de, cfg) {
         });
     }
 
-    // ── 6. Shift Swap Suggestions ──
+    // ── 6. Middle/Late Shift Distribution (all workers) ──
+    addSection('', de ? 'Mittel-/Spätdienst-Verteilung' : 'Middle/Late Shift Distribution');
+    const mlTypesX = use13H ? ['8M','8L','13H'] : ['8M','8L'];
+    const mlDataX = workers.map(w => ({
+        name: w.name,
+        count: w.shifts.filter(s => mlTypesX.includes(getBaseShift(s))).length
+    }));
+    if (mlDataX.length === 0) {
+        addStatus(true, de ? 'Keine Mitarbeiter in diesem Plan.' : 'No workers on this plan.');
+    } else {
+        const maxMlX = Math.max(...mlDataX.map(x=>x.count));
+        const minMlX = Math.min(...mlDataX.map(x=>x.count));
+        const busiestX = mlDataX.filter(x=>x.count===maxMlX);
+        const leanestX = mlDataX.filter(x=>x.count===minMlX);
+        addRow([de?'Mitarbeiter':'Worker', de?'M/L-Dienste':'M/L Shifts'], '#DDDDDD', { bold:true });
+        mlDataX.slice().sort((a,b)=>b.count-a.count).forEach(x => {
+            const isBusiest = x.count === maxMlX;
+            addRow([x.name, x.count], isBusiest ? BG_ERR : null, { fontColor: isBusiest ? RED : GREY, bold: isBusiest });
+        });
+        addItem(de ? 'Meiste (Tausch von):' : 'Most (swap from):', `${busiestX.map(x=>x.name).join(', ')} (${maxMlX})`, RED);
+        addItem(de ? 'Wenigste (Tausch zu):' : 'Fewest (swap to):', `${leanestX.map(x=>x.name).join(', ')} (${minMlX})`, GREEN);
+    }
+
+    // ── 7. Room Assignment Gaps (weekdays only) ──
+    addSection('', de ? 'Raumzuweisungs-Lücken' : 'Room Assignment Gaps');
+    const roomGapsX = [];
+    for (let d=0; d<daysInMonth; d++) {
+        const dow = new Date(currentYear,currentMonth-1,d+1).getDay();
+        if (dow===0 || dow===6 || isHoliday(d)) continue;
+        workers.forEach(w => {
+            const raw = w.shifts[d];
+            const base = getBaseShift(raw);
+            if (base === '-') {
+                roomGapsX.push([`Day ${d+1}`, w.name, de?'Keine Zuweisung':'No assignment']);
+            } else if (['8E','8M','8L','13H'].includes(base) && !getRoomAssignment(raw)) {
+                roomGapsX.push([`Day ${d+1}`, w.name, `${base} — ${de?'kein Raum zugewiesen':'no room assigned'}`]);
+            }
+        });
+    }
+    if (roomGapsX.length === 0) {
+        addStatus(true, de ? 'Keine Raumzuweisungs-Lücken gefunden.' : 'No room assignment gaps found.');
+    } else {
+        addRow([de?'Tag':'Day', de?'Mitarbeiter':'Worker', de?'Problem':'Issue'], '#DDDDDD', { bold:true });
+        roomGapsX.forEach(([day, name, issue]) => addRow([day, name, issue], BG_WRN, { fontColor: ORANGE }));
+    }
+
+    // ── 8. Shift Swap Suggestions ──
     addSection('', de ? 'Tausch-Vorschläge' : 'Shift Swap Suggestions');
     const swaps = [];
     if (latesData.length >= 2) {
@@ -6056,7 +6246,8 @@ const workerStartCol  = 5;
         { label: 'ImE',                   key: 'cImE'  },
         { label: 'ImL',                   key: 'cImL'  },
         { label: de ? 'Arbeitend'       : 'Working',         key: 'work'    },
-        { label: de ? 'Urlaub'          : 'Vacation',        key: 'vac'     },
+        { label: de ? 'U-IR'    : 'Vacation IR',    key: 'vacir'   },
+        { label: de ? 'U-Immo'  : 'Vacation Immo',  key: 'vacimmo' },
         { label: 'FB',                                        key: 'fb'      },
         { label: 'PF',                                        key: 'pf'      },
         { label: 'DF',                                        key: 'df'      },
@@ -6098,6 +6289,7 @@ async function downloadExcelWithFormulas() {
     const cfg = buildExcelExportConfig();
     const wb  = XLSX.utils.book_new();
     const maxVac = parseInt($('maxVacation').value) || 0; // for the vacation-max color rule, mirrors HTML logic
+    const maxImmoVac = parseInt($('maxImmoVacation').value) || 0; // independent Immo-only limit, mirrors HTML logic
     const monthTitle = new Date(currentYear, currentMonth-1, 1).toLocaleString(de?'de-DE':'en-US', { month:'long', year:'numeric' });
 
     const cellStyle = xlsCellStyle;
@@ -6234,6 +6426,8 @@ async function downloadExcelWithFormulas() {
             if (!planWs[addr]) planWs[addr] = { t:'s', v:'' };
             let bg, fontColor;
             if (s.key === 'comments')          { bg = COMMENT_BG; }
+            else if (s.key === 'vacir')        { bg = rowBg ? rowBg : 'B6D7A8'; fontColor = '#274E13'; }
+            else if (s.key === 'vacimmo')      { bg = rowBg ? rowBg : 'D9D2E9'; fontColor = '#20124D'; }
             else if (s.key === 'ir2_m')        { bg = rowBg ? rowBg : '#F9CB9C'; fontColor = '#5D4037'; }
             else if (s.key.startsWith('ir2'))  { bg = rowBg ? rowBg : '#FFF2A8'; fontColor = '#5D4037'; }
             else if (s.key === 'ir3_m')        { bg = rowBg ? rowBg : '#F9CB9C'; fontColor = '#1A237E'; }
@@ -6249,7 +6443,7 @@ async function downloadExcelWithFormulas() {
     }
 
     // ── Helper sheet (hidden — formula logic) ──
-    const helperKeys = ['c8E', ...(useMiddle?['c8M']:[]), 'c8L', ...(use13H?['c13H']:[]), ...(use6H?['c6H']:[]), 'cImE','cImL','work','vac','sick','fb','pf','df'];
+    const helperKeys = ['c8E', ...(useMiddle?['c8M']:[]), 'c8L', ...(use13H?['c13H']:[]), ...(use6H?['c6H']:[]), 'cImE','cImL','work','vacir','vacimmo','sick','fb','pf','df'];
     const helperHeader = [de?'Datum':'Date', 'DayIndex'];
     helperKeys.forEach(key => workers.forEach(w => helperHeader.push(`${key}_${w.name}`)));
     const helperRows = [helperHeader];
@@ -6345,13 +6539,19 @@ const namedRange  = `SP_W_${wIdx}`;
                 case 'cImE': f = ci(wRng,'ImE'); break;
                 case 'cImL': f = ci(wRng,'ImL'); break;
                 case 'work':
-                    // Count any working shift: 8x, 13H, ImE, ImL, 6H, FB, LSS, Offc, RB*, CUS*
-                    f = `${ci(wRng,'8*')}+${ci(wRng,'13H*')}+${ci(wRng,'ImE')}+${ci(wRng,'ImL')}` +
+                    // Count any working shift: 8x, 13H, ImE, ImL, Immo, 6H, FB, LSS, Offc, RB*, CUS*
+                    f = `${ci(wRng,'8*')}+${ci(wRng,'13H*')}+${ci(wRng,'ImE')}+${ci(wRng,'ImL')}+${ci(wRng,'Immo')}` +
                         `+${ci(wRng,'6H')}+${ci(wRng,'FB')}+${ci(wRng,'LSS')}` +
                         `+${ci(wRng,'Offc')}+${ci(wRng,'RB*')}+${ci(wRng,'CUS*')}`;
                     break;
                 case 'vac':
                     f = `${ci(wRng,'VAC')}+${ci(wRng,'VAC *')}+${ci(wRng,'Urlaub*')}+${ci(wRng,'U-Immo*')}`;
+                    break;
+                case 'vacir':
+                    f = `${ci(wRng,'VAC')}+${ci(wRng,'VAC *')}+${ci(wRng,'Urlaub*')}`;
+                    break;
+                case 'vacimmo':
+                    f = ci(wRng,'U-Immo*');
                     break;
                 case 'sick':  f = ci(wRng,'SICK'); break;
                 case 'fb':    f = ci(wRng,'FB'); break;
@@ -6362,9 +6562,9 @@ const namedRange  = `SP_W_${wIdx}`;
                         const i = cfg.summary.findIndex(x => x.key === k);
                         return i >= 0 ? excelCol(cfg.summaryStartCol + i) : null;
                     };
-                    const vCol = col('vac'), fbCol = col('fb'), pfCol = col('pf'), dfCol = col('df'), sCol = col('sick');
-                    if (vCol && fbCol && pfCol && dfCol && sCol) {
-                        f = `SUM(${vCol}${excelRow},${fbCol}${excelRow},${pfCol}${excelRow},${dfCol}${excelRow},${sCol}${excelRow})`;
+                    const virCol = col('vacir'), vimCol = col('vacimmo'), fbCol = col('fb'), pfCol = col('pf'), dfCol = col('df'), sCol = col('sick');
+                    if (virCol && vimCol && fbCol && pfCol && dfCol && sCol) {
+                        f = `SUM(${virCol}${excelRow},${vimCol}${excelRow},${fbCol}${excelRow},${pfCol}${excelRow},${dfCol}${excelRow},${sCol}${excelRow})`;
                     }
                     break;
                 }
@@ -6610,7 +6810,7 @@ const namedRange  = `SP_W_${wIdx}`;
         }
 
         // ── Vacation-max CF — mirrors the HTML rule (Feature #12) ──
-        // U-IR (Urlaub IR only, not the combined vac count) + Sick + PF + DF + FB, minus 1.
+        // U-IR (Vacation IR column only, not U-Immo) + Sick + PF + DF + FB.
         // Yellow when that total reaches maxVac, red once it exceeds maxVac.
         // True Excel conditional formatting (not a static snapshot color), so it stays
         // live if someone edits a shift/sick/etc cell after the file is downloaded.
@@ -6620,7 +6820,7 @@ const namedRange  = `SP_W_${wIdx}`;
                 const i = cfg.summary.findIndex(x => x.key === k);
                 return i >= 0 ? excelCol(cfg.summaryStartCol + i) : null;
             };
-            const vacCol  = findCol('vac');
+            const vacCol  = findCol('vacir');
             const sickCol = findCol('sick'), pfCol = findCol('pf'), dfCol = findCol('df'), fbCol = findCol('fb');
             const wFirst0 = excelCol(cfg.workerStartCol);
             const wLast0  = excelCol(cfg.workerStartCol + Math.max(workers.length - 1, 0));
@@ -6631,7 +6831,7 @@ const namedRange  = `SP_W_${wIdx}`;
                 // U-IR bucket = VAC + Urlaub IR + Urlaub-ZA combined (matches the codebase's
                 // existing "U-IR" convention, e.g. the RT-duty room classification), excludes U-Immo.
                 const uirCount = `(COUNTIF($${wFirst0}2:$${wLast0}2,"VAC*")+COUNTIF($${wFirst0}2:$${wLast0}2,"Urlaub*"))`;
-                const total = `(${uirCount}+$${sickCol}2+$${pfCol}2+$${dfCol}2+$${fbCol}2-1)`;
+                const total = `(${uirCount}+$${sickCol}2+$${pfCol}2+$${dfCol}2+$${fbCol}2)`;
                 vacMaxCF =
                     `<conditionalFormatting sqref="${vacSqref}">` +
                     `<cfRule type="expression" dxfId="23" priority="${pri+20}" stopIfTrue="0"><formula>${total}&gt;${maxVac}</formula></cfRule>` +
@@ -6640,7 +6840,28 @@ const namedRange  = `SP_W_${wIdx}`;
             }
         }
 
-        return shiftCF + rowCF + minStaffCF + vacMaxCF;
+        // ── Max Immo Vacation CF — independent limit, mirrors HTML rule ──
+        // U-Immo count only — NOT blended with Sick/PF/DF/FB and NOT combined with the
+        // Max IR total. Yellow when count reaches maxImmoVac, red once it exceeds it.
+        let immoVacMaxCF = '';
+        if (maxImmoVac > 0) {
+            const findCol = k => {
+                const i = cfg.summary.findIndex(x => x.key === k);
+                return i >= 0 ? excelCol(cfg.summaryStartCol + i) : null;
+            };
+            const vacImmoCol = findCol('vacimmo');
+            if (vacImmoCol) {
+                const vacImmoSqref = `${vacImmoCol}2:${vacImmoCol}${lastRow}`;
+                const totalImmo = `$${vacImmoCol}2`;
+                immoVacMaxCF =
+                    `<conditionalFormatting sqref="${vacImmoSqref}">` +
+                    `<cfRule type="expression" dxfId="23" priority="${pri+22}" stopIfTrue="0"><formula>${totalImmo}&gt;${maxImmoVac}</formula></cfRule>` +
+                    `<cfRule type="expression" dxfId="24" priority="${pri+23}" stopIfTrue="0"><formula>${totalImmo}=${maxImmoVac}</formula></cfRule>` +
+                    `</conditionalFormatting>`;
+            }
+        }
+
+        return shiftCF + rowCF + minStaffCF + vacMaxCF + immoVacMaxCF;
     }
 
     XLSX.utils.book_append_sheet(wb, planWs,    'Plan');
@@ -6790,6 +7011,15 @@ const namedRange  = `SP_W_${wIdx}`;
                         return `${col}${RT_DATA_ROW}:${col}${rtLastRow}`;
                     }).join(' ');
 
+                    // sqref: all shift-number columns (the cell immediately after each room
+                    // column — includes the manual 1/2 entry for bare "Immo"). Colored with
+                    // the exact same rtShiftRules below, so IR2/IR3/IR4/Immo shift cells
+                    // match the color of the room cell right before them.
+                    const rtShiftNumSqref = workers.map((_, i) => {
+                        const col = excelCol(RT_WORKER_START_0 + i * 3 + 1);
+                        return `${col}${RT_DATA_ROW}:${col}${rtLastRow}`;
+                    }).join(' ');
+
                     // Relative references from the top-left cell of the first range (D6)
                     const rR = excelCol(RT_WORKER_START_0) + RT_DATA_ROW;         // room  "D6"
                     const sR = excelCol(RT_WORKER_START_0 + 1) + RT_DATA_ROW;     // shift "E6"
@@ -6841,7 +7071,20 @@ const namedRange  = `SP_W_${wIdx}`;
                             }).join('') +
                             `</conditionalFormatting>`;
 
-                        const rtPayload = rtShiftCFXml + rtWeekendCF;
+                        // Same rules, same formulas — reused verbatim — just targeted at the
+                        // shift-number column instead of the room column, so those cells
+                        // (including manual Immo 1/2 entries) get the matching color too.
+                        const rtShiftNumCFXml = rtShiftNumSqref ?
+                            `<conditionalFormatting sqref="${rtShiftNumSqref}">` +
+                            rtShiftRules.map(([dxfId, formula]) => {
+                                const r = `<cfRule type="expression" dxfId="${dxfId}" priority="${pri}" stopIfTrue="0">` +
+                                          `<formula>${formula}</formula></cfRule>`;
+                                pri++;
+                                return r;
+                            }).join('') +
+                            `</conditionalFormatting>` : '';
+
+                        const rtPayload = rtShiftCFXml + rtShiftNumCFXml + rtWeekendCF;
                         // Remove any stale CF first, then inject before </worksheet>
                         rtXml = rtXml.replace(/<conditionalFormatting[\s\S]*?<\/conditionalFormatting>/g, '');
                         const rtAnchors = ['<ignoredErrors', '<pageMargins', '<pageSetup', '<extLst', '</worksheet>'];
@@ -6922,6 +7165,7 @@ function shiftToRTView(shift) {
     if (room === 'IR4') return { room:'IR 4', shift: isFruh(base) ? 1 : isMitte(base) ? 3 : 2 };
     if (base === 'ImE')  return { room:'Immo',   shift: 1 };
     if (base === 'ImL')  return { room:'Immo',   shift: 2 };
+    if (base === 'Immo') return { room:'Immo',   shift: null }; // time TBD — manual 1/2 entry in Excel
     if (['VAC','Urlaub IR','Urlaub-ZA'].includes(base)) return { room:'U-IR',   shift: null };
     if (base === 'U-Immo') return { room:'U-Immo', shift: null };
     if (base === 'SICK')   return { room:'K',  shift: null };
@@ -7001,6 +7245,22 @@ function buildDienstplanRTSheet() {
             align:'center'
         })};
     }
+    // Room-summary columns get the same colors as the per-cell conditional formatting
+    // (dxfId 0/1/2 for IR2/IR3/IR4, plus the Plan-tab Vacation IR/Immo colors) —
+    // reused verbatim, not new colors.
+    function roomSumBg(rs) {
+        if (rs.room === 'IR 2')   return 'FFF2A8'; // matches dxfId 0 (IR2 — yellow)
+        if (rs.room === 'IR 3')   return 'CFE2FF'; // matches dxfId 1 (IR3 — blue)
+        if (rs.room === 'IR 4')   return 'F3D1FF'; // matches dxfId 2 (IR4 — purple)
+        if (rs.room === 'Immo')   return 'CFE2E5'; // matches the bare-Immo color used elsewhere
+        if (rs.room === 'U-IR')   return 'B6D7A8'; // matches the Plan tab's Vacation IR color
+        if (rs.room === 'U-Immo') return 'D9D2E9'; // matches the Plan tab's Vacation Immo color
+        return null;
+    }
+    function roomSumHdr(rs, label, defaultBg, sz, defaultFontDark) {
+        const custom = roomSumBg(rs);
+        return hdr(label, custom || defaultBg, custom ? true : !!defaultFontDark, sz);
+    }
     function dat(v, bg, opts) {
         const t = (v instanceof Date) ? 'd' : typeof v === 'number' ? 'n' : 's';
         return { t, v: v ?? '', s: xlsCellStyle(bg ? '#'+bg : null, { sz:9, border:true, ...opts }) };
@@ -7021,15 +7281,15 @@ function buildDienstplanRTSheet() {
     const shiftLabel = s => s === 1 ? 'F' : s === 2 ? 'S' : s === 3 ? 'M' : '-';
     ws[addr(1,1)] = hdr('Dienstplan RT', HDR_BG, false, 11);
     ROOM_SUM.forEach((rs, i) => {
-        ws[addr(1, SUMMARY_START + i*2)]     = hdr(rs.room,                          HDR_BG, false, 8);
-        ws[addr(1, SUMMARY_START + i*2 + 1)] = hdr(rs.shift != null ? shiftLabel(rs.shift) : '-', HDR_BG, false, 8);
+        ws[addr(1, SUMMARY_START + i*2)]     = roomSumHdr(rs, rs.room,                          HDR_BG, 8);
+        ws[addr(1, SUMMARY_START + i*2 + 1)] = roomSumHdr(rs, rs.shift != null ? shiftLabel(rs.shift) : '-', HDR_BG, 8);
     });
     COUNTIF_FIELDS.forEach((cf, i) => {
         ws[addr(1, cfStart + i)] = hdr(cf.label, HDR_BG, false, 8);
     });
     ROOM_SUM.forEach((rs, i) => {
-        ws[addr(1, laengeStart + i*2)]     = hdr('Lg '  + rs.label, HDR_BG, false, 7);
-        ws[addr(1, laengeStart + i*2 + 1)] = hdr('Anz ' + rs.label, HDR_BG, false, 7);
+        ws[addr(1, laengeStart + i*2)]     = roomSumHdr(rs, 'Lg '  + rs.label, HDR_BG, 7);
+        ws[addr(1, laengeStart + i*2 + 1)] = roomSumHdr(rs, 'Anz ' + rs.label, HDR_BG, 7);
     });
 
     // ── Row 2: month name + worker abbreviations ───────────────────────────
@@ -7047,15 +7307,15 @@ function buildDienstplanRTSheet() {
         ws[addr(2, rc + 2)] = hdr('',            HDR_LT, true, 7);
     });
     ROOM_SUM.forEach((rs, i) => {
-        ws[addr(2, SUMMARY_START + i*2)]     = hdr(rs.room,         HDR_LT, true, 8);
-        ws[addr(2, SUMMARY_START + i*2 + 1)] = hdr(rs.shift != null ? shiftLabel(rs.shift) : '-', HDR_LT, true, 8);
+        ws[addr(2, SUMMARY_START + i*2)]     = roomSumHdr(rs, rs.room,         HDR_LT, 8, true);
+        ws[addr(2, SUMMARY_START + i*2 + 1)] = roomSumHdr(rs, rs.shift != null ? shiftLabel(rs.shift) : '-', HDR_LT, 8, true);
     });
     COUNTIF_FIELDS.forEach((cf, i) => {
         ws[addr(2, cfStart + i)] = hdr(cf.label, HDR_LT, true, 8);
     });
     ROOM_SUM.forEach((rs, i) => {
-        ws[addr(2, laengeStart + i*2)]     = hdr('Lg '  + rs.label, HDR_LT, true, 7);
-        ws[addr(2, laengeStart + i*2 + 1)] = hdr('Anz ' + rs.label, HDR_LT, true, 7);
+        ws[addr(2, laengeStart + i*2)]     = roomSumHdr(rs, 'Lg '  + rs.label, HDR_LT, 7, true);
+        ws[addr(2, laengeStart + i*2 + 1)] = roomSumHdr(rs, 'Anz ' + rs.label, HDR_LT, 7, true);
     });
 
     // ── Data rows (start at Excel row 6, matching reference layout) ────────
@@ -7114,6 +7374,7 @@ function buildDienstplanRTSheet() {
                 `IF(ISNUMBER(SEARCH("IR4",${P})),"IR 4",` +
                 `IF(${P}="ImE","Immo",` +
                 `IF(${P}="ImL","Immo",` +
+                `IF(${P}="Immo","Immo",` +
                 `IF(LEFT(${P},6)="U-Immo","U-Immo",` +
                 `IF(OR(LEFT(${P},3)="VAC",LEFT(${P},9)="Urlaub IR",LEFT(${P},9)="Urlaub-ZA"),"U-IR",` +
                 `IF(${P}="SICK","K",` +
@@ -7126,7 +7387,7 @@ function buildDienstplanRTSheet() {
                 `IF(LEFT(${P},3)="CUS","CUS",` +
                 `IF(OR(LEFT(${P},2)="8E",LEFT(${P},2)="8M",LEFT(${P},2)="8L",LEFT(${P},3)="13H",LEFT(${P},2)="6H"),` +
                 `LEFT(${P},IFERROR(FIND("-",${P})-1,LEN(${P}))),` +
-                `"")))))))))))))))))`
+                `""))))))))))))))))))`
             );
 
             // Shift formula — returns 1 (Früh), 2 (Spät), 3 (Mitte/8M), or 0 (absent/off)
@@ -7454,7 +7715,7 @@ async function runSelfCheck() {
     section('1. Core DOM elements');
     const required = ['helpModal','commentPanelModal','selfCheckModal','customHoursModal',
                       'toggle13H','toggle6H','toggleMiddle','mstWdIR2L',
-                      'maxVacation','maxConsecutive','rsIR2eMin','rsIR2eMax',
+                      'maxVacation','maxImmoVacation','maxConsecutive','rsIR2eMin','rsIR2eMax',
                       'rsIR3eMin','rsIR3lMax','rsIR4mMin','rsImmoMin','rsImmoMax',
                       'roomStaffTitle','toggleMiddleLabel','row22h','editRow22h'];
     required.forEach(id => emit(id, !!$(id), id));
@@ -7573,7 +7834,8 @@ async function runSelfCheck() {
         const keys = cfgTest.val.summary.map(s => s.key);
         // When useMiddle=true (default), 8M column should be present
         emit('Excel summary includes 8M when useMiddle=true', useMiddle ? keys.includes('c8M') : !keys.includes('c8M'), keys.join(', '));
-        emit('Excel summary includes vac column', keys.includes('vac'));
+        emit('Excel summary includes Vacation IR column',   keys.includes('vacir'));
+        emit('Excel summary includes Vacation Immo column', keys.includes('vacimmo'));
         emit('Excel summary includes absence column', keys.includes('absence'));
     } else {
         emit('buildExcelExportConfig() runs without error', false, cfgTest.err);
@@ -7591,15 +7853,31 @@ async function runSelfCheck() {
     section('15. Vacation-max color rule (Feature #12)');
     function testVacRule(cUIR, sick, pf, df, fb, maxV) {
         if (maxV<=0) return '';
-        const total = cUIR + sick + pf + df + fb - 1;
+        const total = cUIR + sick + pf + df + fb;
         if (total > maxV) return 'red';
         if (total === maxV) return 'yellow';
         return 'none';
     }
-    emit('cUIR=2,sick=1,total=2,maxVac=2 → yellow', testVacRule(2,1,0,0,0,2)==='yellow');
-    emit('cUIR=3,sick=1,total=3,maxVac=2 → red',    testVacRule(3,1,0,0,0,2)==='red');
-    emit('cUIR=1,sick=0,total=0,maxVac=2 → none',   testVacRule(1,0,0,0,0,2)==='none');
+    emit('cUIR=2,sick=0,total=2,maxVac=2 → yellow', testVacRule(2,0,0,0,0,2)==='yellow');
+    emit('cUIR=2,sick=1,total=3,maxVac=2 → red',    testVacRule(2,1,0,0,0,2)==='red');
+    emit('cUIR=1,sick=0,total=1,maxVac=2 → none',   testVacRule(1,0,0,0,0,2)==='none');
     emit('maxVac=0 → always none',                   testVacRule(99,99,99,99,99,0)==='');
+
+    // ── 15b. Max Immo Vacation rule — independent of Sick/PF/DF/FB and of Max IR ──
+    function testImmoVacRule(uImmoCount, maxImmoV) {
+        if (maxImmoV<=0) return '';
+        if (uImmoCount > maxImmoV) return 'red';
+        if (uImmoCount === maxImmoV) return 'yellow';
+        return 'none';
+    }
+    emit('uImmo=1,maxImmoVac=1 → yellow',                    testImmoVacRule(1,1)==='yellow');
+    emit('uImmo=2,maxImmoVac=1 → red',                       testImmoVacRule(2,1)==='red');
+    emit('uImmo=0,maxImmoVac=1 → none',                      testImmoVacRule(0,1)==='none');
+    emit('maxImmoVac=0 → always none',                       testImmoVacRule(99,0)==='');
+    // Confirms the documented example: Max IR=5, Max Immo=1, with 1 sick + 2 FB already
+    // counted toward IR → 2 IR-vacation slots remain (5-1-2), Immo is unaffected (still 1).
+    emit('Max IR=5 with 1 sick+2 FB leaves 2 IR slots', testVacRule(2,1,0,0,2,5)==='yellow');
+    emit('Max Immo=1 unaffected by IR sick/FB',         testImmoVacRule(1,1)==='yellow');
 
     // ── 16. U-Immo vacation rule ──
     section('16. U-Immo vacation rule (Feature #15)');
@@ -7664,14 +7942,18 @@ const T = {
     opt_mixed:      'Mixed Shifts',
     opt_early:      'Early Only',
     opt_late:       'Late Only',
+    opt_vacir:      'Vacation IR',
+    opt_vacimmo:    'Vacation Immo',
     opt_std:        'Standard',
     opt_fimmo:      'Fixed Immo',
     opt_jimmo:      'Immo Jump-in',
     lbl_fixedoff:   'Fixed Days Off:',
     btnAddWorker:   '+ Add Worker',
     btnClearAll:    'Clear All Workers',
-    lbl_maxvac:     'Max Vacation per day:',
+    lbl_maxvac:     'Max IR Vacation per day:',
     lbl_vacnote:    'Yellow = 1 spot left | Red = Full',
+    lbl_maximmovac: 'Max Immo Vacation per day:',
+    lbl_immovacnote:'Independent of Sick/PF/DF/FB — Immo count only',
     lbl_maxcon:     'Max Consecutive Days:',
     lbl_minstaf:    'Min Working Staff / day:',
     lbl_minstafnote:'0 = disabled | Date cell turns red if below',
@@ -7726,14 +8008,18 @@ const T = {
     opt_mixed:      'Gemischte Dienste',
     opt_early:      'Nur Frühdienst',
     opt_late:       'Nur Spätdienst',
+    opt_vacir:      'U-IR',
+    opt_vacimmo:    'U-Immo',
     opt_std:        'Standard',
     opt_fimmo:      'Festes Immo',
     opt_jimmo:      'Immo-Einspringer',
     lbl_fixedoff:   'Feste freie Tage:',
     btnAddWorker:   '+ Mitarbeiter hinzufügen',
     btnClearAll:    'Alle Mitarbeiter löschen',
-    lbl_maxvac:     'Max. Urlaub pro Tag:',
+    lbl_maxvac:     'Max. Urlaub IR pro Tag:',
     lbl_vacnote:    'Gelb = 1 Platz frei | Rot = Voll',
+    lbl_maximmovac: 'Max. Urlaub Immo pro Tag:',
+    lbl_immovacnote:'Unabhängig von Krank/PF/DF/FB — nur Immo-Anzahl',
     lbl_maxcon:     'Max. aufeinanderfolgende Tage:',
     lbl_minstaf:    'Min. arbeitendes Personal / Tag:',
     lbl_minstafnote:'0 = deaktiviert | Datumszelle wird rot wenn unterschritten',
@@ -7963,6 +8249,8 @@ function applyLang() {
     set('opt_mixed',     t.opt_mixed,    'text');
     set('opt_early',     t.opt_early,    'text');
     set('opt_late',      t.opt_late,     'text');
+    set('opt_bulk_vacir',   t.opt_vacir,   'text');
+    set('opt_bulk_vacimmo', t.opt_vacimmo, 'text');
     set('opt_std',       t.opt_std,      'text');
     set('opt_fimmo',     t.opt_fimmo,    'text');
     set('opt_jimmo',     t.opt_jimmo,    'text');
@@ -7971,6 +8259,8 @@ function applyLang() {
     set('btnClearAll',   t.btnClearAll,  'text');
     set('lbl_maxvac',    t.lbl_maxvac);
     set('lbl_vacnote',   t.lbl_vacnote,  'text');
+    set('lbl_maximmovac',    t.lbl_maximmovac);
+    set('lbl_immovacnote',   t.lbl_immovacnote,  'text');
     set('lbl_maxcon',    t.lbl_maxcon);
     set('lbl_minstaf',   t.lbl_minstaf);
     set('lbl_minstafnote', t.lbl_minstafnote, 'text');
@@ -8011,6 +8301,10 @@ function applyLang() {
 
     // Translate field guide
     updateFieldGuide();
+
+    // Re-render the table so language-dependent per-cell labels (e.g. Vacation IR/Immo ↔ U-IR/U-Immo)
+    // update immediately instead of only on the next unrelated redraw.
+    if (typeof renderTable === 'function' && typeof workers !== 'undefined' && workers && workers.length) renderTable();
 }
 
 
@@ -9457,6 +9751,7 @@ const MOB_SHIFT_LABELS = {
     '8E':'Early (08:00–16:00)', '8L':'Late (12:00–20:30)', '8M':'Mid (09:30–18:00)',
     '13H':'Long (08:00–21:00)', '6H':'Short (6h)', 'ImE':'Immo Early', 'ImL':'Immo Late',
     'VAC':'Vacation', 'SICK':'Sick', 'FB':'Training', 'RB':'On-Call',
+    'Urlaub IR':'Vacation IR', 'Urlaub-ZA':'Vacation IR', 'U-Immo':'Vacation Immo',
     'OFF':'Day Off', '-':'—', 'K':'Sick', 'U':'Vacation', 'DF':'Day Off',
     'PF':'Leave 🌿', 'Offc':'Office', 'LSS':'LSS'
 };
@@ -9880,7 +10175,32 @@ function renderMobileView() {
   <input id="spLockInput" class="spL-input" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter') spLockUnlock()">
   <button class="spL-btn" onclick="spLockUnlock()">Unlock / <em>Entsperren</em></button>
   <div id="spLockErr" class="spL-err">Wrong password — try again. / <em>Falsches Passwort — erneut versuchen.</em></div>
-  <div class="spL-hint">Locked after 12 hours of inactivity. / <em>Gesperrt nach 12 Stunden Inaktivität.</em><br>Forgot your password? Clear site data in browser settings. / <em>Passwort vergessen? Websitedaten im Browser löschen.</em></div>
+
+  <button type="button" id="spLockForgotBtn" class="spL-forgot" onclick="spLockShowRecover()">Forgot lock password? / <em>Sperrpasswort vergessen?</em></button>
+
+  <div id="spLockRecoverBox" class="spL-recover">
+   <p class="spL-recover-sub">Unlock with your Admin or Editor login password instead — your data stays untouched.<br><em>Stattdessen mit Admin- oder Bearbeiter-Passwort entsperren — Ihre Daten bleiben unberührt.</em></p>
+   <input id="spLockRecoverInput" class="spL-input" type="password" placeholder="Admin / Editor password" onkeydown="if(event.key==='Enter') spLockRecoverySubmit()">
+   <button class="spL-btn" onclick="spLockRecoverySubmit()">Unlock / <em>Entsperren</em></button>
+   <div id="spLockRecoverErr" class="spL-err">Incorrect password, or no admin/editor password is set on this file. / <em>Falsches Passwort, oder es ist keines hinterlegt.</em></div>
+   <button type="button" class="spL-forgot" onclick="spLockHideRecover()">← Back to lock password / <em>Zurück</em></button>
+  </div>
+
+  <div class="spL-hint">Locked after 12 hours of inactivity. / <em>Gesperrt nach 12 Stunden Inaktivität.</em></div>
+ </div>
+</div>
+
+<!-- SET NEW DEVICE LOCK PASSWORD — shown after a successful admin/editor recovery unlock -->
+<div id="spLockNewPwBox">
+ <div class="spL-card">
+  <div class="spL-icon">🔑</div>
+  <h2 class="spL-title">Set a new lock password<br><span style="font-size:14px;font-weight:500;color:#64748b;">Neues Sperrpasswort festlegen</span></h2>
+  <p class="spL-sub">You're back in. Choose a new local screen-lock password for this device.<br><em>Sie sind wieder drin. Neues Sperrpasswort für dieses Gerät wählen.</em></p>
+  <input id="spLockNewInput1" class="spL-input" type="password" placeholder="New lock password / Neues Passwort" autocomplete="new-password">
+  <input id="spLockNewInput2" class="spL-input" type="password" placeholder="Confirm / Bestätigen" autocomplete="new-password" onkeydown="if(event.key==='Enter') spLockSaveNew()">
+  <button class="spL-btn" onclick="spLockSaveNew()">Save & Continue / <em>Speichern &amp; Weiter</em></button>
+  <button type="button" class="spL-forgot" onclick="spLockSkipNew()">Skip for now / <em>Später</em></button>
+  <div id="spLockNewErr" class="spL-err">Please enter matching passwords. / <em>Passwörter stimmen nicht überein.</em></div>
  </div>
 </div>
 
@@ -10017,6 +10337,7 @@ function renderMobileView() {
   /* ══ LOCK SCREEN ══════════════════════════════════════════ */
   function spLockShow() {
     document.getElementById('spLock').classList.add('sp-vis');
+    spLockHideRecover();
     setTimeout(function(){ var i=document.getElementById('spLockInput'); if(i){i.value='';i.focus();} },100);
   }
 
@@ -10038,6 +10359,86 @@ function renderMobileView() {
       document.getElementById('spLockInput').value='';
       document.getElementById('spLockInput').focus();
     }
+  };
+
+  /* ── Forgot lock password — recover via the app's Admin/Editor login instead ──
+     Verifies against adminHash/editorHash (global, baked/synced login hashes —
+     completely separate from this device-local lock hash). Never touches any
+     other localStorage key, so GitHub config and data are untouched. */
+  window.spLockShowRecover = function() {
+    var box = document.getElementById('spLockRecoverBox');
+    box.classList.add('sp-vis');
+    document.getElementById('spLockForgotBtn').style.display = 'none';
+    document.getElementById('spLockRecoverErr').style.display = 'none';
+    setTimeout(function(){ var i=document.getElementById('spLockRecoverInput'); if(i){i.value='';i.focus();} },50);
+  };
+
+  window.spLockHideRecover = function() {
+    var box = document.getElementById('spLockRecoverBox');
+    if (box) box.classList.remove('sp-vis');
+    var btn = document.getElementById('spLockForgotBtn');
+    if (btn) btn.style.display = '';
+    var err = document.getElementById('spLockRecoverErr');
+    if (err) err.style.display = 'none';
+    var i = document.getElementById('spLockRecoverInput');
+    if (i) i.value = '';
+  };
+
+  window.spLockRecoverySubmit = async function() {
+    var val = (document.getElementById('spLockRecoverInput').value||'');
+    var err = document.getElementById('spLockRecoverErr');
+    var ok = false;
+    try {
+      if (typeof verifyLoginHash === 'function') {
+        if (typeof adminHash !== 'undefined' && adminHash && await verifyLoginHash(val, adminHash)) ok = true;
+        if (!ok && typeof editorHash !== 'undefined' && editorHash && await verifyLoginHash(val, editorHash)) ok = true;
+      }
+    } catch(e) { ok = false; }
+    if (!val || (typeof adminHash === 'undefined' && typeof editorHash === 'undefined') || (!adminHash && !editorHash)) {
+      // No admin/editor password configured on this file at all — recovery path can't apply
+      ok = false;
+    }
+    if (ok) {
+      err.style.display = 'none';
+      document.getElementById('spLock').classList.remove('sp-vis');
+      spLockHideRecover();
+      // Drop the stale local lock hash — no other stored data is touched
+      localStorage.removeItem(LOCK_KEY);
+      localStorage.setItem(LOCK_TS, Date.now().toString());
+      if (typeof window._renderSyncStatusBadges==='function') window._renderSyncStatusBadges();
+      spLockShowSetNew();
+    } else {
+      err.style.display = 'block';
+      document.getElementById('spLockRecoverInput').value = '';
+      document.getElementById('spLockRecoverInput').focus();
+    }
+  };
+
+  /* ── Prompt for a fresh device lock password after a recovery unlock ── */
+  function spLockShowSetNew() {
+    document.getElementById('spLockNewInput1').value = '';
+    document.getElementById('spLockNewInput2').value = '';
+    document.getElementById('spLockNewErr').style.display = 'none';
+    document.getElementById('spLockNewPwBox').classList.add('sp-vis');
+    setTimeout(function(){ var i=document.getElementById('spLockNewInput1'); if(i) i.focus(); },100);
+  }
+
+  window.spLockSaveNew = async function() {
+    var p1 = document.getElementById('spLockNewInput1').value||'';
+    var p2 = document.getElementById('spLockNewInput2').value||'';
+    var err = document.getElementById('spLockNewErr');
+    if (!p1 || p1 !== p2) { err.style.display='block'; return; }
+    var hash = await sha256(p1);
+    localStorage.setItem(LOCK_KEY, hash);
+    localStorage.setItem(LOCK_TS, Date.now().toString());
+    document.getElementById('spLockNewPwBox').classList.remove('sp-vis');
+  };
+
+  window.spLockSkipNew = function() {
+    // Leave LOCK_KEY unset — the 12h screen lock simply stays off for this
+    // device until a new lock password is chosen (e.g. next time via the
+    // setup wizard or by revisiting this prompt).
+    document.getElementById('spLockNewPwBox').classList.remove('sp-vis');
   };
 
   // Reset the 12-hour timer on any user interaction
@@ -10211,9 +10612,8 @@ function renderMobileView() {
     if(!bulkSelectFullHTML) bulkSelectFullHTML = sel.innerHTML;
     if(window.currentRole === 'viewer' && !window.isEditMode){
       sel.innerHTML = '<optgroup label="' + (_de() ? 'Urlaubsanträge' : 'Vacation Requests') + '">'
-        + '<option value="Urlaub IR">U-IR</option>'
-        + '<option value="Urlaub-ZA">U-ZA</option>'
-        + '<option value="U-Immo">U-Immo</option>'
+        + '<option value="Urlaub IR">' + (_de() ? 'U-IR' : 'Vacation IR') + '</option>'
+        + '<option value="U-Immo">' + (_de() ? 'U-Immo' : 'Vacation Immo') + '</option>'
         + '</optgroup>';
     } else {
       sel.innerHTML = bulkSelectFullHTML;
@@ -10298,7 +10698,7 @@ function renderMobileView() {
       + '    <label style="display:block; margin-bottom:3px; font-weight:bold;">' + (_de() ? 'Mitarbeiter' : 'Select worker') + '</label>'
       + '    <select id="vacRangeWorkerSelect"></select>'
       + '  </div>'
-      + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">' + (_de() ? 'Urlaubsart' : 'Vacation type') + '</label><select id="vacRangeType"><option value="Urlaub IR">U-IR</option><option value="Urlaub-ZA">U-ZA</option><option value="U-Immo">U-Immo</option></select></div>'
+      + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">' + (_de() ? 'Urlaubsart' : 'Vacation type') + '</label><select id="vacRangeType"><option value="Urlaub IR">' + (_de() ? 'U-IR' : 'Vacation IR') + '</option><option value="U-Immo">' + (_de() ? 'U-Immo' : 'Vacation Immo') + '</option></select></div>'
       + '  <div></div>'
       + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">' + (_de() ? 'Startdatum' : 'Start date') + '</label><input type="date" id="vacRangeStart"></div>'
       + '  <div><label style="display:block; margin-bottom:3px; font-weight:bold;">' + (_de() ? 'Enddatum' : 'End date') + '</label><input type="date" id="vacRangeEnd"></div>'
@@ -10440,7 +10840,7 @@ function renderMobileView() {
     if(!viewerMode) return origApplyBulkShift.apply(this, arguments);
     if(!window.selectedCells || window.selectedCells.size === 0) return alert(_t('No cells selected!','Keine Zellen ausgewählt!'));
     const shift = $('bulkShiftSelect') ? $('bulkShiftSelect').value : '';
-    if(['Urlaub IR','Urlaub-ZA','U-Immo'].indexOf(shift) === -1) return alert(_t('Viewers can only request U-IR, U-ZA or U-Immo in select mode.','Nur-Leser können im Auswahlmodus nur U-IR, U-ZA oder U-Immo beantragen.'));
+    if(['Urlaub IR','U-Immo'].indexOf(shift) === -1) return alert(_t('Viewers can only request Vacation IR or Vacation Immo in select mode.','Nur-Leser können im Auswahlmodus nur U-IR oder U-Immo beantragen.'));
     let changed=0, skipped=0, pushed=false;
     window.selectedCells.forEach(function(key){
       const parts = key.split('_').map(Number);
